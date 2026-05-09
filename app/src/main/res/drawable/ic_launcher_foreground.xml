@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Grouped and scaled to fit the 66x66dp safe zone (21,21 to 87,87) -->
+    <!-- D20 Outline -->
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M54,26 L78,38 L78,66 L54,78 L30,66 L30,38 Z" />
+
+    <!-- Top Face -->
+    <path
+        android:fillColor="#43A047"
+        android:pathData="M54,26 L78,38 L30,38 Z" />
+
+    <!-- Central Triangle (Main Face) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,34 L72,62 L36,62 Z" />
+
+    <!-- Number 20 placeholder (minimalist dot) -->
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M54,48 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+
+    <!-- Bottom Left Face -->
+    <path
+        android:fillColor="#1E88E5"
+        android:pathData="M30,38 L54,78 L30,66 Z" />
+
+    <!-- Bottom Right Face -->
+    <path
+        android:fillColor="#2E7D32"
+        android:pathData="M78,38 L78,66 L54,78 Z" />
+
+    <!-- Edge Lines for clarity -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M54,26 L54,34 M30,38 L36,62 M78,38 L72,62 M54,78 L72,62 M54,78 L36,62 M36,62 L72,62" />
+</vector>
