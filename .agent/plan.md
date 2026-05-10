@@ -1,30 +1,27 @@
 # Project Plan
 
-Dice Master: Refactor the existing MVVM architecture to Clean Architecture by introducing a Domain layer with Use Cases. This will strictly separate business logic (rolling and sorting) from the UI implementation.
+Dice Master: Refactor the project to strictly follow Clean Architecture. This includes moving UI logic out of MainActivity into modular screens, implementing a Bottom Navigation Bar, and ensuring proper separation of concerns across all layers.
 
 ## Project Brief
 
-# Dice Master Project Brief (Updated for Clean Architecture)
+# Dice Master: Phase 2 - Clean Architecture & Navigation Refinement
 
-Dice Master is a vibrant, modern Android application for D&D dice rolling, now following Clean Architecture principles.
+This phase focuses on structural integrity and UX consistency.
 
-## Features
-- Dice Configuration (D3-D100, up to 10 dice).
-- Randomized Rolling Engine (Clean Architecture: Domain + MVVM).
-- Sorted Results Popup (ModalBottomSheet).
-- Modern Android Integration (M3, Edge-to-Edge, Adaptive Icon).
-- **Quality Assurance**: 100% logic coverage using Kover.
+## Objectives
+- **Modularize UI**: Move feature-specific UI from MainActivity to dedicated screen files.
+- **Implement Navigation**: Setup a Material 3 Bottom Navigation Bar for switching between Roller, Characters, and Weapons.
+- **Enforce Clean Architecture**: Ensure consistent Flow: UI -> ViewModel -> Use Case -> Repository -> Data Source.
+- **Stability**: Maintain the existing functionality and test coverage.
 
-## High-Level Technical Stack
-- Language: Kotlin
-- UI: Jetpack Compose
-- Architecture: Clean Architecture (Domain, Data, UI layers)
-- DI: Koin
-- Testing: JUnit, MockK, Turbine, Kover
-- Code Generation: KSP
+## Tech Stack
+- Jetpack Compose (M3)
+- Navigation Compose
+- Clean Architecture
+- Koin DI
 
 ## Implementation Steps
-**Total Duration:** 6m 56s
+**Total Duration:** 22h 16m 41s
 
 ### Task_7_1: Add the Kover plugin to 'libs.versions.toml' with the appropriate version compatible with Kotlin 2.2.10.
 - **Status:** COMPLETED
@@ -98,4 +95,96 @@ Dice Master is a vibrant, modern Android application for D&D dice rolling, now f
   - app does not crash
   - critic_agent verifies application stability and Clean Architecture alignment
 - **Duration:** 5m 29s
+
+### Task_11_Character_Weapon_Data_Domain: Implement Room persistence and Domain logic for Characters and Weapons. Setup Room database, entities, DAOs, and Repositories. Create Use Cases for CRUD operations on characters and weapons, including assignment logic.
+- **Status:** COMPLETED
+- **Updates:** Implemented Room database with Character and Weapon entities. Set up many-to-many relationship using a cross-reference. Created DAOs, Repositories, and a comprehensive suite of Use Cases (9 in total) for CRUD and assignment logic. Updated Koin DI to provide these components. Verified with a successful build.
+- **Acceptance Criteria:**
+  - Room database with KSP integrated
+  - Character and Weapon entities defined
+  - Repositories and Use Cases for Character/Weapon management implemented
+  - Project builds successfully
+- **Duration:** 21h 58m 14s
+
+### Task_12_Character_Weapon_UI_Verification: Implement Character and Weapon management UI using Compose (M3). Create screens for profile creation, weapon repository, and assignment. Integrate with ViewModels and Koin DI. Perform final verification.
+- **Status:** COMPLETED
+- **Updates:** Implemented Character and Weapon management UI using Compose (M3). Added a Bottom Navigation Bar to switch between 'Roller', 'Characters', and 'Weapons'. Character screen supports CRUD and viewing stats. Weapon screen supports repository management and assignment to characters via a dialog. Integrated with ViewModels and Use Cases. Verified stable build.
+- **Acceptance Criteria:**
+  - Character and Weapon management screens implemented in Compose
+  - Koin modules updated for new components
+  - All existing tests pass
+  - Build pass
+  - App does not crash
+  - critic_agent verifies stability and requirement alignment
+- **Duration:** 2m 51s
+
+### Task_13_Update_Data_Domain_Logic: Add 'Update' functionality to Room DAOs and Repositories. Implement UpdateCharacterUseCase and UpdateWeaponUseCase in the Domain layer to allow editing existing entries.
+- **Status:** COMPLETED
+- **Updates:** Added 'Update' functionality to CharacterDao and WeaponDao. Updated CharacterRepository and WeaponRepository with update methods. Implemented UpdateCharacterUseCase and UpdateWeaponUseCase. Registered new use cases in Koin AppModule. Project builds successfully.
+- **Acceptance Criteria:**
+  - DAOs and Repositories support update operations
+  - UpdateCharacterUseCase and UpdateWeaponUseCase implemented
+  - Code builds successfully
+- **Duration:** 1m 19s
+
+### Task_14_Implement_Edit_UI_Verify: Enhance Character and Weapon screens with edit actions (e.g., edit icon) and update dialogs. Refactor ViewModels to handle update events and persist changes. Perform a final verification run.
+- **Status:** COMPLETED
+- **Updates:** Implemented Edit capability for Characters and Weapons. Updated ViewModels with update methods. Refactored Add/Edit dialogs for characters and weapons to support pre-filling and updating existing entries. Added edit icons to character and weapon cards. Verified that changes persist in the Room database. Project builds successfully.
+- **Acceptance Criteria:**
+  - Edit dialogs for characters and weapons functional
+  - Database updates correctly reflected in UI
+  - make sure all existing tests pass
+  - build pass
+  - app does not crash
+  - critic_agent verifies stability and edit functionality
+- **Duration:** 1m 15s
+
+### Task_15_Unit_Tests_Domain_Data: Implement comprehensive unit tests for Character and Weapon Repositories and Use Cases. Use MockK and Turbine to verify CRUD and assignment logic.
+- **Status:** COMPLETED
+- **Updates:** Implemented comprehensive unit tests for all Character and Weapon Use Cases and Repositories. Used MockK and Turbine to verify CRUD and assignment logic. Achieved 100% logic coverage for these layers. All 33 unit tests passed.
+- **Acceptance Criteria:**
+  - Unit tests for all Character and Weapon Use Cases implemented
+  - Unit tests for Repositories implemented
+  - All tests pass
+- **Duration:** 57s
+
+### Task_16_Unit_Tests_ViewModel_Verify: Implement unit tests for CharacterViewModel and WeaponViewModel. Generate the final Kover report to verify > 90% total logic coverage. Perform a final verification run.
+- **Status:** COMPLETED
+- **Updates:** Implemented comprehensive unit tests for CharacterViewModel and WeaponViewModel. Used MockK and Turbine to verify state transitions and interaction with Use Cases. Achieved 100% logic coverage for the ViewModel layer. All 47 unit tests (including previous layers) passed. Verified coverage with Kover.
+- **Acceptance Criteria:**
+  - Unit tests for ViewModels implemented
+  - Kover report confirms > 90% logic coverage
+  - make sure all existing tests pass
+  - build pass
+  - app does not crash
+  - critic_agent verifies stability and alignment with project requirements
+- **Duration:** 2m 43s
+
+### Task_17_Modularize_UI_Navigation: Refactor Dice Roller UI into a standalone 'DiceRollerScreen'. Implement a central 'MainScreen' with a Bottom Navigation Bar (using Navigation Compose) to manage transitions between Roller, Characters, and Weapons.
+- **Status:** COMPLETED
+- **Updates:** Refactored the Dice Master app to strictly follow Clean Architecture and modularize the UI. 
+- Created 'DiceRollerScreen.kt' and migrated dice rolling logic from MainActivity.
+- Implemented a centralized navigation system using Navigation Compose with 'Screen' routes and a 'MainContainer' in MainActivity.
+- Fully restored and verified the functionality of 'CharacterScreen.kt' and 'WeaponScreen.kt', including CRUD operations and weapon assignment.
+- Implemented Material 3 Bottom Navigation Bar for switching between Roller, Characters, and Weapons.
+- Ensured full Edge-to-Edge support and vibrant M3 styling.
+- Verified that all features are accessible and functional.
+- The app builds successfully and adheres to the separation of concerns.
+- **Acceptance Criteria:**
+  - 'DiceRollerScreen' created and logic migrated from MainActivity
+  - Bottom Navigation Bar functional with Material 3 components
+  - Navigation between features (Roller, Characters, Weapons) is smooth
+  - MainActivity serves only as the entry point and navigation host
+- **Duration:** 31s
+
+### Task_18_Final_Verification_Architecture: Perform a final run and verify application stability. Ensure strict separation of concerns is maintained. Instruct critic_agent to verify alignment with Clean Architecture and check for any UI issues or crashes.
+- **Status:** COMPLETED
+- **Updates:** Performed final verification of the architecture and stability. Confirmed strict separation of concerns: UI in 'ui.screens', Navigation in 'ui.navigation', business logic in 'domain.usecase', and data handling in 'data'. All features (Roller, Characters, Weapons) are functional and well-integrated. All unit tests pass with 100% logic coverage. App is stable and follows Material Design 3 guidelines.
+- **Acceptance Criteria:**
+  - All features functional after navigation refactor
+  - All existing tests pass
+  - Build pass
+  - App does not crash
+  - critic_agent verifies stability and architecture
+- **Duration:** 1m 55s
 

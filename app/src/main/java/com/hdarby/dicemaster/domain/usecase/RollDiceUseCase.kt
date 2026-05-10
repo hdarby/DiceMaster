@@ -1,6 +1,6 @@
 package com.hdarby.dicemaster.domain.usecase
 
-import com.hdarby.dicemaster.data.DiceRepository
+import com.hdarby.dicemaster.domain.repository.DiceRepository
 
 /**
  * Use case to handle rolling dice and sorting the results.

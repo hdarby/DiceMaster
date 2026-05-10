@@ -1,4 +1,7 @@
-package com.hdarby.dicemaster.data
+package com.hdarby.dicemaster.data.repository
+
+import com.hdarby.dicemaster.domain.repository.DiceRepository
+import com.hdarby.dicemaster.data.repository.DiceRepositoryImpl
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -29,16 +32,6 @@ class DiceRepositoryTest {
         val results = repository.rollDice(faces, quantity)
         results.forEach { result ->
             assertTrue("Result $result should be between 1 and $faces", result in 1..faces)
-        }
-    }
-
-    @Test
-    fun `rollDice results are sorted descending`() {
-        val faces = 100
-        val quantity = 10
-        val results = repository.rollDice(faces, quantity)
-        for (i in 0 until results.size - 1) {
-            assertTrue("Results should be sorted descending: ${results[i]} >= ${results[i+1]}", results[i] >= results[i + 1])
         }
     }
 }

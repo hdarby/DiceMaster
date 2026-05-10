@@ -1,6 +1,6 @@
 package com.hdarby.dicemaster.domain.usecase
 
-import com.hdarby.dicemaster.data.DiceRepository
+import com.hdarby.dicemaster.domain.repository.DiceRepository
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify

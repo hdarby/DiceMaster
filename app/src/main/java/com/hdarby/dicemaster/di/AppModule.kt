@@ -1,14 +1,71 @@
 package com.hdarby.dicemaster.di
 
-import com.hdarby.dicemaster.data.DiceRepository
-import com.hdarby.dicemaster.data.DiceRepositoryImpl
+import androidx.room.Room
+import com.hdarby.dicemaster.data.local.DiceMasterDatabase
+import com.hdarby.dicemaster.data.repository.CharacterRepositoryImpl
+import com.hdarby.dicemaster.data.repository.DiceRepositoryImpl
+import com.hdarby.dicemaster.data.repository.WeaponRepositoryImpl
+import com.hdarby.dicemaster.domain.repository.CharacterRepository
+import com.hdarby.dicemaster.domain.repository.DiceRepository
+import com.hdarby.dicemaster.domain.repository.WeaponRepository
 import com.hdarby.dicemaster.domain.usecase.RollDiceUseCase
+import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.GetCharactersUseCase
+import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
+import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.UpdateCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.weapon.AddWeaponUseCase
+import com.hdarby.dicemaster.domain.usecase.weapon.DeleteWeaponUseCase
+import com.hdarby.dicemaster.domain.usecase.weapon.GetWeaponsUseCase
+import com.hdarby.dicemaster.domain.usecase.weapon.UpdateWeaponUseCase
+import com.hdarby.dicemaster.viewmodel.CharacterViewModel
 import com.hdarby.dicemaster.viewmodel.DiceViewModel
+import com.hdarby.dicemaster.viewmodel.WeaponViewModel
+import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val appModule = module {
+    // Database
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            DiceMasterDatabase::class.java,
+            "dice_master_db"
+        ).build()
+    }
+
+    // DAOs
+    single { get<DiceMasterDatabase>().characterDao() }
+    single { get<DiceMasterDatabase>().weaponDao() }
+
+    // Repositories
     single<DiceRepository> { DiceRepositoryImpl() }
+    single<CharacterRepository> { CharacterRepositoryImpl(get()) }
+    single<WeaponRepository> { WeaponRepositoryImpl(get()) }
+
+    // Use Cases
     factory { RollDiceUseCase(get()) }
+    
+    // Character Use Cases
+    factory { GetCharactersUseCase(get()) }
+    factory { GetCharactersWithWeaponsUseCase(get()) }
+    factory { AddCharacterUseCase(get()) }
+    factory { DeleteCharacterUseCase(get()) }
+    factory { UpdateCharacterUseCase(get()) }
+    factory { AssignWeaponToCharacterUseCase(get()) }
+    factory { UnassignWeaponFromCharacterUseCase(get()) }
+
+    // Weapon Use Cases
+    factory { GetWeaponsUseCase(get()) }
+    factory { AddWeaponUseCase(get()) }
+    factory { UpdateWeaponUseCase(get()) }
+    factory { DeleteWeaponUseCase(get()) }
+
+    // ViewModel
     viewModel { DiceViewModel(get()) }
+    viewModel { CharacterViewModel(get(), get(), get(), get(), get()) }
+    viewModel { WeaponViewModel(get(), get(), get(), get(), get()) }
 }

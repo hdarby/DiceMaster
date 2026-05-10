@@ -1,0 +1,147 @@
+package com.hdarby.dicemaster.viewmodel
+
+import app.cash.turbine.test
+import com.hdarby.dicemaster.domain.model.Character
+import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
+import com.hdarby.dicemaster.domain.model.Stats
+import com.hdarby.dicemaster.domain.usecase.character.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class CharacterViewModelTest {
+
+    private val getCharactersWithWeaponsUseCase: GetCharactersWithWeaponsUseCase = mockk()
+    private val addCharacterUseCase: AddCharacterUseCase = mockk()
+    private val updateCharacterUseCase: UpdateCharacterUseCase = mockk()
+    private val deleteCharacterUseCase: DeleteCharacterUseCase = mockk()
+    private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase = mockk()
+    
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private lateinit var viewModel: CharacterViewModel
+
+    private val character = Character(1, "Grog", "Goliath", Stats(20, 12, 18, 6, 10, 8))
+    private val characterWithWeapons = CharacterWithWeapons(character, emptyList())
+
+    @Before
+    fun setup() {
+        Dispatchers.setMain(testDispatcher)
+        every { getCharactersWithWeaponsUseCase() } returns flowOf(listOf(characterWithWeapons))
+        viewModel = CharacterViewModel(
+            getCharactersWithWeaponsUseCase,
+            addCharacterUseCase,
+            updateCharacterUseCase,
+            deleteCharacterUseCase,
+            unassignWeaponFromCharacterUseCase
+        )
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `initialization loads characters`() = runTest {
+        viewModel.uiState.test {
+            val state = awaitItem()
+            assertEquals(listOf(characterWithWeapons), state.characters)
+            assertFalse(state.isLoading)
+        }
+    }
+
+    @Test
+    fun `addCharacter calls use case`() = runTest {
+        coEvery { addCharacterUseCase(character) } returns 1L
+        
+        viewModel.addCharacter(character)
+        
+        coVerify { addCharacterUseCase(character) }
+    }
+
+    @Test
+    fun `updateCharacter calls use case`() = runTest {
+        coEvery { updateCharacterUseCase(character) } returns Unit
+        
+        viewModel.updateCharacter(character)
+        
+        coVerify { updateCharacterUseCase(character) }
+    }
+
+    @Test
+    fun `deleteCharacter calls use case`() = runTest {
+        coEvery { deleteCharacterUseCase(character) } returns Unit
+        
+        viewModel.deleteCharacter(character)
+        
+        coVerify { deleteCharacterUseCase(character) }
+    }
+
+    @Test
+    fun `unassignWeapon calls use case`() = runTest {
+        coEvery { unassignWeaponFromCharacterUseCase(1L, 2L) } returns Unit
+        
+        viewModel.unassignWeapon(1L, 2L)
+        
+        coVerify { unassignWeaponFromCharacterUseCase(1L, 2L) }
+    }
+
+    @Test
+    fun `loading state is updated during load`() = runTest {
+        every { getCharactersWithWeaponsUseCase() } returns flow {
+            kotlinx.coroutines.delay(100)
+            emit(listOf(characterWithWeapons))
+        }
+        
+        val vm = CharacterViewModel(
+            getCharactersWithWeaponsUseCase,
+            addCharacterUseCase,
+            updateCharacterUseCase,
+            deleteCharacterUseCase,
+            unassignWeaponFromCharacterUseCase
+        )
+        
+        vm.uiState.test {
+            assertTrue(awaitItem().isLoading)
+            assertFalse(awaitItem().isLoading)
+        }
+    }
+
+    @Test
+    fun `error state is updated on error`() = runTest {
+        val errorMessage = "Failed to load"
+        every { getCharactersWithWeaponsUseCase() } returns flow {
+            throw RuntimeException(errorMessage)
+        }
+        
+        val vm = CharacterViewModel(
+            getCharactersWithWeaponsUseCase,
+            addCharacterUseCase,
+            updateCharacterUseCase,
+            deleteCharacterUseCase,
+            unassignWeaponFromCharacterUseCase
+        )
+        
+        vm.uiState.test {
+            // Initial state from init {} block load attempt
+            val state = awaitItem()
+            assertEquals(errorMessage, state.error)
+        }
+    }
+}
