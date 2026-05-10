@@ -4,7 +4,11 @@ import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
-import com.hdarby.dicemaster.domain.usecase.character.*
+import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
+import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.UpdateCharacterUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -100,6 +104,54 @@ class CharacterViewModelTest {
         viewModel.unassignWeapon(1L, 2L)
         
         coVerify { unassignWeaponFromCharacterUseCase(1L, 2L) }
+    }
+
+    @Test
+    fun `addCharacter updates error on failure`() = runTest {
+        val errorMessage = "Failed to add"
+        coEvery { addCharacterUseCase(any()) } throws Exception(errorMessage)
+        
+        viewModel.addCharacter(character)
+        
+        viewModel.uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
+        }
+    }
+
+    @Test
+    fun `updateCharacter updates error on failure`() = runTest {
+        val errorMessage = "Failed to update"
+        coEvery { updateCharacterUseCase(any()) } throws Exception(errorMessage)
+        
+        viewModel.updateCharacter(character)
+        
+        viewModel.uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
+        }
+    }
+
+    @Test
+    fun `deleteCharacter updates error on failure`() = runTest {
+        val errorMessage = "Failed to delete"
+        coEvery { deleteCharacterUseCase(any()) } throws Exception(errorMessage)
+        
+        viewModel.deleteCharacter(character)
+        
+        viewModel.uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
+        }
+    }
+
+    @Test
+    fun `unassignWeapon updates error on failure`() = runTest {
+        val errorMessage = "Failed to unassign"
+        coEvery { unassignWeaponFromCharacterUseCase(any(), any()) } throws Exception(errorMessage)
+        
+        viewModel.unassignWeapon(1L, 2L)
+        
+        viewModel.uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
+        }
     }
 
     @Test

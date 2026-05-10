@@ -16,7 +16,7 @@ class WeaponUseCasesTest {
 
     private val repository: WeaponRepository = mockk()
     
-    private val weapon = Weapon(1, "Greataxe", "1d12", "Slashing", 2)
+    private val weapon = Weapon(1, "Greataxe", "Greataxe", "1d12", "Slashing", 2)
 
     @Test
     fun `GetWeaponsUseCase returns weapons from repository`() = runTest {

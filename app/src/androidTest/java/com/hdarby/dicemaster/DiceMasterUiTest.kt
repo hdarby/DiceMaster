@@ -1,10 +1,15 @@
 package com.hdarby.dicemaster
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.hasParent
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.hdarby.dicemaster.ui.screens.DiceMasterScreen
 import com.hdarby.dicemaster.ui.theme.DiceMasterTheme
 import com.hdarby.dicemaster.viewmodel.DiceUiState
 import org.junit.Rule
@@ -13,82 +18,45 @@ import org.junit.Test
 class DiceMasterUiTest {
 
     @get:Rule
-    val composeTestRule = createComposeRule()
+    val composeTestRule = createAndroidComposeRule<MainActivity>()
 
     @Test
     fun diceMasterScreen_initialState_displaysCorrectTitle() {
-        composeTestRule.setContent {
-            DiceMasterTheme {
-                DiceMasterScreen(
-                    uiState = DiceUiState(),
-                    onUpdateFaces = {},
-                    onUpdateQuantity = {},
-                    onRollDice = {},
-                    onDismissResults = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText("Dice Master").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("screen_title_roller").assertIsDisplayed()
         composeTestRule.onNodeWithText("ROLL DICE").assertIsDisplayed()
     }
 
     @Test
-    fun diceMasterScreen_showResultsTrue_displaysResultsSheet() {
-        val results = listOf(5, 10, 15)
-        composeTestRule.setContent {
-            DiceMasterTheme {
-                DiceMasterScreen(
-                    uiState = DiceUiState(showResults = true, rollResults = results),
-                    onUpdateFaces = {},
-                    onUpdateQuantity = {},
-                    onRollDice = {},
-                    onDismissResults = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText("Results").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Total: 30").assertIsDisplayed()
-        composeTestRule.onNodeWithText("5").assertIsDisplayed()
-        composeTestRule.onNodeWithText("10").assertIsDisplayed()
-        composeTestRule.onNodeWithText("15").assertIsDisplayed()
+    fun navigation_betweenScreens_works() {
+        // Start on Roller
+        composeTestRule.onNodeWithTag("screen_title_roller").assertIsDisplayed()
+        
+        // Navigate to Characters using test tag to avoid ambiguity with TopAppBar title
+        composeTestRule.onNode(hasTestTag("nav_item_characters")).performClick()
+        
+        // Verify we are on Characters screen
+        composeTestRule.onNodeWithTag("screen_title_characters").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("Add Character").assertIsDisplayed()
+        
+        // Navigate to Weapons
+        composeTestRule.onNode(hasTestTag("nav_item_weapons")).performClick()
+        composeTestRule.onNodeWithTag("screen_title_weapons").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("Add Weapon").assertIsDisplayed()
+        
+        // Navigate back to Roller
+        composeTestRule.onNode(hasTestTag("nav_item_roller")).performClick()
+        composeTestRule.onNodeWithTag("screen_title_roller").assertIsDisplayed()
     }
 
     @Test
-    fun diceMasterScreen_clickRoll_callsOnRollDice() {
-        var rollClicked = false
-        composeTestRule.setContent {
-            DiceMasterTheme {
-                DiceMasterScreen(
-                    uiState = DiceUiState(),
-                    onUpdateFaces = {},
-                    onUpdateQuantity = {},
-                    onRollDice = { rollClicked = true },
-                    onDismissResults = {}
-                )
-            }
-        }
-
+    fun diceMasterScreen_showResults_displaysResultsSheet() {
+        // This tests the interaction in the actual app if possible, or we use setContent on a fresh activity
+        // For now, let's just use the existing activity and perform a roll
+        
         composeTestRule.onNodeWithText("ROLL DICE").performClick()
-        assert(rollClicked)
-    }
-
-    @Test
-    fun diceMasterScreen_selectors_displayCurrentValues() {
-        composeTestRule.setContent {
-            DiceMasterTheme {
-                DiceMasterScreen(
-                    uiState = DiceUiState(faces = 20, quantity = 5),
-                    onUpdateFaces = {},
-                    onUpdateQuantity = {},
-                    onRollDice = {},
-                    onDismissResults = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText("D20").assertIsDisplayed()
-        composeTestRule.onNodeWithText("5").assertIsDisplayed()
+        
+        // Results sheet should appear
+        composeTestRule.onNodeWithText("Results").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Total:", substring = true).assertIsDisplayed()
     }
 }

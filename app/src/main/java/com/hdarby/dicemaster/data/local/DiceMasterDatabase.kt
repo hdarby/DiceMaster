@@ -10,7 +10,7 @@ import com.hdarby.dicemaster.data.local.entity.WeaponEntity
 
 @Database(
     entities = [CharacterEntity::class, WeaponEntity::class, CharacterWeaponCrossRef::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class DiceMasterDatabase : RoomDatabase() {

@@ -1,7 +1,6 @@
 package com.hdarby.dicemaster.domain.repository
 
 import com.hdarby.dicemaster.domain.model.Character
-import com.hdarby.dicemaster.domain.model.Weapon
 import kotlinx.coroutines.flow.Flow
 
 interface CharacterRepository {

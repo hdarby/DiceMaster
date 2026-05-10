@@ -1,8 +1,6 @@
 package com.hdarby.dicemaster.data.repository
 
 import com.hdarby.dicemaster.domain.repository.DiceRepository
-import com.hdarby.dicemaster.data.repository.DiceRepositoryImpl
-
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before

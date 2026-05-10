@@ -2,8 +2,11 @@ package com.hdarby.dicemaster.viewmodel
 
 import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.Weapon
-import com.hdarby.dicemaster.domain.usecase.weapon.*
 import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.weapon.AddWeaponUseCase
+import com.hdarby.dicemaster.domain.usecase.weapon.DeleteWeaponUseCase
+import com.hdarby.dicemaster.domain.usecase.weapon.GetWeaponsUseCase
+import com.hdarby.dicemaster.domain.usecase.weapon.UpdateWeaponUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -35,7 +38,7 @@ class WeaponViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: WeaponViewModel
 
-    private val weapon = Weapon(1, "Greataxe", "1d12", "Slashing", 2)
+    private val weapon = Weapon(1, "Greataxe", "Greataxe", "1d12", "Slashing", 2)
 
     @Before
     fun setup() {
@@ -98,6 +101,54 @@ class WeaponViewModelTest {
         viewModel.assignWeaponToCharacter(1L, 2L)
         
         coVerify { assignWeaponToCharacterUseCase(1L, 2L) }
+    }
+
+    @Test
+    fun `addWeapon updates error on failure`() = runTest {
+        val errorMessage = "Failed to add weapon"
+        coEvery { addWeaponUseCase(any()) } throws Exception(errorMessage)
+        
+        viewModel.addWeapon(weapon)
+        
+        viewModel.uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
+        }
+    }
+
+    @Test
+    fun `updateWeapon updates error on failure`() = runTest {
+        val errorMessage = "Failed to update weapon"
+        coEvery { updateWeaponUseCase(any()) } throws Exception(errorMessage)
+        
+        viewModel.updateWeapon(weapon)
+        
+        viewModel.uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
+        }
+    }
+
+    @Test
+    fun `deleteWeapon updates error on failure`() = runTest {
+        val errorMessage = "Failed to delete weapon"
+        coEvery { deleteWeaponUseCase(any()) } throws Exception(errorMessage)
+        
+        viewModel.deleteWeapon(weapon)
+        
+        viewModel.uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
+        }
+    }
+
+    @Test
+    fun `assignWeaponToCharacter updates error on failure`() = runTest {
+        val errorMessage = "Failed to assign weapon"
+        coEvery { assignWeaponToCharacterUseCase(any(), any()) } throws Exception(errorMessage)
+        
+        viewModel.assignWeaponToCharacter(1L, 2L)
+        
+        viewModel.uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
+        }
     }
 
     @Test

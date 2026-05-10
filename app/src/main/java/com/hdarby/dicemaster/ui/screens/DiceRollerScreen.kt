@@ -1,20 +1,54 @@
 package com.hdarby.dicemaster.ui.screens
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Casino
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.RectangleShape
+import com.hdarby.dicemaster.ui.components.shapes.KiteShape
+import com.hdarby.dicemaster.ui.components.shapes.PentagonShape
+import com.hdarby.dicemaster.ui.components.shapes.TriangleShape
+import androidx.compose.ui.platform.testTag
 import com.hdarby.dicemaster.ui.theme.DiceMasterTheme
 import com.hdarby.dicemaster.viewmodel.DiceUiState
 import com.hdarby.dicemaster.viewmodel.DiceViewModel
@@ -63,6 +97,7 @@ fun DiceMasterScreen(
 
             Text(
                 text = "Dice Master",
+                modifier = Modifier.testTag("screen_title_roller"),
                 style = MaterialTheme.typography.displayMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -108,7 +143,8 @@ fun DiceMasterScreen(
             ) {
                 ResultsContent(
                     results = uiState.rollResults,
-                    total = uiState.rollResults.sum()
+                    total = uiState.rollResults.sum(),
+                    faces = uiState.faces
                 )
             }
         }
@@ -189,7 +225,7 @@ fun DropdownSelector(
 }
 
 @Composable
-fun ResultsContent(results: List<Int>, total: Int) {
+fun ResultsContent(results: List<Int>, total: Int, faces: Int) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -224,20 +260,38 @@ fun ResultsContent(results: List<Int>, total: Int) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(results) { result ->
-                ResultItem(value = result)
+                ResultItem(value = result, faces = faces)
             }
         }
     }
 }
 
 @Composable
-fun ResultItem(value: Int) {
+fun ResultItem(value: Int, faces: Int) {
+    val shape = when (faces) {
+        3 -> RectangleShape
+        4 -> TriangleShape()
+        6 -> RoundedCornerShape(4.dp)
+        8 -> TriangleShape()
+        10 -> KiteShape()
+        12 -> PentagonShape()
+        20 -> TriangleShape()
+        100 -> CircleShape
+        else -> RoundedCornerShape(12.dp)
+    }
+
+    val sizeModifier = if (faces == 3) {
+        Modifier.size(width = 96.dp, height = 48.dp)
+    } else {
+        Modifier.size(64.dp)
+    }
+
     Card(
-        modifier = Modifier.size(64.dp),
+        modifier = sizeModifier,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = shape
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -248,11 +302,13 @@ fun ResultItem(value: Int) {
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                ),
+                modifier = Modifier.padding(top = if (shape is TriangleShape) 8.dp else 0.dp)
             )
         }
     }
 }
+
 
 @Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
@@ -273,7 +329,7 @@ fun DiceMasterPreview() {
 fun ResultsPreview() {
     DiceMasterTheme {
         Surface(color = MaterialTheme.colorScheme.surfaceVariant) {
-            ResultsContent(results = listOf(20, 18, 15, 12, 10, 8, 6, 4, 2, 1), total = 106)
+            ResultsContent(results = listOf(20, 18, 15, 12, 10, 8, 6, 4, 2, 1), total = 106, faces = 20)
         }
     }
 }

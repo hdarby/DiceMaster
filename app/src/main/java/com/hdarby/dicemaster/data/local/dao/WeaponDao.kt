@@ -1,6 +1,12 @@
 package com.hdarby.dicemaster.data.local.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import com.hdarby.dicemaster.data.local.entity.CharacterWeaponCrossRef
 import com.hdarby.dicemaster.data.local.entity.WeaponEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -17,4 +23,10 @@ interface WeaponDao {
 
     @Delete
     suspend fun deleteWeapon(weapon: WeaponEntity)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertCharacterWeaponCrossRef(crossRef: CharacterWeaponCrossRef)
+
+    @Delete
+    suspend fun deleteCharacterWeaponCrossRef(crossRef: CharacterWeaponCrossRef)
 }

@@ -101,4 +101,18 @@ class DiceViewModelTest {
             assertFalse(awaitItem().showResults)
         }
     }
+
+    @Test
+    fun `rollDice updates error on failure`() = runTest {
+        val errorMessage = "Roll failed"
+        every { rollDiceUseCase(any(), any()) } throws Exception(errorMessage)
+        
+        viewModel.uiState.test {
+            awaitItem() // Initial
+            
+            viewModel.rollDice()
+            
+            assertEquals(errorMessage, awaitItem().error)
+        }
+    }
 }

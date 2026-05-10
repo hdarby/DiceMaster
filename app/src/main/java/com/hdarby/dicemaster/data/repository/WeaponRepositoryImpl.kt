@@ -29,6 +29,7 @@ class WeaponRepositoryImpl(private val weaponDao: WeaponDao) : WeaponRepository 
     private fun WeaponEntity.toDomain() = Weapon(
         id = id,
         name = name,
+        type = type,
         damageDice = damageDice,
         damageType = damageType,
         modifier = modifier
@@ -37,6 +38,7 @@ class WeaponRepositoryImpl(private val weaponDao: WeaponDao) : WeaponRepository 
     private fun Weapon.toEntity() = WeaponEntity(
         id = id,
         name = name,
+        type = type,
         damageDice = damageDice,
         damageType = damageType,
         modifier = modifier

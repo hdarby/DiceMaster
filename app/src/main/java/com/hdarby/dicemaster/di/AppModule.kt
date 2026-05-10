@@ -12,7 +12,6 @@ import com.hdarby.dicemaster.domain.usecase.RollDiceUseCase
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
-import com.hdarby.dicemaster.domain.usecase.character.GetCharactersUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UpdateCharacterUseCase
@@ -34,7 +33,7 @@ val appModule = module {
             androidContext(),
             DiceMasterDatabase::class.java,
             "dice_master_db"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 
     // DAOs
@@ -50,7 +49,6 @@ val appModule = module {
     factory { RollDiceUseCase(get()) }
     
     // Character Use Cases
-    factory { GetCharactersUseCase(get()) }
     factory { GetCharactersWithWeaponsUseCase(get()) }
     factory { AddCharacterUseCase(get()) }
     factory { DeleteCharacterUseCase(get()) }

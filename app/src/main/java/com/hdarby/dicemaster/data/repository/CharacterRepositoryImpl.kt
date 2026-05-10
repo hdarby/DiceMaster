@@ -67,6 +67,7 @@ class CharacterRepositoryImpl(private val characterDao: CharacterDao) : Characte
     private fun WeaponEntity.toDomain() = Weapon(
         id = id,
         name = name,
+        type = type,
         damageDice = damageDice,
         damageType = damageType,
         modifier = modifier

@@ -13,7 +13,8 @@ data class DiceUiState(
     val faces: Int = 20,
     val quantity: Int = 1,
     val rollResults: List<Int> = emptyList(),
-    val showResults: Boolean = false
+    val showResults: Boolean = false,
+    val error: String? = null
 )
 
 class DiceViewModel(private val rollDiceUseCase: RollDiceUseCase) : ViewModel() {
@@ -31,12 +32,17 @@ class DiceViewModel(private val rollDiceUseCase: RollDiceUseCase) : ViewModel() 
 
     fun rollDice() {
         viewModelScope.launch {
-            val results = rollDiceUseCase(_uiState.value.faces, _uiState.value.quantity)
-            _uiState.update {
-                it.copy(
-                    rollResults = results,
-                    showResults = true
-                )
+            try {
+                val results = rollDiceUseCase(_uiState.value.faces, _uiState.value.quantity)
+                _uiState.update {
+                    it.copy(
+                        rollResults = results,
+                        showResults = true,
+                        error = null
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
             }
         }
     }

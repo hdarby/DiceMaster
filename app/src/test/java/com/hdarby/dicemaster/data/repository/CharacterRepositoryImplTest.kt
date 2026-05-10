@@ -52,7 +52,7 @@ class CharacterRepositoryImplTest {
 
     @Test
     fun `getCharactersWithWeapons returns domain models`() = runTest {
-        val weaponEntity = WeaponEntity(1, "Axe", "1d12", "Slashing", 2)
+        val weaponEntity = WeaponEntity(1, "Axe", "Axe", "1d12", "Slashing", 2)
         val charWithWeaponsEntity = com.hdarby.dicemaster.data.local.entity.CharacterWithWeapons(
             character = characterEntity,
             weapons = listOf(weaponEntity)

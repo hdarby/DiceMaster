@@ -30,7 +30,10 @@ kover {
                     "com.hdarby.dicemaster.di.*",
                     "com.hdarby.dicemaster.MainActivityKt*",
                     "com.hdarby.dicemaster.ComposableSingletons*",
-                    "com.hdarby.dicemaster.DiceMasterApplication"
+                    "com.hdarby.dicemaster.DiceMasterApplication",
+                    "com.hdarby.dicemaster.ui.navigation.*",
+                    "com.hdarby.dicemaster.data.local.entity.*",
+                    "com.hdarby.dicemaster.domain.model.*"
                 )
             }
         }

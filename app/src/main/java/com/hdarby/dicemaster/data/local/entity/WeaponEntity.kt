@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class WeaponEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
+    val type: String,
     val damageDice: String,
     val damageType: String,
     val modifier: Int

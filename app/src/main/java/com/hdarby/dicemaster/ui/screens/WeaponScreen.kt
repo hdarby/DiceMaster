@@ -1,7 +1,16 @@
 package com.hdarby.dicemaster.ui.screens
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -9,12 +18,35 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.testTag
 import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.viewmodel.CharacterViewModel
 import com.hdarby.dicemaster.viewmodel.WeaponViewModel
@@ -36,7 +68,7 @@ fun WeaponScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Weapon Repository") },
+                title = { Text("Weapon Repository", modifier = Modifier.testTag("screen_title_weapons")) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -128,11 +160,19 @@ fun WeaponCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(
-                        text = weapon.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = weapon.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "(${weapon.type})",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                     Text(
                         text = "${weapon.damageDice} ${weapon.damageType} (Modifier: ${weapon.modifier})",
                         style = MaterialTheme.typography.bodyMedium
@@ -162,8 +202,9 @@ fun AddEditWeaponDialog(
     onConfirm: (Weapon) -> Unit
 ) {
     var name by remember { mutableStateOf(weapon?.name ?: "") }
+    var type by remember { mutableStateOf(weapon?.type ?: "") }
     var dice by remember { mutableStateOf(weapon?.damageDice ?: "") }
-    var type by remember { mutableStateOf(weapon?.damageType ?: "") }
+    var damageType by remember { mutableStateOf(weapon?.damageType ?: "") }
     var mod by remember { mutableStateOf(weapon?.modifier?.toString() ?: "0") }
 
     AlertDialog(
@@ -172,14 +213,31 @@ fun AddEditWeaponDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") })
+                OutlinedTextField(value = type, onValueChange = { type = it }, label = { Text("Weapon Type (e.g. Sword)") })
                 OutlinedTextField(value = dice, onValueChange = { dice = it }, label = { Text("Damage Dice (e.g. 1d8)") })
-                OutlinedTextField(value = type, onValueChange = { type = it }, label = { Text("Damage Type") })
-                OutlinedTextField(value = mod, onValueChange = { mod = it }, label = { Text("Modifier") })
+                OutlinedTextField(value = damageType, onValueChange = { damageType = it }, label = { Text("Damage Type") })
+                OutlinedTextField(
+                    value = mod,
+                    onValueChange = { input ->
+                        if (input.isEmpty() || input == "-" || input.toIntOrNull() != null) {
+                            mod = input
+                        }
+                    },
+                    label = { Text("Modifier") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
             }
         },
         confirmButton = {
             Button(onClick = {
-                onConfirm(Weapon(id = weapon?.id ?: 0, name = name, damageDice = dice, damageType = type, modifier = mod.toIntOrNull() ?: 0))
+                onConfirm(Weapon(
+                    id = weapon?.id ?: 0, 
+                    name = name, 
+                    type = type,
+                    damageDice = dice, 
+                    damageType = damageType, 
+                    modifier = mod.toIntOrNull() ?: 0
+                ))
             }) {
                 Text("Confirm")
             }
