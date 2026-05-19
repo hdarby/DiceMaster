@@ -22,6 +22,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.hdarby.dicemaster.ui.navigation.Screen
 import com.hdarby.dicemaster.ui.screens.CharacterScreen
+import com.hdarby.dicemaster.ui.screens.DebugRngScreen
 import com.hdarby.dicemaster.ui.screens.DiceRollerScreen
 import com.hdarby.dicemaster.ui.screens.WeaponScreen
 import com.hdarby.dicemaster.ui.theme.DiceMasterTheme
@@ -77,9 +78,16 @@ fun MainContainer() {
             startDestination = Screen.Roller.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Roller.route) { DiceRollerScreen() }
+            composable(Screen.Roller.route) { 
+                DiceRollerScreen(
+                    onNavigateToDebug = { navController.navigate(Screen.Debug.route) }
+                ) 
+            }
             composable(Screen.Characters.route) { CharacterScreen() }
             composable(Screen.Weapons.route) { WeaponScreen() }
+            composable(Screen.Debug.route) { 
+                DebugRngScreen(onBack = { navController.popBackStack() }) 
+            }
         }
     }
 }

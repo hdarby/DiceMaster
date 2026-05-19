@@ -18,7 +18,19 @@ class CharacterUseCasesTest {
 
     private val repository: CharacterRepository = mockk()
     
-    private val character = Character(1, "Grog", "Goliath", Stats(20, 12, 18, 6, 10, 8))
+    private val character = Character(
+        id = 1,
+        name = "Grog",
+        race = "Goliath",
+        stats = Stats(
+            strength = 20, strengthModifier = 5,
+            dexterity = 12, dexterityModifier = 1,
+            constitution = 18, constitutionModifier = 4,
+            intelligence = 6, intelligenceModifier = -2,
+            wisdom = 10, wisdomModifier = 0,
+            charisma = 8, charismaModifier = -1
+        )
+    )
     private val characterWithWeapons = CharacterWithWeapons(character, emptyList())
 
     @Test

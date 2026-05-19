@@ -3,6 +3,7 @@ package com.hdarby.dicemaster.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,8 +13,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,12 +28,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,31 +47,41 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.graphics.RectangleShape
+import com.hdarby.dicemaster.R
 import com.hdarby.dicemaster.ui.components.shapes.KiteShape
 import com.hdarby.dicemaster.ui.components.shapes.PentagonShape
 import com.hdarby.dicemaster.ui.components.shapes.TriangleShape
-import androidx.compose.ui.platform.testTag
 import com.hdarby.dicemaster.ui.theme.DiceMasterTheme
 import com.hdarby.dicemaster.viewmodel.DiceUiState
 import com.hdarby.dicemaster.viewmodel.DiceViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun DiceRollerScreen(viewModel: DiceViewModel = koinViewModel()) {
+fun DiceRollerScreen(
+    viewModel: DiceViewModel = koinViewModel(),
+    onNavigateToDebug: () -> Unit
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     DiceMasterScreen(
         uiState = uiState,
         onUpdateFaces = viewModel::updateFaces,
         onUpdateQuantity = viewModel::updateQuantity,
+        onUpdateModifier = viewModel::updateModifier,
         onRollDice = viewModel::rollDice,
-        onDismissResults = viewModel::dismissResults
+        onDismissResults = viewModel::dismissResults,
+        onNavigateToDebug = onNavigateToDebug
     )
 }
 
@@ -73,79 +91,106 @@ fun DiceMasterScreen(
     uiState: DiceUiState,
     onUpdateFaces: (Int) -> Unit,
     onUpdateQuantity: (Int) -> Unit,
+    onUpdateModifier: (Int) -> Unit,
     onRollDice: () -> Unit,
-    onDismissResults: () -> Unit
+    onDismissResults: () -> Unit,
+    onNavigateToDebug: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.title_dice_roller)) },
+                actions = {
+                    IconButton(onClick = onNavigateToDebug) {
+                        Icon(Icons.AutoMirrored.Filled.Help, contentDescription = stringResource(R.string.content_desc_rng_debug))
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.primary
+                )
+            )
+        }
+    ) { innerPadding ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(innerPadding)
         ) {
-            Icon(
-                imageVector = Icons.Default.Casino,
-                contentDescription = null,
-                modifier = Modifier.size(120.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "Dice Master",
-                modifier = Modifier.testTag("screen_title_roller"),
-                style = MaterialTheme.typography.displayMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            DiceConfigurationSection(
-                faces = uiState.faces,
-                quantity = uiState.quantity,
-                onUpdateFaces = onUpdateFaces,
-                onUpdateQuantity = onUpdateQuantity
-            )
-
-            Spacer(modifier = Modifier.height(64.dp))
-
-            Button(
-                onClick = onRollDice,
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary
-                )
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
+                Icon(
+                    imageVector = Icons.Default.Casino,
+                    contentDescription = null,
+                    modifier = Modifier.size(120.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
                 Text(
-                    text = "ROLL DICE",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 2.sp
+                    text = stringResource(R.string.heading_dice_master),
+                    modifier = Modifier.testTag("screen_title_roller"),
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 )
-            }
-        }
 
-        if (uiState.showResults) {
-            ModalBottomSheet(
-                onDismissRequest = onDismissResults,
-                sheetState = sheetState,
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ) {
-                ResultsContent(
-                    results = uiState.rollResults,
-                    total = uiState.rollResults.sum(),
-                    faces = uiState.faces
+                Spacer(modifier = Modifier.height(48.dp))
+
+                DiceConfigurationSection(
+                    faces = uiState.faces,
+                    quantity = uiState.quantity,
+                    modifierValue = uiState.modifier,
+                    onUpdateFaces = onUpdateFaces,
+                    onUpdateQuantity = onUpdateQuantity,
+                    onUpdateModifier = onUpdateModifier
                 )
+
+                Spacer(modifier = Modifier.height(64.dp))
+
+                Button(
+                    onClick = onRollDice,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.button_roll_dice),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 2.sp
+                        )
+                    )
+                }
+            }
+
+            if (uiState.showResults && uiState.rollResult != null) {
+                ModalBottomSheet(
+                    onDismissRequest = onDismissResults,
+                    sheetState = sheetState,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    ResultsContent(
+                        results = uiState.rollResult.rolls,
+                        total = uiState.rollResult.total,
+                        faces = uiState.faces,
+                        modifier = uiState.rollResult.modifier
+                    )
+                }
             }
         }
     }
@@ -155,27 +200,47 @@ fun DiceMasterScreen(
 fun DiceConfigurationSection(
     faces: Int,
     quantity: Int,
+    modifierValue: Int,
     onUpdateFaces: (Int) -> Unit,
-    onUpdateQuantity: (Int) -> Unit
+    onUpdateQuantity: (Int) -> Unit,
+    onUpdateModifier: (Int) -> Unit
 ) {
     val faceOptions = listOf(3, 4, 6, 8, 10, 12, 20, 100)
     val quantityOptions = (1..10).toList()
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         DropdownSelector(
-            label = "Dice Faces",
+            label = stringResource(R.string.label_dice_faces),
             currentValue = faces,
             options = faceOptions,
             onValueChange = onUpdateFaces,
             prefix = "D"
         )
 
-        DropdownSelector(
-            label = "Number of Dice",
-            currentValue = quantity,
-            options = quantityOptions,
-            onValueChange = onUpdateQuantity
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(modifier = Modifier.weight(1f)) {
+                DropdownSelector(
+                    label = stringResource(R.string.label_quantity),
+                    currentValue = quantity,
+                    options = quantityOptions,
+                    onValueChange = onUpdateQuantity
+                )
+            }
+            OutlinedTextField(
+                value = if (modifierValue == 0) "" else modifierValue.toString(),
+                onValueChange = { onUpdateModifier(it.toIntOrNull() ?: 0) },
+                label = { Text(stringResource(R.string.label_modifier)) },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number
+                )
+            )
+        }
     }
 }
 
@@ -225,7 +290,7 @@ fun DropdownSelector(
 }
 
 @Composable
-fun ResultsContent(results: List<Int>, total: Int, faces: Int) {
+fun ResultsContent(results: List<Int>, total: Int, faces: Int, modifier: Int = 0) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,7 +299,7 @@ fun ResultsContent(results: List<Int>, total: Int, faces: Int) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Results",
+            text = stringResource(R.string.title_results),
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.tertiary
@@ -243,8 +308,13 @@ fun ResultsContent(results: List<Int>, total: Int, faces: Int) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        val modifierText = if (modifier != 0) {
+            val sign = if (modifier > 0) "+" else ""
+            " ($sign$modifier)"
+        } else ""
+
         Text(
-            text = "Total: $total",
+            text = stringResource(R.string.label_total, total, modifierText),
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -297,14 +367,53 @@ fun ResultItem(value: Int, faces: Int) {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = value.toString(),
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                modifier = Modifier.padding(top = if (shape is TriangleShape) 8.dp else 0.dp)
-            )
+            val isCriticalHit = faces == 20 && value == 20
+            val isCriticalMiss = faces == 20 && value == 1
+
+            if (isCriticalHit || isCriticalMiss) {
+                val textColor = if (isCriticalHit) Color.Green else Color.Red
+                val outlineColor = if (isCriticalHit) Color.White else Color.Black
+
+                // Outline effect using shadows
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = value.toString(),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = textColor,
+                            shadow = Shadow(
+                                color = outlineColor,
+                                offset = Offset(0f, 0f),
+                                blurRadius = 4f
+                            )
+                        ),
+                        modifier = Modifier.padding(top = if (shape is TriangleShape) 8.dp else 0.dp)
+                    )
+                    // Secondary shadow for sharper outline
+                    Text(
+                        text = value.toString(),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = textColor,
+                            shadow = Shadow(
+                                color = outlineColor,
+                                offset = Offset(0f, 0f),
+                                blurRadius = 1f
+                            )
+                        ),
+                        modifier = Modifier.padding(top = if (shape is TriangleShape) 8.dp else 0.dp)
+                    )
+                }
+            } else {
+                Text(
+                    text = value.toString(),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    modifier = Modifier.padding(top = if (shape is TriangleShape) 8.dp else 0.dp)
+                )
+            }
         }
     }
 }
@@ -315,11 +424,13 @@ fun ResultItem(value: Int, faces: Int) {
 fun DiceMasterPreview() {
     DiceMasterTheme {
         DiceMasterScreen(
-            uiState = DiceUiState(faces = 20, quantity = 3, rollResults = listOf(18, 12, 5), showResults = false),
+            uiState = DiceUiState(faces = 20, quantity = 3, modifier = 5, showResults = false),
             onUpdateFaces = {},
             onUpdateQuantity = {},
+            onUpdateModifier = {},
             onRollDice = {},
-            onDismissResults = {}
+            onDismissResults = {},
+            onNavigateToDebug = {}
         )
     }
 }

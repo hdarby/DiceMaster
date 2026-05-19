@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.hdarby.dicemaster.ui.screens.DiceMasterScreen
+import com.hdarby.dicemaster.ui.screens.DiceRollerScreen
 import com.hdarby.dicemaster.ui.theme.DiceMasterTheme
 import com.hdarby.dicemaster.viewmodel.DiceUiState
 import org.junit.Rule
@@ -31,6 +32,11 @@ class DiceMasterUiTest {
         // Start on Roller
         composeTestRule.onNodeWithTag("screen_title_roller").assertIsDisplayed()
         
+        // Navigate to Debug screen
+        composeTestRule.onNodeWithContentDescription("RNG Debug").performClick()
+        composeTestRule.onNodeWithText("RNG Distribution Analysis").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("Back").performClick()
+
         // Navigate to Characters using test tag to avoid ambiguity with TopAppBar title
         composeTestRule.onNode(hasTestTag("nav_item_characters")).performClick()
         

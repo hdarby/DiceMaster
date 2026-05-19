@@ -2,6 +2,7 @@ package com.hdarby.dicemaster.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hdarby.dicemaster.domain.model.RollResult
 import com.hdarby.dicemaster.domain.usecase.RollDiceUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +13,8 @@ import kotlinx.coroutines.launch
 data class DiceUiState(
     val faces: Int = 20,
     val quantity: Int = 1,
-    val rollResults: List<Int> = emptyList(),
+    val modifier: Int = 0,
+    val rollResult: RollResult? = null,
     val showResults: Boolean = false,
     val error: String? = null
 )
@@ -30,13 +32,21 @@ class DiceViewModel(private val rollDiceUseCase: RollDiceUseCase) : ViewModel() 
         _uiState.update { it.copy(quantity = quantity) }
     }
 
+    fun updateModifier(modifier: Int) {
+        _uiState.update { it.copy(modifier = modifier) }
+    }
+
     fun rollDice() {
         viewModelScope.launch {
             try {
-                val results = rollDiceUseCase(_uiState.value.faces, _uiState.value.quantity)
+                val result = rollDiceUseCase(
+                    faces = _uiState.value.faces,
+                    quantity = _uiState.value.quantity,
+                    modifier = _uiState.value.modifier
+                )
                 _uiState.update {
                     it.copy(
-                        rollResults = results,
+                        rollResult = result,
                         showResults = true,
                         error = null
                     )

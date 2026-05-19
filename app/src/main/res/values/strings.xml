@@ -1,3 +1,64 @@
 <resources>
+    <!-- App -->
     <string name="app_name">Dice Master</string>
+
+    <!-- Screen Titles / Top App Bar -->
+    <string name="title_dice_roller">Dice Roller</string>
+    <string name="title_characters">Characters</string>
+    <string name="title_weapons">Weapon Repository</string>
+    <string name="title_debug_rng">RNG Distribution Analysis</string>
+
+    <!-- Screen Headings -->
+    <string name="heading_dice_master">Dice Master</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_rng_debug">RNG Debug</string>
+    <string name="content_desc_back">Back</string>
+    <string name="content_desc_add_character">Add Character</string>
+    <string name="content_desc_add_weapon">Add Weapon</string>
+    <string name="content_desc_edit">Edit</string>
+    <string name="content_desc_delete">Delete</string>
+    <string name="content_desc_assign">Assign</string>
+
+    <!-- Field Labels -->
+    <string name="label_dice_faces">Dice Faces</string>
+    <string name="label_quantity">Quantity</string>
+    <string name="label_modifier">Modifier</string>
+    <string name="label_name">Name</string>
+    <string name="label_race">Race</string>
+    <string name="label_weapon_type">Weapon Type (e.g. Sword)</string>
+    <string name="label_damage_dice">Damage Dice (e.g. 1d8)</string>
+    <string name="label_damage_type">Damage Type</string>
+    <string name="label_stat_str">STR</string>
+    <string name="label_stat_dex">DEX</string>
+    <string name="label_stat_con">CON</string>
+    <string name="label_stat_int">INT</string>
+    <string name="label_stat_wis">WIS</string>
+    <string name="label_stat_cha">CHA</string>
+    <string name="label_stat_mod">Mod</string>
+    <string name="label_weapons_section">Weapons</string>
+
+    <!-- Results -->
+    <string name="title_results">Results</string>
+    <string name="label_total">Total: %1$d%2$s</string>
+
+    <!-- Debug Stats -->
+    <string name="label_die_distribution">d%1$d Distribution</string>
+    <string name="label_mean">Mean: %1$s</string>
+    <string name="label_std_dev">Std Dev: %1$s</string>
+    <string name="label_min">Min: %1$d</string>
+    <string name="label_max">Max: %1$d</string>
+    <string name="label_rolls">Rolls: %1$d</string>
+
+    <!-- Dialog Titles -->
+    <string name="title_add_character">Add Character</string>
+    <string name="title_edit_character">Edit Character</string>
+    <string name="title_add_weapon">Add Weapon</string>
+    <string name="title_edit_weapon">Edit Weapon</string>
+    <string name="title_assign_weapon">Assign %1$s</string>
+
+    <!-- Buttons -->
+    <string name="button_roll_dice">ROLL DICE</string>
+    <string name="button_confirm">Confirm</string>
+    <string name="button_cancel">Cancel</string>
 </resources>

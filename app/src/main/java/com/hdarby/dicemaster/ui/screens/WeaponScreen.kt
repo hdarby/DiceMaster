@@ -40,13 +40,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.testTag
+import com.hdarby.dicemaster.R
+import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.viewmodel.CharacterViewModel
 import com.hdarby.dicemaster.viewmodel.WeaponViewModel
@@ -68,7 +71,7 @@ fun WeaponScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Weapon Repository", modifier = Modifier.testTag("screen_title_weapons")) },
+                title = { Text(stringResource(R.string.title_weapons), modifier = Modifier.testTag("screen_title_weapons")) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -77,7 +80,7 @@ fun WeaponScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Weapon")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.content_desc_add_weapon))
             }
         }
     ) { padding ->
@@ -180,13 +183,13 @@ fun WeaponCard(
                 }
                 Row {
                     IconButton(onClick = { onAssign(weapon) }) {
-                        Icon(Icons.Default.Link, contentDescription = "Assign")
+                        Icon(Icons.Default.Link, contentDescription = stringResource(R.string.content_desc_assign))
                     }
                     IconButton(onClick = { onEdit(weapon) }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.content_desc_edit))
                     }
                     IconButton(onClick = { onDelete(weapon) }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete")
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.content_desc_delete))
                     }
                 }
             }
@@ -209,13 +212,13 @@ fun AddEditWeaponDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (weapon == null) "Add Weapon" else "Edit Weapon") },
+        title = { Text(if (weapon == null) stringResource(R.string.title_add_weapon) else stringResource(R.string.title_edit_weapon)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") })
-                OutlinedTextField(value = type, onValueChange = { type = it }, label = { Text("Weapon Type (e.g. Sword)") })
-                OutlinedTextField(value = dice, onValueChange = { dice = it }, label = { Text("Damage Dice (e.g. 1d8)") })
-                OutlinedTextField(value = damageType, onValueChange = { damageType = it }, label = { Text("Damage Type") })
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.label_name)) })
+                OutlinedTextField(value = type, onValueChange = { type = it }, label = { Text(stringResource(R.string.label_weapon_type)) })
+                OutlinedTextField(value = dice, onValueChange = { dice = it }, label = { Text(stringResource(R.string.label_damage_dice)) })
+                OutlinedTextField(value = damageType, onValueChange = { damageType = it }, label = { Text(stringResource(R.string.label_damage_type)) })
                 OutlinedTextField(
                     value = mod,
                     onValueChange = { input ->
@@ -223,7 +226,7 @@ fun AddEditWeaponDialog(
                             mod = input
                         }
                     },
-                    label = { Text("Modifier") },
+                    label = { Text(stringResource(R.string.label_modifier)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
@@ -239,12 +242,12 @@ fun AddEditWeaponDialog(
                     modifier = mod.toIntOrNull() ?: 0
                 ))
             }) {
-                Text("Confirm")
+                Text(stringResource(R.string.button_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.button_cancel))
             }
         }
     )
@@ -253,13 +256,13 @@ fun AddEditWeaponDialog(
 @Composable
 fun AssignWeaponDialog(
     weapon: Weapon,
-    characters: List<com.hdarby.dicemaster.domain.model.Character>,
+    characters: List<Character>,
     onDismiss: () -> Unit,
     onConfirm: (Long) -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Assign ${weapon.name}") },
+        title = { Text(stringResource(R.string.title_assign_weapon, weapon.name)) },
         text = {
             LazyColumn {
                 items(characters) { character ->
@@ -276,7 +279,7 @@ fun AssignWeaponDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.button_cancel))
             }
         }
     )

@@ -20,6 +20,7 @@ import com.hdarby.dicemaster.domain.usecase.weapon.DeleteWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.GetWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.UpdateWeaponUseCase
 import com.hdarby.dicemaster.viewmodel.CharacterViewModel
+import com.hdarby.dicemaster.viewmodel.DebugViewModel
 import com.hdarby.dicemaster.viewmodel.DiceViewModel
 import com.hdarby.dicemaster.viewmodel.WeaponViewModel
 import org.koin.android.ext.koin.androidContext
@@ -66,4 +67,5 @@ val appModule = module {
     viewModel { DiceViewModel(get()) }
     viewModel { CharacterViewModel(get(), get(), get(), get(), get()) }
     viewModel { WeaponViewModel(get(), get(), get(), get(), get()) }
+    viewModel { DebugViewModel() }
 }

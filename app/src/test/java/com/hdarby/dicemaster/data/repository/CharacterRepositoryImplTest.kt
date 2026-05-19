@@ -26,18 +26,31 @@ class CharacterRepositoryImplTest {
         name = "Grog",
         race = "Goliath",
         strength = 20,
+        strengthModifier = 5,
         dexterity = 12,
+        dexterityModifier = 1,
         constitution = 18,
+        constitutionModifier = 4,
         intelligence = 6,
+        intelligenceModifier = -2,
         wisdom = 10,
-        charisma = 8
+        wisdomModifier = 0,
+        charisma = 8,
+        charismaModifier = -1
     )
 
     private val character = Character(
         id = 1,
         name = "Grog",
         race = "Goliath",
-        stats = Stats(20, 12, 18, 6, 10, 8)
+        stats = Stats(
+            strength = 20, strengthModifier = 5,
+            dexterity = 12, dexterityModifier = 1,
+            constitution = 18, constitutionModifier = 4,
+            intelligence = 6, intelligenceModifier = -2,
+            wisdom = 10, wisdomModifier = 0,
+            charisma = 8, charismaModifier = -1
+        )
     )
 
     @Test
