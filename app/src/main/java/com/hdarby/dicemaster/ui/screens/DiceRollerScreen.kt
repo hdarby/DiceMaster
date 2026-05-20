@@ -215,7 +215,7 @@ fun DiceConfigurationSection(
             currentValue = faces,
             options = faceOptions,
             onValueChange = onUpdateFaces,
-            prefix = "D"
+            prefix = stringResource(R.string.label_dice_face_prefix)
         )
 
         Row(

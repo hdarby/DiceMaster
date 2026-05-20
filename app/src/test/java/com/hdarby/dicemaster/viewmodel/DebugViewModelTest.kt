@@ -3,6 +3,7 @@ package com.hdarby.dicemaster.viewmodel
 import app.cash.turbine.test
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -92,6 +93,65 @@ class DebugViewModelTest {
             viewModel.runSimulations()
             val secondState = awaitItem()
             assertEquals(firstState.dieStatsList.size, secondState.dieStatsList.size)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `each die stats has positive stdDev`() = runTest {
+        viewModel.uiState.test {
+            val state = awaitItem()
+            state.dieStatsList.forEach { stats ->
+                assertTrue(
+                    "Expected stdDev > 0 for d${stats.faces}, was ${stats.stdDev}",
+                    stats.stdDev > 0.0
+                )
+            }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `each die stats stdDev is within expected statistical range`() = runTest {
+        viewModel.uiState.test {
+            val state = awaitItem()
+            state.dieStatsList.forEach { stats ->
+                // Theoretical std dev of a uniform distribution: sqrt((n^2 - 1) / 12)
+                val theoreticalStdDev = Math.sqrt((stats.faces.toLong() * stats.faces - 1) / 12.0)
+                val tolerance = theoreticalStdDev * 0.15 // allow 15% tolerance
+                assertTrue(
+                    "StdDev ${stats.stdDev} too far from theoretical $theoreticalStdDev for d${stats.faces}",
+                    stats.stdDev in (theoreticalStdDev - tolerance)..(theoreticalStdDev + tolerance)
+                )
+            }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `each die stats has non-null frequencies map`() = runTest {
+        viewModel.uiState.test {
+            val state = awaitItem()
+            state.dieStatsList.forEach { stats ->
+                assertNotNull("Frequencies should not be null for d${stats.faces}", stats.frequencies)
+                assertTrue("Frequencies should not be empty for d${stats.faces}", stats.frequencies.isNotEmpty())
+            }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `each die stats total frequencies sum equals totalRolls`() = runTest {
+        viewModel.uiState.test {
+            val state = awaitItem()
+            state.dieStatsList.forEach { stats ->
+                val frequencySum = stats.frequencies.values.sum()
+                assertEquals(
+                    "Frequency sum should equal totalRolls for d${stats.faces}",
+                    stats.totalRolls,
+                    frequencySum
+                )
+            }
             cancelAndIgnoreRemainingEvents()
         }
     }

@@ -172,12 +172,12 @@ fun CharacterCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                StatItem("STR", character.stats.strength, character.stats.strengthModifier)
-                StatItem("DEX", character.stats.dexterity, character.stats.dexterityModifier)
-                StatItem("CON", character.stats.constitution, character.stats.constitutionModifier)
-                StatItem("INT", character.stats.intelligence, character.stats.intelligenceModifier)
-                StatItem("WIS", character.stats.wisdom, character.stats.wisdomModifier)
-                StatItem("CHA", character.stats.charisma, character.stats.charismaModifier)
+                StatItem(stringResource(R.string.label_stat_str), character.stats.strength, character.stats.strengthModifier)
+                StatItem(stringResource(R.string.label_stat_dex), character.stats.dexterity, character.stats.dexterityModifier)
+                StatItem(stringResource(R.string.label_stat_con), character.stats.constitution, character.stats.constitutionModifier)
+                StatItem(stringResource(R.string.label_stat_int), character.stats.intelligence, character.stats.intelligenceModifier)
+                StatItem(stringResource(R.string.label_stat_wis), character.stats.wisdom, character.stats.wisdomModifier)
+                StatItem(stringResource(R.string.label_stat_cha), character.stats.charisma, character.stats.charismaModifier)
             }
 
             if (weapons.isNotEmpty()) {

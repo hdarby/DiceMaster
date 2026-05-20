@@ -101,7 +101,48 @@ Each entry follows this structure:
 
 ---
 
+---
+
+### [DEBT-013] No Koin module verification test
+- **Area**: `di/AppModule.kt`
+- **Added**: 2026-05-20
+- **Description**: The `COVERAGE_STRATEGY.md` calls for a Koin `checkModules` test to validate that all DI bindings are resolvable at runtime. The `koin-test-android` library is not currently in the dependency list, so this test cannot be written without first adding the dependency.
+- **Resolution**: Add `androidTestImplementation("io.insert-koin:koin-test-android:<version>")` and `androidTestImplementation("io.insert-koin:koin-test-junit4:<version>")` to `app/build.gradle.kts` and write a `KoinModuleTest` class that calls `checkModules { modules(appModule) }`.
+
+---
+
 ## Resolved Items
+
+### [DEBT-014] `createComposeRule()` used where `createAndroidComposeRule()` was needed ✅
+- **Area**: `ui/screens/CharacterScreenTest.kt`, `ui/screens/WeaponScreenTest.kt`
+- **Resolved**: 2026-05-20
+- **Resolution applied**: Changed the test rule in both files from `createComposeRule()` to `createAndroidComposeRule<ComponentActivity>()` and added the `androidx.activity.ComponentActivity` import. This resolves compile-time "Unresolved reference: activity" errors that prevented the androidTest module from building.
+
+---
+
+### [DEBT-015] Pre-existing unit test compile errors ✅
+- **Area**: `data/repository/WeaponRepositoryErrorHandlingTest.kt`, `viewmodel/DiceViewModelErrorHandlingTest.kt`, `data/repository/CharacterRepositoryErrorHandlingTest.kt`
+- **Resolved**: 2026-05-20
+- **Resolution applied**:
+  - `WeaponRepositoryErrorHandlingTest` — replaced calls to non-existent methods `getWeapons()`, `assignWeaponToCharacter()`, `unassignWeaponFromCharacter()` with the actual `WeaponRepository` API (`getAllWeapons()`); removed three tests for methods that belong to `CharacterRepository`; removed unused `CharacterWeaponCrossRef` import.
+  - `DiceViewModelErrorHandlingTest` — removed non-existent `faces` named parameter from three `RollResult(...)` constructor calls.
+  - `CharacterRepositoryErrorHandlingTest` — replaced `updateCharacter with null ID throws error` (which expected validation logic that doesn't exist in production code) with a correct test verifying the DAO is called.
+
+---
+
+### [DEBT-016] Hardcoded stat abbreviation strings in `CharacterCard` ✅
+- **Area**: `ui/screens/CharacterScreen.kt`
+- **Resolved**: 2026-05-20
+- **Resolution applied**: Replaced six hardcoded string literals ("STR", "DEX", "CON", "INT", "WIS", "CHA") passed to `StatItem()` calls inside `CharacterCard` with `stringResource(R.string.label_stat_*)` — the resources already existed in `strings.xml`.
+
+---
+
+### [DEBT-017] Hardcoded `"D"` prefix in `DiceConfigurationSection` ✅
+- **Area**: `ui/screens/DiceRollerScreen.kt`
+- **Resolved**: 2026-05-20
+- **Resolution applied**: Added `<string name="label_dice_face_prefix">D</string>` to `strings.xml` and replaced the hardcoded `prefix = "D"` in `DropdownSelector(...)` with `prefix = stringResource(R.string.label_dice_face_prefix)`.
+
+---
 
 ### [DEBT-010] `AssignWeaponDialog` used a fully-qualified type instead of an import ✅
 - **Area**: `ui/screens/WeaponScreen.kt`
