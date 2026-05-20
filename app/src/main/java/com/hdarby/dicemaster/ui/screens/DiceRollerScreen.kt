@@ -1,5 +1,6 @@
 package com.hdarby.dicemaster.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -356,12 +357,16 @@ fun ResultItem(value: Int, faces: Int) {
         Modifier.size(64.dp)
     }
 
+    val textTopPadding = if (shape is TriangleShape) 18.dp else 0.dp
+
     Card(
         modifier = sizeModifier,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
-        shape = shape
+        shape = shape,
+        border = BorderStroke(1.dp, Color.Black),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -387,7 +392,7 @@ fun ResultItem(value: Int, faces: Int) {
                                 blurRadius = 4f
                             )
                         ),
-                        modifier = Modifier.padding(top = if (shape is TriangleShape) 8.dp else 0.dp)
+                        modifier = Modifier.padding(top = textTopPadding)
                     )
                     // Secondary shadow for sharper outline
                     Text(
@@ -401,7 +406,7 @@ fun ResultItem(value: Int, faces: Int) {
                                 blurRadius = 1f
                             )
                         ),
-                        modifier = Modifier.padding(top = if (shape is TriangleShape) 8.dp else 0.dp)
+                        modifier = Modifier.padding(top = textTopPadding)
                     )
                 }
             } else {
@@ -411,7 +416,7 @@ fun ResultItem(value: Int, faces: Int) {
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
-                    modifier = Modifier.padding(top = if (shape is TriangleShape) 8.dp else 0.dp)
+                    modifier = Modifier.padding(top = textTopPadding)
                 )
             }
         }
