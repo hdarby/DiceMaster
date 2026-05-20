@@ -29,6 +29,7 @@ Before finalising any commit or declaring a task complete, Claude **must**:
 4. **Track tech debt** — if any shortcuts, workarounds, or known issues are introduced or discovered during the task, log them in `TECH_DEBT.md` with context. If existing items in `TECH_DEBT.md` are resolved by the change, mark them as done and remove or archive them.
 5. **Ask about unit tests** — once the implementation plan is complete and code changes are done, **ask the user** whether they want unit tests written or updated to cover the new/changed behaviour before closing the task.
 6. **Ask about string resources** — ask the user whether they want a scan for hardcoded strings that could be moved to `strings.xml`. If the user agrees, identify all hardcoded UI strings in touched (and related) files and extract them into `app/src/main/res/values/strings.xml`, replacing each literal with the appropriate `stringResource(R.string.*)` call.
+7. **Ask about dead code** — ask the user whether they want a scan for dead code (unused functions, properties, classes, parameters, imports, and unreachable branches) in the touched files. If the user agrees, identify all dead code and remove it, then verify the build still passes.
 
 ---
 
