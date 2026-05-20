@@ -68,7 +68,9 @@ class WeaponAssignmentIntegrationTest {
         composeTestRule.onNodeWithText("Battle Axe").assertIsDisplayed()
 
         // Click assign button on weapon
-        composeTestRule.onNodeWithContentDescription("Assign").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_assign)
+        ).performClick()
 
         // Select the character to assign weapon to
         composeTestRule.onNodeWithText("Thorin").performClick()
@@ -121,7 +123,9 @@ class WeaponAssignmentIntegrationTest {
 
         // Edit weapon to change modifier
         composeTestRule.onNodeWithText("Shortsword").performClick()
-        composeTestRule.onNodeWithContentDescription("Edit").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_edit)
+        ).performClick()
 
         // Update modifier to 3
         composeTestRule.onNodeWithText("1").performTextInput("3")
@@ -169,7 +173,9 @@ class WeaponAssignmentIntegrationTest {
 
         // Click delete
         composeTestRule.onNodeWithText("DeleteWeapon").performClick()
-        composeTestRule.onNodeWithContentDescription("Delete").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_delete)
+        ).performClick()
 
         // Weapon should be removed from list
     }
@@ -221,7 +227,9 @@ class WeaponAssignmentIntegrationTest {
         ).performClick()
 
         // Assign first weapon
-        composeTestRule.onNodeWithContentDescription("Assign").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_assign)
+        ).performClick()
         composeTestRule.onNodeWithText("MultiWeaponChar").performClick()
 
         // Create second weapon
@@ -250,7 +258,9 @@ class WeaponAssignmentIntegrationTest {
         ).performClick()
 
         // Assign second weapon
-        composeTestRule.onNodeWithContentDescription("Assign").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_assign)
+        ).performClick()
         composeTestRule.onNodeWithText("MultiWeaponChar").performClick()
 
         // Verify both weapons are assigned

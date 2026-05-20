@@ -1,6 +1,7 @@
 package com.hdarby.dicemaster.viewmodel
 
 import app.cash.turbine.test
+import kotlin.math.sqrt
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -117,7 +118,7 @@ class DebugViewModelTest {
             val state = awaitItem()
             state.dieStatsList.forEach { stats ->
                 // Theoretical std dev of a uniform distribution: sqrt((n^2 - 1) / 12)
-                val theoreticalStdDev = Math.sqrt((stats.faces.toLong() * stats.faces - 1) / 12.0)
+                val theoreticalStdDev = sqrt((stats.faces.toLong() * stats.faces - 1) / 12.0)
                 val tolerance = theoreticalStdDev * 0.15 // allow 15% tolerance
                 assertTrue(
                     "StdDev ${stats.stdDev} too far from theoretical $theoreticalStdDev for d${stats.faces}",

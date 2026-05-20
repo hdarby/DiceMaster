@@ -101,8 +101,6 @@ Each entry follows this structure:
 
 ---
 
----
-
 ### [DEBT-013] No Koin module verification test
 - **Area**: `di/AppModule.kt`
 - **Added**: 2026-05-20

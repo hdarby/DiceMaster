@@ -1,7 +1,6 @@
 package com.hdarby.dicemaster.data.repository
 
 import com.hdarby.dicemaster.data.local.dao.CharacterDao
-import com.hdarby.dicemaster.data.local.entity.CharacterEntity
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.Stats
 import io.mockk.coEvery

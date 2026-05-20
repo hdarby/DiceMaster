@@ -69,7 +69,9 @@ class CharacterWorkflowIntegrationTest {
 
         // Click edit on the created character
         composeTestRule.onNodeWithText("TestChar").performClick()
-        composeTestRule.onNodeWithContentDescription("Edit").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_edit)
+        ).performClick()
 
         // Verify edit dialog shows existing data
         composeTestRule.onNodeWithText("TestChar").assertIsDisplayed()
@@ -131,7 +133,9 @@ class CharacterWorkflowIntegrationTest {
 
         // Click delete
         composeTestRule.onNodeWithText("DeleteMe").performClick()
-        composeTestRule.onNodeWithContentDescription("Delete").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_delete)
+        ).performClick()
 
         // Character should no longer appear in list
         // (This assumes immediate removal; if async, may need wait logic)

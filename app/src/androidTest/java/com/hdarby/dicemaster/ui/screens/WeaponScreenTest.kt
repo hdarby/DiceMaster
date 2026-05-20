@@ -11,6 +11,7 @@ import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.ui.theme.DiceMasterTheme
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -81,10 +82,12 @@ class WeaponScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Assign").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_assign)
+        ).performClick()
 
-        assert(assignCalled)
-        assert(assignedWeapon?.id == testWeapon.id)
+        assertTrue(assignCalled)
+        assertTrue(assignedWeapon?.id == testWeapon.id)
     }
 
     @Test
@@ -106,10 +109,12 @@ class WeaponScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Edit").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_edit)
+        ).performClick()
 
-        assert(editCalled)
-        assert(editedWeapon?.id == testWeapon.id)
+        assertTrue(editCalled)
+        assertTrue(editedWeapon?.id == testWeapon.id)
     }
 
     @Test
@@ -131,15 +136,16 @@ class WeaponScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Delete").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_delete)
+        ).performClick()
 
-        assert(deleteCalled)
-        assert(deletedWeapon?.id == testWeapon.id)
+        assertTrue(deleteCalled)
+        assertTrue(deletedWeapon?.id == testWeapon.id)
     }
 
     @Test
     fun addEditWeaponDialog_displaysTitleForAdd() {
-        var displayedTitle = ""
         composeTestRule.setContent {
             DiceMasterTheme {
                 AddEditWeaponDialog(
@@ -150,8 +156,9 @@ class WeaponScreenTest {
             }
         }
 
-        // Titles are set in the dialog, just verify dialog is displayed
-        composeTestRule.onNodeWithText("Add Weapon", substring = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.title_add_weapon)
+        ).assertIsDisplayed()
     }
 
     @Test
@@ -205,10 +212,12 @@ class WeaponScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Confirm").performClick()
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.button_confirm)
+        ).performClick()
 
-        assert(confirmCalled)
-        assert(confirmedWeapon?.name != null)
+        assertTrue(confirmCalled)
+        assertTrue(confirmedWeapon?.name != null)
     }
 
     @Test
@@ -225,9 +234,11 @@ class WeaponScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Cancel").performClick()
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.button_cancel)
+        ).performClick()
 
-        assert(dismissCalled)
+        assertTrue(dismissCalled)
     }
 
     @Test
@@ -286,8 +297,8 @@ class WeaponScreenTest {
 
         composeTestRule.onNodeWithText("Aragorn").performClick()
 
-        assert(confirmCalled)
-        assert(selectedCharacterId == testCharacter.id)
+        assertTrue(confirmCalled)
+        assertTrue(selectedCharacterId == testCharacter.id)
     }
 
     @Test
@@ -305,9 +316,11 @@ class WeaponScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Cancel").performClick()
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.button_cancel)
+        ).performClick()
 
-        assert(dismissCalled)
+        assertTrue(dismissCalled)
     }
 
     @Test
@@ -328,7 +341,4 @@ class WeaponScreenTest {
         ).assertIsDisplayed()
     }
 }
-
-
-
 

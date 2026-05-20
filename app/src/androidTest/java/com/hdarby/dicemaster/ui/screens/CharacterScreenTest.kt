@@ -13,6 +13,7 @@ import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.ui.theme.DiceMasterTheme
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -95,10 +96,12 @@ class CharacterScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Edit").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_edit)
+        ).performClick()
 
-        assert(editCalled)
-        assert(editedCharacter?.id == testCharacter.id)
+        assertTrue(editCalled)
+        assertTrue(editedCharacter?.id == testCharacter.id)
     }
 
     @Test
@@ -119,10 +122,12 @@ class CharacterScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Delete").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_delete)
+        ).performClick()
 
-        assert(deleteCalled)
-        assert(deletedCharacter?.id == testCharacter.id)
+        assertTrue(deleteCalled)
+        assertTrue(deletedCharacter?.id == testCharacter.id)
     }
 
     @Test
@@ -223,8 +228,8 @@ class CharacterScreenTest {
             composeTestRule.activity.getString(R.string.button_confirm)
         ).performClick()
 
-        assert(confirmCalled)
-        assert(confirmedCharacter?.name != null)
+        assertTrue(confirmCalled)
+        assertTrue(confirmedCharacter?.name != null)
     }
 
     @Test
@@ -245,7 +250,7 @@ class CharacterScreenTest {
             composeTestRule.activity.getString(R.string.button_cancel)
         ).performClick()
 
-        assert(dismissCalled)
+        assertTrue(dismissCalled)
     }
 }
 

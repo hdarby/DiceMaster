@@ -4,7 +4,6 @@ import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.RollResult
 import com.hdarby.dicemaster.domain.usecase.RollDiceUseCase
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -126,3 +125,4 @@ class DiceViewModelErrorHandlingTest {
         }
     }
 }
+
