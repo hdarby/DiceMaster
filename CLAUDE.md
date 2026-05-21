@@ -89,6 +89,7 @@ Before finalising any commit or declaring a task complete, Claude **must**:
 
 | File | Purpose |
 |------|---------|
+| `README.md` | Project overview, setup instructions, and build/test commands |
 | `CLAUDE.md` | Agent rules and project conventions (this file) |
 | `COVERAGE_STRATEGY.md` | Test coverage goals, tooling notes, and thresholds |
 | `TECH_DEBT.md` | Running log of known tech debt, shortcuts, and deferred improvements |
