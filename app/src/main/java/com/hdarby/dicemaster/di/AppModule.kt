@@ -8,6 +8,7 @@ import com.hdarby.dicemaster.data.repository.WeaponRepositoryImpl
 import com.hdarby.dicemaster.domain.repository.CharacterRepository
 import com.hdarby.dicemaster.domain.repository.DiceRepository
 import com.hdarby.dicemaster.domain.repository.WeaponRepository
+import com.hdarby.dicemaster.domain.usecase.RollAdvantageUseCase
 import com.hdarby.dicemaster.domain.usecase.RollDiceUseCase
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
@@ -48,7 +49,8 @@ val appModule = module {
 
     // Use Cases
     factory { RollDiceUseCase(get()) }
-    
+    factory { RollAdvantageUseCase(get()) }
+
     // Character Use Cases
     factory { GetCharactersWithWeaponsUseCase(get()) }
     factory { AddCharacterUseCase(get()) }
@@ -64,7 +66,7 @@ val appModule = module {
     factory { DeleteWeaponUseCase(get()) }
 
     // ViewModel
-    viewModel { DiceViewModel(get()) }
+    viewModel { DiceViewModel(get(), get()) }
     viewModel { CharacterViewModel(get(), get(), get(), get(), get()) }
     viewModel { WeaponViewModel(get(), get(), get(), get(), get()) }
     viewModel { DebugViewModel() }

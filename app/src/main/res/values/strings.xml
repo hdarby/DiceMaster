@@ -39,6 +39,11 @@
     <string name="label_stat_mod">Mod</string>
     <string name="label_weapons_section">Weapons</string>
 
+    <!-- Format Strings -->
+    <string name="format_weapon_chip_label">%1$s (%2$s)</string>
+    <string name="format_weapon_type_parenthesized">(%1$s)</string>
+    <string name="format_weapon_damage_details">%1$s %2$s (Modifier: %3$d)</string>
+
     <!-- Results -->
     <string name="title_results">Results</string>
     <string name="label_total">Total: %1$d%2$s</string>
@@ -60,6 +65,13 @@
 
     <!-- Buttons -->
     <string name="button_roll_dice">ROLL DICE</string>
+    <string name="button_roll_advantage">ADVANTAGE</string>
+    <string name="button_roll_disadvantage">DISADVANTAGE</string>
     <string name="button_confirm">Confirm</string>
     <string name="button_cancel">Cancel</string>
+
+    <!-- Advantage / Disadvantage -->
+    <string name="label_advantage_mode">Advantage</string>
+    <string name="label_disadvantage_mode">Disadvantage</string>
+    <string name="label_selected_roll">Selected: %1$d</string>
 </resources>

@@ -2,6 +2,7 @@ package com.hdarby.dicemaster.viewmodel
 
 import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.RollResult
+import com.hdarby.dicemaster.domain.usecase.RollAdvantageUseCase
 import com.hdarby.dicemaster.domain.usecase.RollDiceUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -20,6 +21,7 @@ import org.junit.Test
 class DiceViewModelErrorHandlingTest {
 
     private val rollDiceUseCase: RollDiceUseCase = mockk()
+    private val rollAdvantageUseCase: RollAdvantageUseCase = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
@@ -37,7 +39,7 @@ class DiceViewModelErrorHandlingTest {
         val errorMessage = "Random number generation failed"
         coEvery { rollDiceUseCase(any(), any(), any()) } throws Exception(errorMessage)
 
-        val viewModel = DiceViewModel(rollDiceUseCase)
+        val viewModel = DiceViewModel(rollDiceUseCase, rollAdvantageUseCase)
         viewModel.updateQuantity(3)
         viewModel.updateFaces(6)
 
@@ -56,7 +58,7 @@ class DiceViewModelErrorHandlingTest {
             modifier = -5
         )
 
-        val viewModel = DiceViewModel(rollDiceUseCase)
+        val viewModel = DiceViewModel(rollDiceUseCase, rollAdvantageUseCase)
 
         viewModel.updateQuantity(3)
         viewModel.updateFaces(6)
@@ -71,7 +73,7 @@ class DiceViewModelErrorHandlingTest {
 
     @Test
     fun `updateModifier persists zero value`() = runTest {
-        val viewModel = DiceViewModel(rollDiceUseCase)
+        val viewModel = DiceViewModel(rollDiceUseCase, rollAdvantageUseCase)
 
         viewModel.updateModifier(0)
 
@@ -89,7 +91,7 @@ class DiceViewModelErrorHandlingTest {
         coEvery { rollDiceUseCase(20, 1, 0) } returns roll1
         coEvery { rollDiceUseCase(4, 2, 2) } returns roll2
 
-        val viewModel = DiceViewModel(rollDiceUseCase)
+        val viewModel = DiceViewModel(rollDiceUseCase, rollAdvantageUseCase)
 
         viewModel.updateFaces(20)
         viewModel.updateQuantity(1)
@@ -114,7 +116,7 @@ class DiceViewModelErrorHandlingTest {
             modifier = 0
         )
 
-        val viewModel = DiceViewModel(rollDiceUseCase)
+        val viewModel = DiceViewModel(rollDiceUseCase, rollAdvantageUseCase)
 
         viewModel.rollDice()
         viewModel.dismissResults()
@@ -125,4 +127,3 @@ class DiceViewModelErrorHandlingTest {
         }
     }
 }
-

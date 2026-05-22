@@ -2,6 +2,7 @@ package com.hdarby.dicemaster.viewmodel
 
 import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.RollResult
+import com.hdarby.dicemaster.domain.usecase.RollAdvantageUseCase
 import com.hdarby.dicemaster.domain.usecase.RollDiceUseCase
 import io.mockk.every
 import io.mockk.mockk
@@ -24,13 +25,14 @@ import org.junit.Test
 class DiceViewModelTest {
 
     private val rollDiceUseCase: RollDiceUseCase = mockk()
+    private val rollAdvantageUseCase: RollAdvantageUseCase = mockk(relaxed = true)
     private lateinit var viewModel: DiceViewModel
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = DiceViewModel(rollDiceUseCase)
+        viewModel = DiceViewModel(rollDiceUseCase, rollAdvantageUseCase)
     }
 
     @After

@@ -2,7 +2,10 @@ package com.hdarby.dicemaster.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hdarby.dicemaster.domain.model.AdvantageMode
+import com.hdarby.dicemaster.domain.model.AdvantageRollResult
 import com.hdarby.dicemaster.domain.model.RollResult
+import com.hdarby.dicemaster.domain.usecase.RollAdvantageUseCase
 import com.hdarby.dicemaster.domain.usecase.RollDiceUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,11 +18,15 @@ data class DiceUiState(
     val quantity: Int = 1,
     val modifier: Int = 0,
     val rollResult: RollResult? = null,
+    val advantageRollResult: AdvantageRollResult? = null,
     val showResults: Boolean = false,
     val error: String? = null
 )
 
-class DiceViewModel(private val rollDiceUseCase: RollDiceUseCase) : ViewModel() {
+class DiceViewModel(
+    private val rollDiceUseCase: RollDiceUseCase,
+    private val rollAdvantageUseCase: RollAdvantageUseCase
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DiceUiState())
     val uiState: StateFlow<DiceUiState> = _uiState.asStateFlow()
@@ -47,6 +54,25 @@ class DiceViewModel(private val rollDiceUseCase: RollDiceUseCase) : ViewModel() 
                 _uiState.update {
                     it.copy(
                         rollResult = result,
+                        advantageRollResult = null,
+                        showResults = true,
+                        error = null
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun rollWithAdvantage(mode: AdvantageMode) {
+        viewModelScope.launch {
+            try {
+                val result = rollAdvantageUseCase(mode)
+                _uiState.update {
+                    it.copy(
+                        advantageRollResult = result,
+                        rollResult = null,
                         showResults = true,
                         error = null
                     )

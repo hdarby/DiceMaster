@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -33,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -60,6 +62,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hdarby.dicemaster.R
+import com.hdarby.dicemaster.domain.model.AdvantageMode
+import com.hdarby.dicemaster.domain.model.AdvantageRollResult
 import com.hdarby.dicemaster.ui.components.shapes.KiteShape
 import com.hdarby.dicemaster.ui.components.shapes.PentagonShape
 import com.hdarby.dicemaster.ui.components.shapes.TriangleShape
@@ -67,6 +71,8 @@ import com.hdarby.dicemaster.ui.theme.DiceMasterTheme
 import com.hdarby.dicemaster.viewmodel.DiceUiState
 import com.hdarby.dicemaster.viewmodel.DiceViewModel
 import org.koin.androidx.compose.koinViewModel
+
+private const val D20_FACES = 20
 
 @Composable
 fun DiceRollerScreen(
@@ -81,6 +87,7 @@ fun DiceRollerScreen(
         onUpdateQuantity = viewModel::updateQuantity,
         onUpdateModifier = viewModel::updateModifier,
         onRollDice = viewModel::rollDice,
+        onRollAdvantage = viewModel::rollWithAdvantage,
         onDismissResults = viewModel::dismissResults,
         onNavigateToDebug = onNavigateToDebug
     )
@@ -94,6 +101,7 @@ fun DiceMasterScreen(
     onUpdateQuantity: (Int) -> Unit,
     onUpdateModifier: (Int) -> Unit,
     onRollDice: () -> Unit,
+    onRollAdvantage: (AdvantageMode) -> Unit,
     onDismissResults: () -> Unit,
     onNavigateToDebug: () -> Unit
 ) {
@@ -177,20 +185,63 @@ fun DiceMasterScreen(
                         )
                     )
                 }
+
+                if (uiState.faces == D20_FACES) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { onRollAdvantage(AdvantageMode.Advantage) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.button_roll_advantage),
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp
+                                )
+                            )
+                        }
+                        OutlinedButton(
+                            onClick = { onRollAdvantage(AdvantageMode.Disadvantage) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.button_roll_disadvantage),
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp
+                                )
+                            )
+                        }
+                    }
+                }
             }
 
-            if (uiState.showResults && uiState.rollResult != null) {
+            if (uiState.showResults && (uiState.rollResult != null || uiState.advantageRollResult != null)) {
                 ModalBottomSheet(
                     onDismissRequest = onDismissResults,
                     sheetState = sheetState,
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 ) {
-                    ResultsContent(
-                        results = uiState.rollResult.rolls,
-                        total = uiState.rollResult.total,
-                        faces = uiState.faces,
-                        modifier = uiState.rollResult.modifier
-                    )
+                    if (uiState.advantageRollResult != null) {
+                        AdvantageResultsContent(result = uiState.advantageRollResult)
+                    } else if (uiState.rollResult != null) {
+                        ResultsContent(
+                            results = uiState.rollResult.rolls,
+                            total = uiState.rollResult.total,
+                            faces = uiState.faces,
+                            modifier = uiState.rollResult.modifier
+                        )
+                    }
                 }
             }
         }
@@ -424,6 +475,125 @@ fun ResultItem(value: Int, faces: Int) {
 }
 
 
+@Composable
+fun AdvantageResultsContent(result: AdvantageRollResult) {
+    val titleRes = if (result.mode == AdvantageMode.Advantage) {
+        R.string.label_advantage_mode
+    } else {
+        R.string.label_disadvantage_mode
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp)
+            .height(320.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(titleRes),
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.tertiary
+            )
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = stringResource(R.string.label_selected_roll, result.selectedRoll),
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AdvantageResultItem(
+                value = result.roll1,
+                isSelected = result.roll1 == result.selectedRoll && result.roll1 != result.roll2
+            )
+            Spacer(modifier = Modifier.width(32.dp))
+            AdvantageResultItem(
+                value = result.roll2,
+                isSelected = result.roll2 == result.selectedRoll && result.roll1 != result.roll2
+            )
+        }
+    }
+}
+
+@Composable
+fun AdvantageResultItem(value: Int, isSelected: Boolean) {
+    val containerColor = if (isSelected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.tertiary else Color.Gray
+    val borderWidth = if (isSelected) 3.dp else 1.dp
+    val elevation = if (isSelected) 8.dp else 2.dp
+    val textColor = if (isSelected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+    }
+
+    val isCriticalHit = value == D20_FACES
+    val isCriticalMiss = value == 1
+
+    Card(
+        modifier = Modifier.size(80.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        shape = TriangleShape(),
+        border = BorderStroke(borderWidth, borderColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isSelected && (isCriticalHit || isCriticalMiss)) {
+                val critColor = if (isCriticalHit) Color.Green else Color.Red
+                val outlineColor = if (isCriticalHit) Color.White else Color.Black
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = value.toString(),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = critColor,
+                            shadow = Shadow(color = outlineColor, offset = Offset(0f, 0f), blurRadius = 4f)
+                        ),
+                        modifier = Modifier.padding(top = 18.dp)
+                    )
+                    Text(
+                        text = value.toString(),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = critColor,
+                            shadow = Shadow(color = outlineColor, offset = Offset(0f, 0f), blurRadius = 1f)
+                        ),
+                        modifier = Modifier.padding(top = 18.dp)
+                    )
+                }
+            } else {
+                Text(
+                    text = value.toString(),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    ),
+                    modifier = Modifier.padding(top = 18.dp)
+                )
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun DiceMasterPreview() {
@@ -434,6 +604,7 @@ fun DiceMasterPreview() {
             onUpdateQuantity = {},
             onUpdateModifier = {},
             onRollDice = {},
+            onRollAdvantage = {},
             onDismissResults = {},
             onNavigateToDebug = {}
         )
@@ -449,3 +620,28 @@ fun ResultsPreview() {
         }
     }
 }
+
+@Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
+@Composable
+fun AdvantageResultsPreview() {
+    DiceMasterTheme {
+        Surface(color = MaterialTheme.colorScheme.surfaceVariant) {
+            AdvantageResultsContent(
+                result = AdvantageRollResult(roll1 = 14, roll2 = 7, mode = AdvantageMode.Advantage)
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
+@Composable
+fun DisadvantageResultsPreview() {
+    DiceMasterTheme {
+        Surface(color = MaterialTheme.colorScheme.surfaceVariant) {
+            AdvantageResultsContent(
+                result = AdvantageRollResult(roll1 = 18, roll2 = 3, mode = AdvantageMode.Disadvantage)
+            )
+        }
+    }
+}
+
