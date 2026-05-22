@@ -35,6 +35,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,14 +60,25 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun WeaponScreen(
     weaponViewModel: WeaponViewModel = koinViewModel(),
-    characterViewModel: CharacterViewModel = koinViewModel()
+    characterViewModel: CharacterViewModel = koinViewModel(),
+    editWeaponId: Long? = null
 ) {
     val uiState by weaponViewModel.uiState.collectAsState()
     val characterState by characterViewModel.uiState.collectAsState()
-    
+
     var showAddDialog by remember { mutableStateOf(false) }
     var editingWeapon by remember { mutableStateOf<Weapon?>(null) }
     var assigningWeapon by remember { mutableStateOf<Weapon?>(null) }
+    var editConsumed by remember(editWeaponId) { mutableStateOf(false) }
+
+    LaunchedEffect(editWeaponId, uiState.weapons) {
+        if (editWeaponId != null && !editConsumed) {
+            uiState.weapons.find { it.id == editWeaponId }?.let { weapon ->
+                editingWeapon = weapon
+                editConsumed = true
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -171,13 +183,18 @@ fun WeaponCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "(${weapon.type})",
+                            text = stringResource(R.string.format_weapon_type_parenthesized, weapon.type),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.secondary
                         )
                     }
                     Text(
-                        text = "${weapon.damageDice} ${weapon.damageType} (Modifier: ${weapon.modifier})",
+                        text = stringResource(
+                            R.string.format_weapon_damage_details,
+                            weapon.damageDice,
+                            weapon.damageType,
+                            weapon.modifier
+                        ),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

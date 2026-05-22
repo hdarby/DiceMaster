@@ -53,12 +53,16 @@ import com.hdarby.dicemaster.R
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
+import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.viewmodel.CharacterViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharacterScreen(viewModel: CharacterViewModel = koinViewModel()) {
+fun CharacterScreen(
+    viewModel: CharacterViewModel = koinViewModel(),
+    onNavigateToEditWeapon: (Weapon) -> Unit
+) {
     val uiState by viewModel.uiState.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     var editingCharacter by remember { mutableStateOf<Character?>(null) }
@@ -98,7 +102,8 @@ fun CharacterScreen(viewModel: CharacterViewModel = koinViewModel()) {
                         CharacterCard(
                             characterWithWeapons = characterWithWeapons,
                             onEdit = { editingCharacter = it },
-                            onDelete = { viewModel.deleteCharacter(it) }
+                            onDelete = { viewModel.deleteCharacter(it) },
+                            onWeaponClick = onNavigateToEditWeapon
                         )
                     }
                 }
@@ -133,7 +138,8 @@ fun CharacterScreen(viewModel: CharacterViewModel = koinViewModel()) {
 fun CharacterCard(
     characterWithWeapons: CharacterWithWeapons,
     onEdit: (Character) -> Unit,
-    onDelete: (Character) -> Unit
+    onDelete: (Character) -> Unit,
+    onWeaponClick: (Weapon) -> Unit = {}
 ) {
     val character = characterWithWeapons.character
     val weapons = characterWithWeapons.weapons
@@ -193,8 +199,8 @@ fun CharacterCard(
                 ) {
                     weapons.forEach { weapon ->
                         AssistChip(
-                            onClick = { },
-                            label = { Text("${weapon.name} (${weapon.type})") },
+                            onClick = { onWeaponClick(weapon) },
+                            label = { Text(stringResource(R.string.format_weapon_chip_label, weapon.name, weapon.type)) },
                             colors = AssistChipDefaults.assistChipColors(
                                 labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )

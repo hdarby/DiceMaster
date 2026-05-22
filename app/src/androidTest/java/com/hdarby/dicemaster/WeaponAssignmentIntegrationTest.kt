@@ -269,5 +269,60 @@ class WeaponAssignmentIntegrationTest {
         composeTestRule.onNodeWithText("Weapon1").assertIsDisplayed()
         composeTestRule.onNodeWithText("Weapon2").assertIsDisplayed()
     }
-}
 
+    @Test
+    fun weaponChipClick_navigatesToWeaponsScreenAndOpensEditDialog() {
+        // Create a character
+        composeTestRule.onNodeWithTag("nav_item_characters").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_add_character)
+        ).performClick()
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.label_name)
+        ).performTextInput("Kira")
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.label_race)
+        ).performTextInput("Elf")
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.button_confirm)
+        ).performClick()
+
+        // Create a weapon and assign it to the character
+        composeTestRule.onNodeWithTag("nav_item_weapons").performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_add_weapon)
+        ).performClick()
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.label_name)
+        ).performTextInput("Elven Bow")
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.label_weapon_type)
+        ).performTextInput("Ranged")
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.label_damage_dice)
+        ).performTextInput("1d8")
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.label_damage_type)
+        ).performTextInput("Piercing")
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.button_confirm)
+        ).performClick()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_desc_assign)
+        ).performClick()
+        composeTestRule.onNodeWithText("Kira").performClick()
+
+        // Go to characters screen and tap the weapon chip
+        composeTestRule.onNodeWithTag("nav_item_characters").performClick()
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.format_weapon_chip_label, "Elven Bow", "Ranged")
+        ).performClick()
+
+        // Verify we are on the weapons screen with the edit dialog open
+        composeTestRule.onNodeWithTag("screen_title_weapons").assertIsDisplayed()
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.title_edit_weapon)
+        ).assertIsDisplayed()
+        composeTestRule.onNodeWithText("Elven Bow").assertIsDisplayed()
+    }
+}

@@ -16,10 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.hdarby.dicemaster.ui.navigation.Screen
 import com.hdarby.dicemaster.ui.screens.CharacterScreen
 import com.hdarby.dicemaster.ui.screens.DebugRngScreen
@@ -58,7 +60,9 @@ fun MainContainer() {
                         modifier = Modifier.testTag("nav_item_${screen.route}"),
                         icon = { Icon(screen.icon, contentDescription = null) },
                         label = { Text(screen.label) },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        selected = currentDestination?.hierarchy?.any {
+                                it.route?.substringBefore("?") == screen.route
+                            } == true,
                         onClick = {
                             navController.navigate(screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
@@ -83,9 +87,32 @@ fun MainContainer() {
                     onNavigateToDebug = { navController.navigate(Screen.Debug.route) }
                 ) 
             }
-            composable(Screen.Characters.route) { CharacterScreen() }
-            composable(Screen.Weapons.route) { WeaponScreen() }
-            composable(Screen.Debug.route) { 
+            composable(Screen.Characters.route) {
+                CharacterScreen(
+                    onNavigateToEditWeapon = { weapon ->
+                        navController.navigate("${Screen.Weapons.route}?editWeaponId=${weapon.id}") {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = false
+                        }
+                    }
+                )
+            }
+            composable(
+                route = "${Screen.Weapons.route}?editWeaponId={editWeaponId}",
+                arguments = listOf(
+                    navArgument("editWeaponId") {
+                        type = NavType.LongType
+                        defaultValue = -1L
+                    }
+                )
+            ) { backStackEntry ->
+                val rawEditId = backStackEntry.arguments?.getLong("editWeaponId") ?: -1L
+                WeaponScreen(editWeaponId = rawEditId.takeIf { it != -1L })
+            }
+            composable(Screen.Debug.route) {
                 DebugRngScreen(onBack = { navController.popBackStack() }) 
             }
         }

@@ -109,6 +109,12 @@ Each entry follows this structure:
 
 ---
 
+### [DEBT-018] Nav argument sentinel value `-1L` for optional `editWeaponId`
+- **Area**: `MainActivity.kt`, `ui/screens/WeaponScreen.kt`
+- **Added**: 2026-05-22
+- **Description**: Jetpack Navigation `navArgument` for primitive types (`NavType.LongType`) requires a non-null `defaultValue`. The sentinel `-1L` is used to represent "no weapon selected". This is a leaky abstraction — the sentinel leaks into `WeaponScreen` via `.takeIf { it != -1L }`.
+- **Resolution**: Migrate to the `@Serializable` safe-args approach available in Navigation 2.8+ (type-safe routes with nullable parameters), which natively handles `null` for optional arguments without a sentinel value.
+
 ## Resolved Items
 
 ### [DEBT-014] `createComposeRule()` used where `createAndroidComposeRule()` was needed ✅

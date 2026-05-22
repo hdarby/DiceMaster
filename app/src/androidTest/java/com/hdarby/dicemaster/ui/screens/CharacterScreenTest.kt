@@ -252,5 +252,53 @@ class CharacterScreenTest {
 
         assertTrue(dismissCalled)
     }
+
+    @Test
+    fun characterCard_callsOnWeaponClickWhenWeaponChipTapped() {
+        var weaponClickCalled = false
+        var clickedWeapon: Weapon? = null
+
+        composeTestRule.setContent {
+            DiceMasterTheme {
+                CharacterCard(
+                    characterWithWeapons = CharacterWithWeapons(testCharacter, listOf(testWeapon)),
+                    onEdit = {},
+                    onDelete = {},
+                    onWeaponClick = {
+                        weaponClickCalled = true
+                        clickedWeapon = it
+                    }
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.format_weapon_chip_label, testWeapon.name, testWeapon.type)
+        ).performClick()
+
+        assertTrue(weaponClickCalled)
+        assertTrue(clickedWeapon?.id == testWeapon.id)
+    }
+
+    @Test
+    fun characterCard_doesNotRenderWeaponSectionWhenNoWeaponsAssigned() {
+        var weaponClickCalled = false
+
+        composeTestRule.setContent {
+            DiceMasterTheme {
+                CharacterCard(
+                    characterWithWeapons = CharacterWithWeapons(testCharacter, emptyList()),
+                    onEdit = {},
+                    onDelete = {},
+                    onWeaponClick = { weaponClickCalled = true }
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.label_weapons_section)
+        ).assertDoesNotExist()
+        assertTrue(!weaponClickCalled)
+    }
 }
 

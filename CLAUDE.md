@@ -93,6 +93,7 @@ Before finalising any commit or declaring a task complete, Claude **must**:
 | `CLAUDE.md` | Agent rules and project conventions (this file) |
 | `COVERAGE_STRATEGY.md` | Test coverage goals, tooling notes, and thresholds |
 | `TECH_DEBT.md` | Running log of known tech debt, shortcuts, and deferred improvements |
+| `ADDITIONAL_FEATURES.md` | Backlog of features to add, edit, or delete in the app |
 
 When adding a new major feature, a new screen, or changing architecture patterns, update the relevant `.md` file(s) to keep documentation current.
 
