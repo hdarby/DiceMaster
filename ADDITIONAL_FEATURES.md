@@ -70,33 +70,170 @@ Each entry follows this structure:
 
 <!-- Add new features below this line -->
 
-### [FEAT-006] Firebase sync with role-based access for DM and players
+<!--
+  FEAT-006 is a multi-session feature broken into 8 sequential sub-tasks (a–h).
+  Each sub-task is independently completable and leaves the app in a fully
+  buildable, runnable state. Implement them in order; do not start a sub-task
+  until the previous one is committed and passing tests.
+-->
+
+### [FEAT-006] Firebase sync with role-based access for DM and players *(parent — see sub-tasks below)*
 - **Type**: Add
-- **Area**: `data/remote/`, `domain/repository/`, `di/AppModule.kt`, `ui/screens/`, `viewmodel/`, Firebase Console
+- **Area**: `data/remote/`, `domain/`, `di/AppModule.kt`, `ui/screens/`, `viewmodel/`, Firebase Console
 - **Added**: 2026-05-23
 - **Priority**: High
 - **Status**: Backlog
-- **Description**: Introduces real-time data synchronisation via **Firebase Firestore** (NoSQL) so that a Dungeon Master and their players can share a live view of campaign data from their own devices. On first launch (or from a Settings screen) the user identifies themselves as either the DM or a specific player character. The DM has full read/write access to all campaign data. Each player can only read and interact with the data belonging to their own character. Firestore Security Rules enforce these access boundaries server-side so no client-side workaround can expose another player's data.
-- **Implementation Notes**:
-  - Add `firebase-bom`, `firebase-firestore-ktx`, and `firebase-auth-ktx` dependencies.
-  - Use **Firebase Anonymous Auth** (or Google Sign-In) to give every device a stable UID; map that UID to a role (`dm` or a `characterId`) in a top-level `roles/{uid}` Firestore document.
-  - Firestore data model (top level):
-    - `sessions/{sessionId}/characters/{characterId}` — character profile, stats, assigned weapons.
-    - `sessions/{sessionId}/weapons/{weaponId}` — weapon definitions.
-    - `sessions/{sessionId}/items/{itemId}` — consumable item definitions.
-    - `sessions/{sessionId}/characterItems/{characterId}/entries/{itemId}` — per-character item quantities (cross-refs).
-  - Security Rules: DM UID may read/write all paths under `sessions/{sessionId}/**`; a player UID may read/write only `characters/{their characterId}` and `characterItems/{their characterId}/**`; item and weapon definitions are readable by all session members but writable only by the DM.
-  - Introduce a `RemoteDataSource` abstraction in `data/remote/` so the repository layer stays technology-agnostic and local-only mode (Room) continues to work offline or without a session.
-  - On first launch show a **Session Setup screen** where the user enters a session code (or creates one as DM). The DM's device generates the session and shares the code; players enter it to join.
-  - Changes made locally (by the DM or a player) propagate in real-time to all other connected devices via Firestore snapshot listeners.
+- **Description**: Real-time Firestore sync so the DM and players share live campaign data. The DM has full read/write access; each player sees and edits only their own character. Broken into sub-tasks FEAT-006a through FEAT-006h — track progress there.
+
+---
+
+### [FEAT-006a] Firebase project setup and Gradle dependencies
+- **Type**: Add
+- **Area**: `app/build.gradle.kts`, `build.gradle.kts`, `google-services.json`, `libs.versions.toml`
+- **Added**: 2026-05-23
+- **Priority**: High
+- **Status**: Backlog
+- **Depends on**: nothing
+- **Description**: Wire Firebase into the build system. No runtime behaviour changes — the app continues to work exactly as before. This step exists solely to land the dependency changes in isolation so subsequent sub-tasks have clean ground to build on.
 - **Acceptance Criteria**:
-  - A new Session Setup screen lets a user create a session (DM) or join an existing one (player) by entering a session code.
-  - A player joining a session selects which character they are from a list provided by the DM; they can only see and interact with that character's card, items, and quantities.
-  - The DM sees all characters, weapons, and items — identical to the current local experience — and all writes are reflected on player devices within a few seconds.
-  - A player incrementing or decrementing an item quantity updates the shared Firestore document; the DM's device reflects the change in real-time without a manual refresh.
-  - Firestore Security Rules are deployed alongside the app and block any attempt by a player UID to read another character's data or modify DM-only collections (weapons, item definitions).
-  - The app continues to work fully offline using the local Room database when no session is active; syncing is opt-in, not required.
-  - All new remote repository methods are covered by unit tests using a faked/mocked `RemoteDataSource`.
+  - `google-services.json` is added to `app/` (obtained from the Firebase Console after creating a project).
+  - `com.google.gms.google-services` plugin is applied in both `build.gradle.kts` files.
+  - `libs.versions.toml` declares `firebase-bom`, `firebase-firestore-ktx`, and `firebase-auth-ktx` version refs.
+  - `app/build.gradle.kts` adds the three Firebase dependencies via the BOM.
+  - `./gradlew assembleDebug` passes with no errors.
+  - `google-services.json` is added to `.gitignore`; a `google-services.json.example` placeholder is committed instead.
+
+---
+
+### [FEAT-006b] Firebase Anonymous Auth + session/role domain model
+- **Type**: Add
+- **Area**: `domain/model/`, `data/local/` (DataStore or SharedPreferences), `di/AppModule.kt`
+- **Added**: 2026-05-23
+- **Priority**: High
+- **Status**: Backlog
+- **Depends on**: FEAT-006a
+- **Description**: Establish the identity foundation. Every device signs in anonymously via Firebase Auth to receive a stable UID. A `UserRole` sealed class (`DungeonMaster`, `Player(characterId: Long)`) and a `Session` domain model (sessionId, role) are added to the domain layer. The current role and session ID are persisted locally (Jetpack DataStore) so the user is not asked again after the first setup. No UI changes yet — the app still opens directly to the existing screens.
+- **Acceptance Criteria**:
+  - `UserRole` sealed class exists in `domain/model/` with `DungeonMaster` and `Player(characterId: Long)` variants.
+  - `Session` data class exists in `domain/model/` with `sessionId: String` and `role: UserRole`.
+  - `SessionRepository` interface exists in `domain/repository/` with `suspend fun getActiveSession(): Session?` and `suspend fun saveSession(session: Session)`.
+  - `SessionRepositoryImpl` persists the session to DataStore; `FirebaseAuthDataSource` handles anonymous sign-in and exposes the current UID.
+  - Koin provides `SessionRepository`, `FirebaseAuthDataSource`.
+  - Unit tests cover `SessionRepositoryImpl` read/write and the anonymous sign-in path (mockked `FirebaseAuth`).
+  - `./gradlew assembleDebug testDebugUnitTest` passes.
+
+---
+
+### [FEAT-006c] Session Setup screen — create (DM) and join (player)
+- **Type**: Add
+- **Area**: `ui/screens/SessionSetupScreen.kt`, `viewmodel/SessionViewModel.kt`, `ui/navigation/`, `MainActivity.kt`
+- **Added**: 2026-05-23
+- **Priority**: High
+- **Status**: Backlog
+- **Depends on**: FEAT-006b
+- **Description**: A new Session Setup screen shown on first launch (or when no active session is stored). The DM taps "Create Session", which generates a short alphanumeric session code and saves their role. A player taps "Join Session", enters the code, and is shown a list of characters that the DM has created; they pick one and their `Player(characterId)` role is saved. After setup the user is taken to the normal app flow. A "Leave Session" option in a Settings screen clears the stored session so setup is shown again.
+- **Acceptance Criteria**:
+  - On fresh install (or after leaving a session), `SessionSetupScreen` is the first screen shown.
+  - "Create Session" generates a UUID-based session code, displays it for sharing, and writes the session to Firestore (`sessions/{sessionId}`) with `createdBy: uid`.
+  - "Join Session" accepts a session code, validates it against Firestore, and fetches the character list for that session.
+  - The player selects a character; the app saves `Session(sessionId, Player(characterId))` to DataStore and navigates to the main screen.
+  - If a session is already stored, the Setup screen is skipped entirely on subsequent launches.
+  - A "Leave Session" button (accessible from a Settings icon in any top app bar) clears DataStore and returns to `SessionSetupScreen`.
+  - `SessionViewModel` exposes `uiState: StateFlow<SessionUiState>` and is covered by unit tests.
+  - `./gradlew assembleDebug testDebugUnitTest` passes.
+
+---
+
+### [FEAT-006d] `RemoteDataSource` abstraction + Firestore character and weapon sync
+- **Type**: Add
+- **Area**: `data/remote/`, `domain/repository/`, `data/repository/`, `di/AppModule.kt`
+- **Added**: 2026-05-23
+- **Priority**: High
+- **Status**: Backlog
+- **Depends on**: FEAT-006c
+- **Description**: Introduce a `RemoteDataSource` interface in `data/remote/` so the Firestore implementation is swappable and testable. Extend `CharacterRepository` and `WeaponRepository` to write to (and listen from) Firestore in addition to Room whenever an active session exists. Local-only mode (no session) remains unchanged. The Firestore data model for characters and weapons is established here: `sessions/{sessionId}/characters/{characterId}` and `sessions/{sessionId}/weapons/{weaponId}`.
+- **Acceptance Criteria**:
+  - `RemoteDataSource` interface in `data/remote/` declares CRUD + snapshot-listener methods for characters and weapons.
+  - `FirestoreRemoteDataSource` implements it using `firebase-firestore-ktx`.
+  - `CharacterRepositoryImpl` and `WeaponRepositoryImpl` accept an optional `RemoteDataSource`; when a session is active, writes go to both Room and Firestore, and a snapshot listener merges remote changes back into Room.
+  - When no session is active, behaviour is identical to the pre-FEAT-006 code path.
+  - `FirestoreRemoteDataSource` is bound in Koin; a `FakeRemoteDataSource` exists in `test/` for unit tests.
+  - Unit tests cover: write propagates to both Room and Firestore; remote snapshot triggers Room update; no-session path skips Firestore entirely.
+  - DM device changes to a character are visible on a second device (manual smoke test).
+  - `./gradlew assembleDebug testDebugUnitTest` passes.
+
+---
+
+### [FEAT-006e] Firestore item and character-item quantity sync
+- **Type**: Add
+- **Area**: `data/remote/`, `data/repository/ItemRepositoryImpl.kt`, `di/AppModule.kt`
+- **Added**: 2026-05-23
+- **Priority**: High
+- **Status**: Backlog
+- **Depends on**: FEAT-006d
+- **Description**: Extend the `RemoteDataSource` interface and `FirestoreRemoteDataSource` to cover consumable items and per-character item quantities. The Firestore paths are `sessions/{sessionId}/items/{itemId}` for item definitions and `sessions/{sessionId}/characterItems/{characterId}/entries/{itemId}` for per-character quantities. `ItemRepositoryImpl` adopts the same dual-write + snapshot-listener pattern established in FEAT-006d. A player adjusting their item count writes directly to the `characterItems/{their characterId}/entries/{itemId}` path; the DM's device reflects the change in real-time.
+- **Acceptance Criteria**:
+  - `RemoteDataSource` gains methods for items and character-item cross-refs.
+  - `ItemRepositoryImpl` writes item definitions and cross-ref quantities to Firestore when a session is active.
+  - Snapshot listeners on item definitions and character-item entries propagate remote changes back into Room.
+  - A player incrementing/decrementing their quantity updates Firestore; the DM sees the change within a few seconds.
+  - Unit tests cover dual-write, remote snapshot → Room update, and no-session bypass for items and cross-refs.
+  - `./gradlew assembleDebug testDebugUnitTest` passes.
+
+---
+
+### [FEAT-006f] Firestore Security Rules
+- **Type**: Add
+- **Area**: `firestore.rules` (project root), Firebase Console
+- **Added**: 2026-05-23
+- **Priority**: High
+- **Status**: Backlog
+- **Depends on**: FEAT-006e
+- **Description**: Write and deploy Firestore Security Rules that enforce the DM/player access boundary server-side. Rules are committed to the repo as `firestore.rules` and deployed via the Firebase CLI. No Android code changes are required; this is a pure backend/infra step.
+- **Acceptance Criteria**:
+  - `firestore.rules` is committed to the project root.
+  - Rules allow the DM UID (stored in `sessions/{sessionId}.createdBy`) full read/write to all documents under `sessions/{sessionId}/**`.
+  - Rules allow a player UID to read/write only `characters/{their characterId}` and `characterItems/{their characterId}/**` within the session.
+  - Rules make item and weapon definitions *readable* by any session member but *writable* only by the DM.
+  - Rules are validated with `firebase emulators:exec` or the Rules Playground in the Firebase Console — all expected allow/deny cases pass.
+  - `firebase deploy --only firestore:rules` succeeds without errors.
+
+---
+
+### [FEAT-006g] UI role filtering — player view vs. DM view
+- **Type**: Add
+- **Area**: `ui/screens/CharacterScreen.kt`, `ui/screens/ItemScreen.kt`, `ui/screens/WeaponScreen.kt`, `viewmodel/`
+- **Added**: 2026-05-23
+- **Priority**: High
+- **Status**: Backlog
+- **Depends on**: FEAT-006f
+- **Description**: Adapt the existing screens to respect the active `UserRole`. A player should see only the card for their own character and cannot access the Item Repository or Weapon Repository management screens (read-only or hidden). The DM sees the full, unfiltered experience as today. Role is read from `SessionRepository` in each ViewModel and exposed via the relevant `UiState`.
+- **Acceptance Criteria**:
+  - When `UserRole` is `Player(characterId)`, `CharacterScreen` shows only the card matching `characterId`; all other cards are hidden.
+  - The Add Character FAB and edit/delete icon buttons are hidden for players.
+  - Weapon chip taps are read-only for players (no navigation to the edit screen).
+  - The Item Repository tab in the bottom nav is hidden for players (or navigates to a read-only view with no add/edit/delete controls).
+  - When `UserRole` is `DungeonMaster`, all screens and controls are visible and functional as before.
+  - No session active → app behaves exactly as before FEAT-006 (all screens accessible, local-only).
+  - Unit tests cover the conditional UI state logic in each affected ViewModel.
+  - `./gradlew assembleDebug testDebugUnitTest` passes.
+
+---
+
+### [FEAT-006h] Remote repository unit tests and integration smoke tests
+- **Type**: Add
+- **Area**: `app/src/test/`, `app/src/androidTest/`
+- **Added**: 2026-05-23
+- **Priority**: High
+- **Status**: Backlog
+- **Depends on**: FEAT-006g
+- **Description**: Close test coverage for the full FEAT-006 feature set. Unit tests use `FakeRemoteDataSource` to cover all remote code paths. Instrumentation tests use the **Firebase Local Emulator Suite** to run end-to-end sync scenarios against a real (emulated) Firestore instance without hitting production.
+- **Acceptance Criteria**:
+  - Unit test coverage for `SessionRepositoryImpl`, `FirebaseAuthDataSource`, `SessionViewModel`, and all remote paths in `CharacterRepositoryImpl`, `WeaponRepositoryImpl`, and `ItemRepositoryImpl` reaches 100%.
+  - An instrumentation test (`SyncIntegrationTest`) runs against the Firebase Emulator: DM creates a character → player device observes the change; player adjusts item quantity → DM device observes the change.
+  - Security Rules are validated in the emulator: player UID attempting to read another character's document receives `PERMISSION_DENIED`.
+  - `COVERAGE_STRATEGY.md` is updated to reflect remote layer coverage targets and emulator test instructions.
+  - All tests pass in `./gradlew testDebugUnitTest` and `./gradlew connectedDebugAndroidTest` (with emulator running).
 
 ---
 
