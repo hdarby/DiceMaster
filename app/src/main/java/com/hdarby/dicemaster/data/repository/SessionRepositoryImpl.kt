@@ -8,7 +8,9 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.hdarby.dicemaster.domain.model.Session
 import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.domain.repository.SessionRepository
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 class SessionRepositoryImpl(
     private val dataStore: DataStore<Preferences>
@@ -27,6 +29,20 @@ class SessionRepositoryImpl(
             else -> return null
         }
         return Session(sessionId, role)
+    }
+
+    override fun observeSession(): Flow<Session?> = dataStore.data.map { prefs ->
+        val sessionId = prefs[KEY_SESSION_ID] ?: return@map null
+        val roleType = prefs[KEY_ROLE_TYPE] ?: return@map null
+        val role: UserRole = when (roleType) {
+            ROLE_TYPE_DM -> UserRole.DungeonMaster
+            ROLE_TYPE_PLAYER -> {
+                val characterId = prefs[KEY_ROLE_CHARACTER_ID] ?: return@map null
+                UserRole.Player(characterId)
+            }
+            else -> return@map null
+        }
+        Session(sessionId, role)
     }
 
     override suspend fun saveSession(session: Session) {
@@ -55,4 +71,3 @@ class SessionRepositoryImpl(
         private const val ROLE_TYPE_PLAYER = "PLAYER"
     }
 }
-

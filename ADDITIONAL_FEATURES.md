@@ -149,7 +149,7 @@ Each entry follows this structure:
 - **Area**: `data/remote/`, `domain/repository/`, `data/repository/`, `di/AppModule.kt`
 - **Added**: 2026-05-23
 - **Priority**: High
-- **Status**: Backlog
+- **Status**: Done
 - **Depends on**: FEAT-006c
 - **Description**: Introduce a `RemoteDataSource` interface in `data/remote/` so the Firestore implementation is swappable and testable. Extend `CharacterRepository` and `WeaponRepository` to write to (and listen from) Firestore in addition to Room whenever an active session exists. Local-only mode (no session) remains unchanged. The Firestore data model for characters and weapons is established here: `sessions/{sessionId}/characters/{characterId}` and `sessions/{sessionId}/weapons/{weaponId}`.
 - **Acceptance Criteria**:
