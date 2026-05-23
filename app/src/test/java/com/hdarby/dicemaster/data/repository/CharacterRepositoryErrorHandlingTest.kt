@@ -1,6 +1,7 @@
 package com.hdarby.dicemaster.data.repository
 
 import com.hdarby.dicemaster.data.local.dao.CharacterDao
+import com.hdarby.dicemaster.data.local.dao.WeaponDao
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.Stats
 import io.mockk.coEvery
@@ -15,7 +16,8 @@ import org.junit.Test
 class CharacterRepositoryErrorHandlingTest {
 
     private val characterDao: CharacterDao = mockk()
-    private val repository = CharacterRepositoryImpl(characterDao)
+    private val weaponDao: WeaponDao = mockk(relaxed = true)
+    private val repository = CharacterRepositoryImpl(characterDao, weaponDao)
 
     private val character = Character(
         id = 1,

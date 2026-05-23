@@ -57,7 +57,7 @@ val appModule = module {
 
     // Repositories
     single<DiceRepository> { DiceRepositoryImpl() }
-    single<CharacterRepository> { CharacterRepositoryImpl(get()) }
+    single<CharacterRepository> { CharacterRepositoryImpl(get(), get()) }
     single<WeaponRepository> { WeaponRepositoryImpl(get()) }
     single<ItemRepository> { ItemRepositoryImpl(get()) }
 

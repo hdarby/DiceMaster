@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.hdarby.dicemaster.data.local.entity.CharacterWeaponCrossRef
 import com.hdarby.dicemaster.data.local.entity.WeaponEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -24,9 +23,9 @@ interface WeaponDao {
     @Delete
     suspend fun deleteWeapon(weapon: WeaponEntity)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertCharacterWeaponCrossRef(crossRef: CharacterWeaponCrossRef)
+    @Query("UPDATE weapons SET characterId = :characterId WHERE id = :weaponId")
+    suspend fun assignToCharacter(weaponId: Long, characterId: Long)
 
-    @Delete
-    suspend fun deleteCharacterWeaponCrossRef(crossRef: CharacterWeaponCrossRef)
+    @Query("UPDATE weapons SET characterId = NULL WHERE id = :weaponId")
+    suspend fun unassignFromCharacter(weaponId: Long)
 }

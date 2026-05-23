@@ -24,7 +24,7 @@ Each entry follows this structure:
 ### [DEBT-001] `fallbackToDestructiveMigration()` used in production database builder
 - **Area**: `di/AppModule.kt`
 - **Added**: 2026-05-19
-- **Description**: The Room database builder uses `fallbackToDestructiveMigration()`, which silently wipes all user data on any schema version bump instead of running a proper migration. The DB is already on version 4 (bumped 1→2, 2→3 for FEAT-003, 3→4 for FEAT-005 `totalQuantity` column), meaning data loss has already occurred on every upgrade.
+- **Description**: The Room database builder uses `fallbackToDestructiveMigration()`, which silently wipes all user data on any schema version bump instead of running a proper migration. The DB is now on version 5 (1→2, 2→3 FEAT-003, 3→4 FEAT-005 totalQuantity, 4→5 schema flatten removing `character_weapon_cross_ref`).
 - **Resolution**: Write explicit `Migration` objects for each version transition and register them via `.addMigrations(...)` in the `databaseBuilder`. Remove `fallbackToDestructiveMigration()`.
 
 ---
@@ -50,14 +50,6 @@ Each entry follows this structure:
 - **Added**: 2026-05-19
 - **Description**: `runSimulations()` is called synchronously in `init {}` with no coroutine dispatcher. At 1000× per face, the d100 simulation generates 100,000 random numbers on the main thread, which can cause a visible UI hitch on screen entry.
 - **Resolution**: Wrap the computation in `viewModelScope.launch(Dispatchers.Default) { ... }` and expose a loading state while the simulation runs.
-
----
-
-### [DEBT-005] Cross-ref DAO methods duplicated across `CharacterDao` and `WeaponDao`
-- **Area**: `data/local/dao/CharacterDao.kt`, `data/local/dao/WeaponDao.kt`
-- **Added**: 2026-05-19
-- **Description**: `insertCharacterWeaponCrossRef` and `deleteCharacterWeaponCrossRef` exist in both DAOs. These are character–weapon relationship operations and belong solely in `CharacterDao`, violating separation of concerns and creating duplication.
-- **Resolution**: Remove the cross-ref methods from `WeaponDao`. Update `WeaponRepositoryImpl` if needed to route cross-ref operations through `CharacterDao` or a dedicated repository method.
 
 ---
 
@@ -116,6 +108,11 @@ Each entry follows this structure:
 - **Resolution**: Migrate to the `@Serializable` safe-args approach available in Navigation 2.8+ (type-safe routes with nullable parameters), which natively handles `null` for optional arguments without a sentinel value.
 
 ## Resolved Items
+
+### [DEBT-005] Cross-ref DAO methods duplicated across `CharacterDao` and `WeaponDao` ✅
+- **Area**: `data/local/dao/CharacterDao.kt`, `data/local/dao/WeaponDao.kt`
+- **Resolved**: 2026-05-23
+- **Resolution applied**: Flattened the `character_weapon_cross_ref` many-to-many junction table into a direct `characterId: Long?` FK on `WeaponEntity`. `CharacterWeaponCrossRef` entity deleted. Both DAOs' `insertCharacterWeaponCrossRef` / `deleteCharacterWeaponCrossRef` methods removed and replaced with `weaponDao.assignToCharacter(weaponId, characterId)` and `weaponDao.unassignFromCharacter(weaponId)` SQL UPDATE queries. `CharacterRepositoryImpl` now accepts `WeaponDao` as a second constructor param. DB version bumped 4→5.
 
 ### [DEBT-014] `createComposeRule()` used where `createAndroidComposeRule()` was needed ✅
 - **Area**: `ui/screens/CharacterScreenTest.kt`, `ui/screens/WeaponScreenTest.kt`

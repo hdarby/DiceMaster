@@ -8,7 +8,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.hdarby.dicemaster.data.local.entity.CharacterEntity
-import com.hdarby.dicemaster.data.local.entity.CharacterWeaponCrossRef
+import com.hdarby.dicemaster.data.local.entity.CharacterWithWeapons
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -27,11 +27,5 @@ interface CharacterDao {
 
     @Transaction
     @Query("SELECT * FROM characters")
-    fun getCharactersWithWeapons(): Flow<List<com.hdarby.dicemaster.data.local.entity.CharacterWithWeapons>>
-
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertCharacterWeaponCrossRef(crossRef: CharacterWeaponCrossRef)
-
-    @Delete
-    suspend fun deleteCharacterWeaponCrossRef(crossRef: CharacterWeaponCrossRef)
+    fun getCharactersWithWeapons(): Flow<List<CharacterWithWeapons>>
 }

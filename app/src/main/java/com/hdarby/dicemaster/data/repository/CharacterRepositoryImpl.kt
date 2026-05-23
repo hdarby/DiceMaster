@@ -1,8 +1,8 @@
 package com.hdarby.dicemaster.data.repository
 
 import com.hdarby.dicemaster.data.local.dao.CharacterDao
+import com.hdarby.dicemaster.data.local.dao.WeaponDao
 import com.hdarby.dicemaster.data.local.entity.CharacterEntity
-import com.hdarby.dicemaster.data.local.entity.CharacterWeaponCrossRef
 import com.hdarby.dicemaster.data.local.entity.WeaponEntity
 import com.hdarby.dicemaster.data.local.entity.CharacterWithWeapons as CharacterWithWeaponsEntity
 import com.hdarby.dicemaster.domain.model.Character
@@ -13,7 +13,10 @@ import com.hdarby.dicemaster.domain.repository.CharacterRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class CharacterRepositoryImpl(private val characterDao: CharacterDao) : CharacterRepository {
+class CharacterRepositoryImpl(
+    private val characterDao: CharacterDao,
+    private val weaponDao: WeaponDao
+) : CharacterRepository {
     override fun getAllCharacters(): Flow<List<Character>> {
         return characterDao.getAllCharacters().map { entities ->
             entities.map { it.toDomain() }
@@ -39,11 +42,11 @@ class CharacterRepositoryImpl(private val characterDao: CharacterDao) : Characte
     }
 
     override suspend fun assignWeaponToCharacter(characterId: Long, weaponId: Long) {
-        characterDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId, weaponId))
+        weaponDao.assignToCharacter(weaponId = weaponId, characterId = characterId)
     }
 
     override suspend fun unassignWeaponFromCharacter(characterId: Long, weaponId: Long) {
-        characterDao.deleteCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId, weaponId))
+        weaponDao.unassignFromCharacter(weaponId = weaponId)
     }
 
     private fun CharacterEntity.toDomain() = Character(

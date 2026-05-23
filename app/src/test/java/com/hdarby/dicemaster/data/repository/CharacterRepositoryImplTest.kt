@@ -2,8 +2,8 @@ package com.hdarby.dicemaster.data.repository
 
 import app.cash.turbine.test
 import com.hdarby.dicemaster.data.local.dao.CharacterDao
+import com.hdarby.dicemaster.data.local.dao.WeaponDao
 import com.hdarby.dicemaster.data.local.entity.CharacterEntity
-import com.hdarby.dicemaster.data.local.entity.CharacterWeaponCrossRef
 import com.hdarby.dicemaster.data.local.entity.WeaponEntity
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.Stats
@@ -19,7 +19,8 @@ import org.junit.Test
 class CharacterRepositoryImplTest {
 
     private val characterDao: CharacterDao = mockk()
-    private val repository = CharacterRepositoryImpl(characterDao)
+    private val weaponDao: WeaponDao = mockk()
+    private val repository = CharacterRepositoryImpl(characterDao, weaponDao)
 
     private val characterEntity = CharacterEntity(
         id = 1,
@@ -70,7 +71,7 @@ class CharacterRepositoryImplTest {
             character = characterEntity,
             weapons = listOf(weaponEntity)
         )
-        
+
         every { characterDao.getCharactersWithWeapons() } returns flowOf(listOf(charWithWeaponsEntity))
 
         repository.getCharactersWithWeapons().test {
@@ -111,20 +112,20 @@ class CharacterRepositoryImplTest {
     }
 
     @Test
-    fun `assignWeaponToCharacter inserts cross ref`() = runTest {
-        coEvery { characterDao.insertCharacterWeaponCrossRef(any()) } returns Unit
+    fun `assignWeaponToCharacter updates weapon FK`() = runTest {
+        coEvery { weaponDao.assignToCharacter(any(), any()) } returns Unit
 
-        repository.assignWeaponToCharacter(1L, 2L)
+        repository.assignWeaponToCharacter(characterId = 1L, weaponId = 2L)
 
-        coVerify { characterDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1L, 2L)) }
+        coVerify { weaponDao.assignToCharacter(weaponId = 2L, characterId = 1L) }
     }
 
     @Test
-    fun `unassignWeaponFromCharacter deletes cross ref`() = runTest {
-        coEvery { characterDao.deleteCharacterWeaponCrossRef(any()) } returns Unit
+    fun `unassignWeaponFromCharacter clears weapon FK`() = runTest {
+        coEvery { weaponDao.unassignFromCharacter(any()) } returns Unit
 
-        repository.unassignWeaponFromCharacter(1L, 2L)
+        repository.unassignWeaponFromCharacter(characterId = 1L, weaponId = 2L)
 
-        coVerify { characterDao.deleteCharacterWeaponCrossRef(CharacterWeaponCrossRef(1L, 2L)) }
+        coVerify { weaponDao.unassignFromCharacter(weaponId = 2L) }
     }
 }
