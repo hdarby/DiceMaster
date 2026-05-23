@@ -48,10 +48,5 @@ interface ItemDao {
         WHERE characterId = :characterId AND itemId = :itemId
     """)
     suspend fun deleteCharacterItemCrossRef(characterId: Long, itemId: Long)
-
-    @Query("UPDATE consumable_items SET totalQuantity = totalQuantity + :delta WHERE id = :itemId")
-    suspend fun adjustItemStock(itemId: Long, delta: Int)
 }
-
-
 

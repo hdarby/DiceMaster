@@ -4,7 +4,6 @@ import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.CharacterItemEntry
 import com.hdarby.dicemaster.domain.model.ConsumableItem
 import com.hdarby.dicemaster.domain.usecase.item.AddItemUseCase
-import com.hdarby.dicemaster.domain.usecase.item.AdjustItemStockUseCase
 import com.hdarby.dicemaster.domain.usecase.item.AssignItemToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.item.DeleteItemUseCase
 import com.hdarby.dicemaster.domain.usecase.item.GetItemsByCharacterUseCase
@@ -42,12 +41,11 @@ class ItemViewModelTest {
     private val assignItemToCharacterUseCase: AssignItemToCharacterUseCase = mockk()
     private val unassignItemFromCharacterUseCase: UnassignItemFromCharacterUseCase = mockk()
     private val updateItemQuantityUseCase: UpdateItemQuantityUseCase = mockk()
-    private val adjustItemStockUseCase: AdjustItemStockUseCase = mockk(relaxed = true)
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: ItemViewModel
 
-    private val healingPotion = ConsumableItem(1L, "Healing Potion", "Restores 2d4+2 HP")
+    private val healingPotion = ConsumableItem(1L, "Healing Potion", "Restores 2d4+2 HP", totalQuantity = 5)
     private val characterItemEntry = CharacterItemEntry(item = healingPotion, quantity = 3)
 
     @Before
@@ -71,8 +69,7 @@ class ItemViewModelTest {
         deleteItemUseCase,
         assignItemToCharacterUseCase,
         unassignItemFromCharacterUseCase,
-        updateItemQuantityUseCase,
-        adjustItemStockUseCase
+        updateItemQuantityUseCase
     )
 
     // --- Initialisation ---
@@ -154,12 +151,21 @@ class ItemViewModelTest {
     // --- Assignment ---
 
     @Test
-    fun `assignItem calls use case`() = runTest {
-        coEvery { assignItemToCharacterUseCase(1L, 1L) } returns Unit
+    fun `assignItem uses item totalQuantity as initial character quantity`() = runTest {
+        coEvery { assignItemToCharacterUseCase(1L, 1L, 5) } returns Unit
 
         viewModel.assignItem(characterId = 1L, itemId = 1L)
 
-        coVerify { assignItemToCharacterUseCase(1L, 1L) }
+        coVerify { assignItemToCharacterUseCase(characterId = 1L, itemId = 1L, quantity = 5) }
+    }
+
+    @Test
+    fun `assignItem falls back to 1 when item not found in state`() = runTest {
+        coEvery { assignItemToCharacterUseCase(1L, 99L, 1) } returns Unit
+
+        viewModel.assignItem(characterId = 1L, itemId = 99L)
+
+        coVerify { assignItemToCharacterUseCase(characterId = 1L, itemId = 99L, quantity = 1) }
     }
 
     @Test
@@ -210,53 +216,6 @@ class ItemViewModelTest {
         coVerify { unassignItemFromCharacterUseCase(1L, 1L) }
     }
 
-    // --- Stock adjustment ---
-
-    @Test
-    fun `assignItem decrements stock by one`() = runTest {
-        coEvery { assignItemToCharacterUseCase(1L, 1L) } returns Unit
-
-        viewModel.assignItem(characterId = 1L, itemId = 1L)
-
-        coVerify { adjustItemStockUseCase(itemId = 1L, delta = -1) }
-    }
-
-    @Test
-    fun `unassignItem increments stock by quantityToReturn`() = runTest {
-        coEvery { unassignItemFromCharacterUseCase(1L, 1L) } returns Unit
-
-        viewModel.unassignItem(characterId = 1L, itemId = 1L, quantityToReturn = 3)
-
-        coVerify { adjustItemStockUseCase(itemId = 1L, delta = 3) }
-    }
-
-    @Test
-    fun `incrementQuantity decrements stock by one`() = runTest {
-        coEvery { updateItemQuantityUseCase(1L, 1L, 4) } returns Unit
-
-        viewModel.incrementQuantity(characterId = 1L, itemId = 1L, currentQuantity = 3)
-
-        coVerify { adjustItemStockUseCase(itemId = 1L, delta = -1) }
-    }
-
-    @Test
-    fun `decrementQuantity increments stock by one`() = runTest {
-        coEvery { updateItemQuantityUseCase(1L, 1L, 2) } returns Unit
-
-        viewModel.decrementQuantity(characterId = 1L, itemId = 1L, currentQuantity = 3)
-
-        coVerify { adjustItemStockUseCase(itemId = 1L, delta = 1) }
-    }
-
-    @Test
-    fun `decrementQuantity increments stock by one when auto-unassigning`() = runTest {
-        coEvery { unassignItemFromCharacterUseCase(1L, 1L) } returns Unit
-
-        viewModel.decrementQuantity(characterId = 1L, itemId = 1L, currentQuantity = 1)
-
-        coVerify { adjustItemStockUseCase(itemId = 1L, delta = 1) }
-    }
-
     // --- Error handling ---
 
     @Test
@@ -298,7 +257,7 @@ class ItemViewModelTest {
     @Test
     fun `assignItem sets error on failure`() = runTest {
         val errorMessage = "Failed to assign item"
-        coEvery { assignItemToCharacterUseCase(any(), any()) } throws Exception(errorMessage)
+        coEvery { assignItemToCharacterUseCase(any(), any(), any()) } throws Exception(errorMessage)
 
         viewModel.assignItem(characterId = 1L, itemId = 1L)
 
@@ -343,8 +302,4 @@ class ItemViewModelTest {
         }
     }
 }
-
-
-
-
 

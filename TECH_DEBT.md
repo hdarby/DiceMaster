@@ -109,6 +109,11 @@ Each entry follows this structure:
 
 ## Resolved Items
 
+### [DEBT-019] Inventory quantity semantics were incorrect ✅
+- **Area**: `viewmodel/ItemViewModel.kt`, `domain/usecase/item/AdjustItemStockUseCase.kt`, `data/local/dao/ItemDao.kt`, `data/repository/ItemRepositoryImpl.kt`
+- **Resolved**: 2026-05-23
+- **Resolution applied**: Removed `AdjustItemStockUseCase` entirely. `totalQuantity` on an item now acts purely as the initial quantity preset. `assignItem` reads `totalQuantity` from the ViewModel's existing state to seed `CharacterItemCrossRef.quantity` (instead of always defaulting to 1). `incrementQuantity` and `decrementQuantity` update only the cross-ref quantity — `totalQuantity` is never mutated after creation. All related tests updated.
+
 ### [DEBT-005] Cross-ref DAO methods duplicated across `CharacterDao` and `WeaponDao` ✅
 - **Area**: `data/local/dao/CharacterDao.kt`, `data/local/dao/WeaponDao.kt`
 - **Resolved**: 2026-05-23

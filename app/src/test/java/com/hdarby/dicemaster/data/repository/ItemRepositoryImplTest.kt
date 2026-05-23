@@ -187,15 +187,26 @@ class ItemRepositoryImplTest {
     // --- assignItemToCharacter ---
 
     @Test
-    fun `assignItemToCharacter inserts cross-ref with default quantity of one`() = runTest {
+    fun `assignItemToCharacter inserts cross-ref with provided quantity`() = runTest {
         coEvery { itemDao.insertCharacterItemCrossRef(any()) } returns Unit
 
-        repository.assignItemToCharacter(characterId = 10L, itemId = 1L)
+        repository.assignItemToCharacter(characterId = 10L, itemId = 1L, quantity = 20)
 
         coVerify {
             itemDao.insertCharacterItemCrossRef(
-                match { it.characterId == 10L && it.itemId == 1L && it.quantity == 1 }
+                match { it.characterId == 10L && it.itemId == 1L && it.quantity == 20 }
             )
+        }
+    }
+
+    @Test
+    fun `assignItemToCharacter creates cross-ref with correct ids and quantity`() = runTest {
+        coEvery { itemDao.insertCharacterItemCrossRef(any()) } returns Unit
+
+        repository.assignItemToCharacter(characterId = 99L, itemId = 42L, quantity = 7)
+
+        coVerify {
+            itemDao.insertCharacterItemCrossRef(CharacterItemCrossRef(characterId = 99L, itemId = 42L, quantity = 7))
         }
     }
 
@@ -219,37 +230,6 @@ class ItemRepositoryImplTest {
         repository.updateItemQuantity(characterId = 10L, itemId = 1L, quantity = 5)
 
         coVerify { itemDao.updateQuantity(10L, 1L, 5) }
-    }
-
-    // --- adjustItemStock ---
-
-    @Test
-    fun `adjustItemStock delegates delta to dao`() = runTest {
-        coEvery { itemDao.adjustItemStock(any(), any()) } returns Unit
-
-        repository.adjustItemStock(itemId = 1L, delta = -1)
-
-        coVerify { itemDao.adjustItemStock(itemId = 1L, delta = -1) }
-    }
-
-    @Test
-    fun `adjustItemStock passes positive delta when returning stock`() = runTest {
-        coEvery { itemDao.adjustItemStock(any(), any()) } returns Unit
-
-        repository.adjustItemStock(itemId = 2L, delta = 3)
-
-        coVerify { itemDao.adjustItemStock(itemId = 2L, delta = 3) }
-    }
-
-    @Test
-    fun `assignItemToCharacter creates cross-ref with correct characterId and itemId`() = runTest {
-        coEvery { itemDao.insertCharacterItemCrossRef(any()) } returns Unit
-
-        repository.assignItemToCharacter(characterId = 99L, itemId = 42L)
-
-        coVerify {
-            itemDao.insertCharacterItemCrossRef(CharacterItemCrossRef(characterId = 99L, itemId = 42L, quantity = 1))
-        }
     }
 }
 

@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hdarby.dicemaster.domain.model.ConsumableItem
 import com.hdarby.dicemaster.domain.usecase.item.AddItemUseCase
-import com.hdarby.dicemaster.domain.usecase.item.AdjustItemStockUseCase
 import com.hdarby.dicemaster.domain.usecase.item.AssignItemToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.item.DeleteItemUseCase
 import com.hdarby.dicemaster.domain.usecase.item.GetItemsByCharacterUseCase
@@ -33,8 +32,7 @@ class ItemViewModel(
     private val deleteItemUseCase: DeleteItemUseCase,
     private val assignItemToCharacterUseCase: AssignItemToCharacterUseCase,
     private val unassignItemFromCharacterUseCase: UnassignItemFromCharacterUseCase,
-    private val updateItemQuantityUseCase: UpdateItemQuantityUseCase,
-    private val adjustItemStockUseCase: AdjustItemStockUseCase
+    private val updateItemQuantityUseCase: UpdateItemQuantityUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ItemUiState())
@@ -93,19 +91,18 @@ class ItemViewModel(
     fun assignItem(characterId: Long, itemId: Long) {
         viewModelScope.launch {
             try {
-                assignItemToCharacterUseCase(characterId, itemId)
-                adjustItemStockUseCase(itemId, -1)
+                val quantity = _uiState.value.items.find { it.id == itemId }?.totalQuantity ?: MIN_ITEM_QUANTITY
+                assignItemToCharacterUseCase(characterId, itemId, quantity)
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }
         }
     }
 
-    fun unassignItem(characterId: Long, itemId: Long, quantityToReturn: Int = 1) {
+    fun unassignItem(characterId: Long, itemId: Long) {
         viewModelScope.launch {
             try {
                 unassignItemFromCharacterUseCase(characterId, itemId)
-                adjustItemStockUseCase(itemId, +quantityToReturn)
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }
@@ -116,7 +113,6 @@ class ItemViewModel(
         viewModelScope.launch {
             try {
                 updateItemQuantityUseCase(characterId, itemId, currentQuantity + 1)
-                adjustItemStockUseCase(itemId, -1)
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }
@@ -131,14 +127,9 @@ class ItemViewModel(
                 } else {
                     updateItemQuantityUseCase(characterId, itemId, currentQuantity - 1)
                 }
-                adjustItemStockUseCase(itemId, +1)
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }
         }
     }
 }
-
-
-
-
