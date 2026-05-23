@@ -4,9 +4,11 @@ import androidx.room.Room
 import com.hdarby.dicemaster.data.local.DiceMasterDatabase
 import com.hdarby.dicemaster.data.repository.CharacterRepositoryImpl
 import com.hdarby.dicemaster.data.repository.DiceRepositoryImpl
+import com.hdarby.dicemaster.data.repository.ItemRepositoryImpl
 import com.hdarby.dicemaster.data.repository.WeaponRepositoryImpl
 import com.hdarby.dicemaster.domain.repository.CharacterRepository
 import com.hdarby.dicemaster.domain.repository.DiceRepository
+import com.hdarby.dicemaster.domain.repository.ItemRepository
 import com.hdarby.dicemaster.domain.repository.WeaponRepository
 import com.hdarby.dicemaster.domain.usecase.RollAdvantageUseCase
 import com.hdarby.dicemaster.domain.usecase.RollDiceUseCase
@@ -16,6 +18,14 @@ import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UpdateCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.item.AddItemUseCase
+import com.hdarby.dicemaster.domain.usecase.item.AssignItemToCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.item.DeleteItemUseCase
+import com.hdarby.dicemaster.domain.usecase.item.GetItemsByCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.item.GetItemsUseCase
+import com.hdarby.dicemaster.domain.usecase.item.UnassignItemFromCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.item.UpdateItemQuantityUseCase
+import com.hdarby.dicemaster.domain.usecase.item.UpdateItemUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.AddWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.DeleteWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.GetWeaponsUseCase
@@ -23,6 +33,7 @@ import com.hdarby.dicemaster.domain.usecase.weapon.UpdateWeaponUseCase
 import com.hdarby.dicemaster.viewmodel.CharacterViewModel
 import com.hdarby.dicemaster.viewmodel.DebugViewModel
 import com.hdarby.dicemaster.viewmodel.DiceViewModel
+import com.hdarby.dicemaster.viewmodel.ItemViewModel
 import com.hdarby.dicemaster.viewmodel.WeaponViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -41,11 +52,13 @@ val appModule = module {
     // DAOs
     single { get<DiceMasterDatabase>().characterDao() }
     single { get<DiceMasterDatabase>().weaponDao() }
+    single { get<DiceMasterDatabase>().itemDao() }
 
     // Repositories
     single<DiceRepository> { DiceRepositoryImpl() }
     single<CharacterRepository> { CharacterRepositoryImpl(get()) }
     single<WeaponRepository> { WeaponRepositoryImpl(get()) }
+    single<ItemRepository> { ItemRepositoryImpl(get()) }
 
     // Use Cases
     factory { RollDiceUseCase(get()) }
@@ -65,9 +78,20 @@ val appModule = module {
     factory { UpdateWeaponUseCase(get()) }
     factory { DeleteWeaponUseCase(get()) }
 
-    // ViewModel
+    // Item Use Cases
+    factory { GetItemsUseCase(get()) }
+    factory { GetItemsByCharacterUseCase(get()) }
+    factory { AddItemUseCase(get()) }
+    factory { UpdateItemUseCase(get()) }
+    factory { DeleteItemUseCase(get()) }
+    factory { AssignItemToCharacterUseCase(get()) }
+    factory { UnassignItemFromCharacterUseCase(get()) }
+    factory { UpdateItemQuantityUseCase(get()) }
+
+    // ViewModels
     viewModel { DiceViewModel(get(), get()) }
     viewModel { CharacterViewModel(get(), get(), get(), get(), get()) }
     viewModel { WeaponViewModel(get(), get(), get(), get(), get()) }
+    viewModel { ItemViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { DebugViewModel() }
 }

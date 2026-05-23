@@ -53,19 +53,19 @@ Each entry follows this structure:
 
 ---
 
-## [FEAT-003] Add consumable item management with ability to assign to characters with the ability to track quantity as well as add a simple increment/decrement button to the character screen for each assigned item
+### [FEAT-003] Add consumable item management with character assignment and quantity tracking
 - **Type**: Add
-- **Area**: `ui/screens/CharacterScreen.kt`, `ui/screens/ItemScreen.kt`, `viewmodel/ItemViewModel.kt`
+- **Area**: `ui/screens/ItemScreen.kt`, `ui/screens/CharacterScreen.kt`, `viewmodel/ItemViewModel.kt`, `domain/`, `data/`, `di/AppModule.kt`
 - **Added**: 2026-05-22
 - **Priority**: Medium
-- **Status**: Not Started
-- **Description**: Introduce a new feature to manage consumable items (e.g., potions, scrolls) within the app. This includes creating a new screen for item management, allowing users to create, edit, and delete items, and enabling the assignment of these items to characters. Each assigned item should have a quantity that can be tracked and modified directly from the character screen using increment/decrement buttons. This feature will enhance the app's functionality for players who want to keep track of their consumable resources in D&D.
+- **Status**: Done
+- **Description**: Introduces a new Item Repository screen for managing consumable items (potions, scrolls, etc.) with full CRUD. Items can be assigned to characters from the Character screen. Each assigned item shows a quantity with + / − buttons to adjust it. Decrementing to zero automatically unassigns the item.
 - **Acceptance Criteria**:
-    - A new `ItemScreen` allows users to create, edit, and delete consumable items.
-    - Users can assign items to characters from the `CharacterScreen`.
-    - Each assigned item displays its quantity on the character card.
-    - Increment and decrement buttons on the character card allow users to adjust the quantity of each assigned item.
-    - Changes to item quantities are reflected immediately in the UI and persist across app sessions.
+    - A new `ItemScreen` (Items tab in bottom nav) allows users to create, edit, and delete consumable items. ✅
+    - Users can assign items to characters via an "Add Item" button on each CharacterCard. ✅
+    - Each assigned item displays its quantity on the character card. ✅
+    - Increment and decrement buttons adjust quantity; decrement at 1 unassigns the item. ✅
+    - Changes to item quantities persist across app sessions (Room database). ✅
 
 
 <!-- Add new features below this line -->

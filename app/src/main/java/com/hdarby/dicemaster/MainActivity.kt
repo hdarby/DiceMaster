@@ -26,6 +26,7 @@ import com.hdarby.dicemaster.ui.navigation.Screen
 import com.hdarby.dicemaster.ui.screens.CharacterScreen
 import com.hdarby.dicemaster.ui.screens.DebugRngScreen
 import com.hdarby.dicemaster.ui.screens.DiceRollerScreen
+import com.hdarby.dicemaster.ui.screens.ItemScreen
 import com.hdarby.dicemaster.ui.screens.WeaponScreen
 import com.hdarby.dicemaster.ui.theme.DiceMasterTheme
 
@@ -47,7 +48,8 @@ fun MainContainer() {
     val items = listOf(
         Screen.Roller,
         Screen.Characters,
-        Screen.Weapons
+        Screen.Weapons,
+        Screen.Items
     )
 
     Scaffold(
@@ -114,6 +116,9 @@ fun MainContainer() {
             }
             composable(Screen.Debug.route) {
                 DebugRngScreen(onBack = { navController.popBackStack() }) 
+            }
+            composable(Screen.Items.route) {
+                ItemScreen()
             }
         }
     }

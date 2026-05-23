@@ -17,8 +17,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -51,21 +53,26 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.hdarby.dicemaster.R
 import com.hdarby.dicemaster.domain.model.Character
+import com.hdarby.dicemaster.domain.model.CharacterItemEntry
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.viewmodel.CharacterViewModel
+import com.hdarby.dicemaster.viewmodel.ItemViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CharacterScreen(
     viewModel: CharacterViewModel = koinViewModel(),
+    itemViewModel: ItemViewModel = koinViewModel(),
     onNavigateToEditWeapon: (Weapon) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val itemState by itemViewModel.uiState.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     var editingCharacter by remember { mutableStateOf<Character?>(null) }
+    var assignItemToCharacter by remember { mutableStateOf<Character?>(null) }
 
     Scaffold(
         topBar = {
@@ -99,11 +106,29 @@ fun CharacterScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(uiState.characters) { characterWithWeapons ->
+                        val characterItems = itemState.itemsByCharacterId[characterWithWeapons.character.id]
+                            ?: emptyList()
                         CharacterCard(
                             characterWithWeapons = characterWithWeapons,
+                            items = characterItems,
                             onEdit = { editingCharacter = it },
                             onDelete = { viewModel.deleteCharacter(it) },
-                            onWeaponClick = onNavigateToEditWeapon
+                            onWeaponClick = onNavigateToEditWeapon,
+                            onAssignItem = { assignItemToCharacter = it },
+                            onIncrementItem = { entry ->
+                                itemViewModel.incrementQuantity(
+                                    characterWithWeapons.character.id,
+                                    entry.item.id,
+                                    entry.quantity
+                                )
+                            },
+                            onDecrementItem = { entry ->
+                                itemViewModel.decrementQuantity(
+                                    characterWithWeapons.character.id,
+                                    entry.item.id,
+                                    entry.quantity
+                                )
+                            }
                         )
                     }
                 }
@@ -130,6 +155,20 @@ fun CharacterScreen(
                 }
             )
         }
+
+        assignItemToCharacter?.let { character ->
+            AssignItemDialog(
+                characterName = character.name,
+                availableItems = itemState.items,
+                assignedItemIds = (itemState.itemsByCharacterId[character.id] ?: emptyList())
+                    .map { it.item.id }.toSet(),
+                onDismiss = { assignItemToCharacter = null },
+                onAssign = { item ->
+                    itemViewModel.assignItem(character.id, item.id)
+                    assignItemToCharacter = null
+                }
+            )
+        }
     }
 }
 
@@ -137,9 +176,13 @@ fun CharacterScreen(
 @Composable
 fun CharacterCard(
     characterWithWeapons: CharacterWithWeapons,
+    items: List<CharacterItemEntry> = emptyList(),
     onEdit: (Character) -> Unit,
     onDelete: (Character) -> Unit,
-    onWeaponClick: (Weapon) -> Unit = {}
+    onWeaponClick: (Weapon) -> Unit = {},
+    onAssignItem: (Character) -> Unit = {},
+    onIncrementItem: (CharacterItemEntry) -> Unit = {},
+    onDecrementItem: (CharacterItemEntry) -> Unit = {}
 ) {
     val character = characterWithWeapons.character
     val weapons = characterWithWeapons.weapons
@@ -204,6 +247,40 @@ fun CharacterCard(
                             colors = AssistChipDefaults.assistChipColors(
                                 labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.label_items_section),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                IconButton(
+                    onClick = { onAssignItem(character) },
+                    modifier = Modifier.testTag("assign_item_${character.id}")
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(R.string.content_desc_add_item),
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+            if (items.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    items.forEach { entry ->
+                        ItemQuantityRow(
+                            entry = entry,
+                            onIncrement = { onIncrementItem(entry) },
+                            onDecrement = { onDecrementItem(entry) }
                         )
                     }
                 }
@@ -403,3 +480,81 @@ fun AddEditCharacterDialog(
         }
     )
 }
+
+@Composable
+fun ItemQuantityRow(
+    entry: CharacterItemEntry,
+    onIncrement: () -> Unit,
+    onDecrement: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = entry.item.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            if (entry.item.description.isNotBlank()) {
+                Text(text = entry.item.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onDecrement) {
+                Icon(Icons.Default.RemoveCircleOutline, contentDescription = stringResource(R.string.content_desc_decrement), tint = MaterialTheme.colorScheme.error)
+            }
+            Text(
+                text = stringResource(R.string.label_item_quantity, entry.quantity),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
+            IconButton(onClick = onIncrement) {
+                Icon(Icons.Default.AddCircleOutline, contentDescription = stringResource(R.string.content_desc_increment), tint = MaterialTheme.colorScheme.primary)
+            }
+        }
+    }
+}
+
+@Composable
+fun AssignItemDialog(
+    characterName: String,
+    availableItems: List<com.hdarby.dicemaster.domain.model.ConsumableItem>,
+    assignedItemIds: Set<Long>,
+    onDismiss: () -> Unit,
+    onAssign: (com.hdarby.dicemaster.domain.model.ConsumableItem) -> Unit
+) {
+    val unassignedItems = availableItems.filterNot { it.id in assignedItemIds }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.title_assign_item, characterName)) },
+        text = {
+            if (unassignedItems.isEmpty()) {
+                Text(stringResource(R.string.label_no_items_to_assign))
+            } else {
+                LazyColumn {
+                    items(unassignedItems) { item ->
+                        TextButton(
+                            onClick = { onAssign(item) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Text(item.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                                if (item.description.isNotBlank()) {
+                                    Text(item.description, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.button_cancel))
+            }
+        }
+    )
+}
+

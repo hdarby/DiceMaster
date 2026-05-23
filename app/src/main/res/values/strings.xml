@@ -6,6 +6,7 @@
     <string name="title_dice_roller">Dice Roller</string>
     <string name="title_characters">Characters</string>
     <string name="title_weapons">Weapon Repository</string>
+    <string name="title_items">Item Repository</string>
     <string name="title_debug_rng">RNG Distribution Analysis</string>
 
     <!-- Screen Headings -->
@@ -16,9 +17,12 @@
     <string name="content_desc_back">Back</string>
     <string name="content_desc_add_character">Add Character</string>
     <string name="content_desc_add_weapon">Add Weapon</string>
+    <string name="content_desc_add_item">Add Item</string>
     <string name="content_desc_edit">Edit</string>
     <string name="content_desc_delete">Delete</string>
     <string name="content_desc_assign">Assign</string>
+    <string name="content_desc_increment">Increment quantity</string>
+    <string name="content_desc_decrement">Decrement quantity</string>
 
     <!-- Field Labels -->
     <string name="label_dice_faces">Dice Faces</string>
@@ -26,6 +30,7 @@
     <string name="label_quantity">Quantity</string>
     <string name="label_modifier">Modifier</string>
     <string name="label_name">Name</string>
+    <string name="label_description">Description</string>
     <string name="label_race">Race</string>
     <string name="label_weapon_type">Weapon Type (e.g. Sword)</string>
     <string name="label_damage_dice">Damage Dice (e.g. 1d8)</string>
@@ -62,6 +67,14 @@
     <string name="title_add_weapon">Add Weapon</string>
     <string name="title_edit_weapon">Edit Weapon</string>
     <string name="title_assign_weapon">Assign %1$s</string>
+    <string name="title_add_item">Add Item</string>
+    <string name="title_edit_item">Edit Item</string>
+    <string name="title_assign_item">Assign Item to %1$s</string>
+
+    <!-- Items section on CharacterCard -->
+    <string name="label_items_section">Items</string>
+    <string name="label_item_quantity">×%1$d</string>
+    <string name="label_no_items_to_assign">No items available. Add items in the Items screen first.</string>
 
     <!-- Buttons -->
     <string name="button_roll_dice">ROLL DICE</string>
