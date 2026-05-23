@@ -73,6 +73,7 @@
 
     <!-- Items section on CharacterCard -->
     <string name="label_items_section">Items</string>
+    <string name="format_stat_modifier">(%1$s)</string>
     <string name="label_item_quantity">×%1$d</string>
     <string name="label_no_items_to_assign">No items available. Add items in the Items screen first.</string>
 

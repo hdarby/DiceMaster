@@ -55,6 +55,7 @@ import com.hdarby.dicemaster.R
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.CharacterItemEntry
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
+import com.hdarby.dicemaster.domain.model.ConsumableItem
 import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.viewmodel.CharacterViewModel
@@ -300,7 +301,7 @@ fun StatItem(label: String, value: Int, modifier: Int) {
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "($modifierText)",
+            text = stringResource(R.string.format_stat_modifier, modifierText),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.primary
         )
@@ -518,10 +519,10 @@ fun ItemQuantityRow(
 @Composable
 fun AssignItemDialog(
     characterName: String,
-    availableItems: List<com.hdarby.dicemaster.domain.model.ConsumableItem>,
+    availableItems: List<ConsumableItem>,
     assignedItemIds: Set<Long>,
     onDismiss: () -> Unit,
-    onAssign: (com.hdarby.dicemaster.domain.model.ConsumableItem) -> Unit
+    onAssign: (ConsumableItem) -> Unit
 ) {
     val unassignedItems = availableItems.filterNot { it.id in assignedItemIds }
 
