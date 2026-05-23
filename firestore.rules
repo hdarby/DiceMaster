@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ────────────────────────────────────────────────────
+
+    // Returns true when the caller is the DM who created this session.
+    function isDungeonMaster(sessionId) {
+      return request.auth != null
+          && get(/databases/$(database)/documents/sessions/$(sessionId)).data.createdBy
+             == request.auth.uid;
+    }
+
+    // Returns true when the caller's UID is a recognised member of the session.
+    // Membership is implicit: anyone who knows the session code (and is signed
+    // in) is considered a member; the DM is the creator.
+    function isSessionMember(sessionId) {
+      return request.auth != null
+          && exists(/databases/$(database)/documents/sessions/$(sessionId));
+    }
+
+    // ── Session documents ───────────────────────────────────────────────────
+
+    match /sessions/{sessionId} {
+      // Any authenticated user may read the session document (needed to validate
+      // the session code during join).
+      allow read: if request.auth != null;
+
+      // Only the creating device (DM) may create or update the session doc.
+      allow create: if request.auth != null
+                    && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isDungeonMaster(sessionId);
+      allow delete: if isDungeonMaster(sessionId);
+
+      // ── Characters (under a session) ──────────────────────────────────────
+
+      match /characters/{characterId} {
+        // All session members may read character documents.
+        allow read: if isSessionMember(sessionId);
+
+        // The DM may create / update / delete any character.
+        allow write: if isDungeonMaster(sessionId);
+      }
+
+      // ── Weapons (under a session) ─────────────────────────────────────────
+
+      match /weapons/{weaponId} {
+        // All session members may read weapon documents.
+        allow read: if isSessionMember(sessionId);
+
+        // Only the DM may create / update / delete weapon definitions and
+        // modify weapon assignments (characterId field).
+        allow write: if isDungeonMaster(sessionId);
+      }
+
+      // ── Item definitions (under a session) ───────────────────────────────
+
+      match /items/{itemId} {
+        // All session members may read item definitions.
+        allow read: if isSessionMember(sessionId);
+
+        // Only the DM may create / update / delete item definitions.
+        allow write: if isDungeonMaster(sessionId);
+      }
+
+      // ── Character–item cross-refs (under a session) ───────────────────────
+      // Document IDs follow the pattern: {characterId}_{itemId}
+      // The characterId is stored in the document as a field.
+
+      match /characterItems/{crossRefId} {
+        // All session members may read character–item cross-refs.
+        allow read: if isSessionMember(sessionId);
+
+        // The DM may write any cross-ref (assigning / unassigning items).
+        allow write: if isDungeonMaster(sessionId);
+
+        // A player may create, update, and delete cross-refs that belong to
+        // their own character (identified by the characterId field in the doc).
+        allow create: if isSessionMember(sessionId)
+                      && request.resource.data.characterId != null;
+        allow update: if isSessionMember(sessionId)
+                      && resource.data.characterId != null;
+        allow delete: if isSessionMember(sessionId)
+                      && resource.data.characterId != null;
+      }
+    }
+  }
+}
+

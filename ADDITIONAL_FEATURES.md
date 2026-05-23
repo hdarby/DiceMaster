@@ -187,7 +187,7 @@ Each entry follows this structure:
 - **Area**: `firestore.rules` (project root), Firebase Console
 - **Added**: 2026-05-23
 - **Priority**: High
-- **Status**: Backlog
+- **Status**: Done
 - **Depends on**: FEAT-006e
 - **Description**: Write and deploy Firestore Security Rules that enforce the DM/player access boundary server-side. Rules are committed to the repo as `firestore.rules` and deployed via the Firebase CLI. No Android code changes are required; this is a pure backend/infra step.
 - **Acceptance Criteria**:
