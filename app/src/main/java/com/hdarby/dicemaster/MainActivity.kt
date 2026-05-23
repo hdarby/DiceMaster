@@ -11,6 +11,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -27,8 +29,11 @@ import com.hdarby.dicemaster.ui.screens.CharacterScreen
 import com.hdarby.dicemaster.ui.screens.DebugRngScreen
 import com.hdarby.dicemaster.ui.screens.DiceRollerScreen
 import com.hdarby.dicemaster.ui.screens.ItemScreen
+import com.hdarby.dicemaster.ui.screens.SessionSetupScreen
 import com.hdarby.dicemaster.ui.screens.WeaponScreen
 import com.hdarby.dicemaster.ui.theme.DiceMasterTheme
+import com.hdarby.dicemaster.viewmodel.SessionViewModel
+import org.koin.androidx.compose.koinViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,51 +48,76 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainContainer() {
+fun MainContainer(sessionViewModel: SessionViewModel = koinViewModel()) {
     val navController = rememberNavController()
-    val items = listOf(
+    val sessionUiState by sessionViewModel.uiState.collectAsState()
+
+    val bottomNavItems = listOf(
         Screen.Roller,
         Screen.Characters,
         Screen.Weapons,
         Screen.Items
     )
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val showBottomNav = currentRoute != Screen.SessionSetup.route
+
+    // Navigate based on session state once the check completes
+    LaunchedEffect(sessionUiState.isCheckingSession, sessionUiState.currentSession) {
+        if (sessionUiState.isCheckingSession) return@LaunchedEffect
+        val onSetupScreen = navController.currentDestination?.route == Screen.SessionSetup.route
+        if (sessionUiState.currentSession != null && onSetupScreen) {
+            navController.navigate(Screen.Roller.route) {
+                popUpTo(Screen.SessionSetup.route) { inclusive = true }
+            }
+        } else if (sessionUiState.currentSession == null && !onSetupScreen) {
+            navController.navigate(Screen.SessionSetup.route) {
+                popUpTo(Screen.Roller.route) { inclusive = true }
+            }
+        }
+    }
+
     Scaffold(
         bottomBar = {
-            NavigationBar(modifier = Modifier.testTag("bottom_navigation")) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
-                items.forEach { screen ->
-                    NavigationBarItem(
-                        modifier = Modifier.testTag("nav_item_${screen.route}"),
-                        icon = { Icon(screen.icon, contentDescription = null) },
-                        label = { Text(screen.label) },
-                        selected = currentDestination?.hierarchy?.any {
+            if (showBottomNav) {
+                NavigationBar(modifier = Modifier.testTag("bottom_navigation")) {
+                    bottomNavItems.forEach { screen ->
+                        NavigationBarItem(
+                            modifier = Modifier.testTag("nav_item_${screen.route}"),
+                            icon = { Icon(screen.icon, contentDescription = null) },
+                            label = { Text(screen.label) },
+                            selected = navBackStackEntry?.destination?.hierarchy?.any {
                                 it.route?.substringBefore("?") == screen.route
                             } == true,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Roller.route,
+            startDestination = Screen.SessionSetup.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Roller.route) { 
+            composable(Screen.SessionSetup.route) {
+                SessionSetupScreen(viewModel = sessionViewModel)
+            }
+            composable(Screen.Roller.route) {
                 DiceRollerScreen(
-                    onNavigateToDebug = { navController.navigate(Screen.Debug.route) }
-                ) 
+                    onNavigateToDebug = { navController.navigate(Screen.Debug.route) },
+                    onLeaveSession = { sessionViewModel.onLeaveSession() }
+                )
             }
             composable(Screen.Characters.route) {
                 CharacterScreen(
@@ -99,7 +129,8 @@ fun MainContainer() {
                             launchSingleTop = true
                             restoreState = false
                         }
-                    }
+                    },
+                    onLeaveSession = { sessionViewModel.onLeaveSession() }
                 )
             }
             composable(
@@ -112,13 +143,16 @@ fun MainContainer() {
                 )
             ) { backStackEntry ->
                 val rawEditId = backStackEntry.arguments?.getLong("editWeaponId") ?: -1L
-                WeaponScreen(editWeaponId = rawEditId.takeIf { it != -1L })
+                WeaponScreen(
+                    editWeaponId = rawEditId.takeIf { it != -1L },
+                    onLeaveSession = { sessionViewModel.onLeaveSession() }
+                )
             }
             composable(Screen.Debug.route) {
-                DebugRngScreen(onBack = { navController.popBackStack() }) 
+                DebugRngScreen(onBack = { navController.popBackStack() })
             }
             composable(Screen.Items.route) {
-                ItemScreen()
+                ItemScreen(onLeaveSession = { sessionViewModel.onLeaveSession() })
             }
         }
     }

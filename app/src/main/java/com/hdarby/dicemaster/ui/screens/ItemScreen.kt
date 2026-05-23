@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -52,14 +53,18 @@ import com.hdarby.dicemaster.viewmodel.state.ItemUiState
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun ItemScreen(viewModel: ItemViewModel = koinViewModel()) {
+fun ItemScreen(
+    viewModel: ItemViewModel = koinViewModel(),
+    onLeaveSession: () -> Unit
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     ItemScreenContent(
         uiState = uiState,
         onAddItem = viewModel::addItem,
         onUpdateItem = viewModel::updateItem,
-        onDeleteItem = viewModel::deleteItem
+        onDeleteItem = viewModel::deleteItem,
+        onLeaveSession = onLeaveSession
     )
 }
 
@@ -69,7 +74,8 @@ fun ItemScreenContent(
     uiState: ItemUiState,
     onAddItem: (ConsumableItem) -> Unit,
     onUpdateItem: (ConsumableItem) -> Unit,
-    onDeleteItem: (ConsumableItem) -> Unit
+    onDeleteItem: (ConsumableItem) -> Unit,
+    onLeaveSession: () -> Unit
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
     var editingItem by remember { mutableStateOf<ConsumableItem?>(null) }
@@ -82,6 +88,14 @@ fun ItemScreenContent(
                         stringResource(R.string.title_items),
                         modifier = Modifier.testTag("screen_title_items")
                     )
+                },
+                actions = {
+                    IconButton(onClick = onLeaveSession) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = stringResource(R.string.content_desc_leave_session)
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -269,10 +283,16 @@ fun ItemScreenPreview() {
             ),
             onAddItem = {},
             onUpdateItem = {},
-            onDeleteItem = {}
+            onDeleteItem = {},
+            onLeaveSession = {}
         )
     }
 }
+
+
+
+
+
 
 
 

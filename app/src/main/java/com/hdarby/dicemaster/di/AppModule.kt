@@ -4,14 +4,17 @@ import androidx.room.Room
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.hdarby.dicemaster.data.local.DiceMasterDatabase
 import com.hdarby.dicemaster.data.local.sessionDataStore
 import com.hdarby.dicemaster.data.remote.FirebaseAuthDataSource
+import com.hdarby.dicemaster.data.remote.FirestoreSessionDataSource
 import com.hdarby.dicemaster.data.repository.CharacterRepositoryImpl
 import com.hdarby.dicemaster.data.repository.DiceRepositoryImpl
 import com.hdarby.dicemaster.data.repository.ItemRepositoryImpl
 import com.hdarby.dicemaster.data.repository.SessionRepositoryImpl
 import com.hdarby.dicemaster.data.repository.WeaponRepositoryImpl
+import com.hdarby.dicemaster.data.remote.SessionRemoteDataSource
 import com.hdarby.dicemaster.domain.repository.CharacterRepository
 import com.hdarby.dicemaster.domain.repository.DiceRepository
 import com.hdarby.dicemaster.domain.repository.ItemRepository
@@ -41,6 +44,7 @@ import com.hdarby.dicemaster.viewmodel.CharacterViewModel
 import com.hdarby.dicemaster.viewmodel.DebugViewModel
 import com.hdarby.dicemaster.viewmodel.DiceViewModel
 import com.hdarby.dicemaster.viewmodel.ItemViewModel
+import com.hdarby.dicemaster.viewmodel.SessionViewModel
 import com.hdarby.dicemaster.viewmodel.WeaponViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -73,7 +77,9 @@ val appModule = module {
 
     // Firebase
     single { FirebaseAuth.getInstance() }
+    single { FirebaseFirestore.getInstance() }
     single { FirebaseAuthDataSource(get()) }
+    single<SessionRemoteDataSource> { FirestoreSessionDataSource(get()) }
 
     // Use Cases
     factory { RollDiceUseCase(get()) }
@@ -109,4 +115,5 @@ val appModule = module {
     viewModel { WeaponViewModel(get(), get(), get(), get(), get()) }
     viewModel { ItemViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { DebugViewModel() }
+    viewModel { SessionViewModel(get(), get(), get(), get()) }
 }

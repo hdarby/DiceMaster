@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -77,7 +78,8 @@ private const val D20_FACES = 20
 @Composable
 fun DiceRollerScreen(
     viewModel: DiceViewModel = koinViewModel(),
-    onNavigateToDebug: () -> Unit
+    onNavigateToDebug: () -> Unit,
+    onLeaveSession: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -89,7 +91,8 @@ fun DiceRollerScreen(
         onRollDice = viewModel::rollDice,
         onRollAdvantage = viewModel::rollWithAdvantage,
         onDismissResults = viewModel::dismissResults,
-        onNavigateToDebug = onNavigateToDebug
+        onNavigateToDebug = onNavigateToDebug,
+        onLeaveSession = onLeaveSession
     )
 }
 
@@ -103,7 +106,8 @@ fun DiceMasterScreen(
     onRollDice: () -> Unit,
     onRollAdvantage: (AdvantageMode) -> Unit,
     onDismissResults: () -> Unit,
-    onNavigateToDebug: () -> Unit
+    onNavigateToDebug: () -> Unit,
+    onLeaveSession: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
 
@@ -114,6 +118,9 @@ fun DiceMasterScreen(
                 actions = {
                     IconButton(onClick = onNavigateToDebug) {
                         Icon(Icons.AutoMirrored.Filled.Help, contentDescription = stringResource(R.string.content_desc_rng_debug))
+                    }
+                    IconButton(onClick = onLeaveSession) {
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = stringResource(R.string.content_desc_leave_session))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -606,7 +613,8 @@ fun DiceMasterPreview() {
             onRollDice = {},
             onRollAdvantage = {},
             onDismissResults = {},
-            onNavigateToDebug = {}
+            onNavigateToDebug = {},
+            onLeaveSession = {}
         )
     }
 }

@@ -90,4 +90,24 @@
     <string name="label_advantage_mode">Advantage</string>
     <string name="label_disadvantage_mode">Disadvantage</string>
     <string name="label_selected_roll">Selected: %1$d</string>
+
+    <!-- Content Descriptions (Session) -->
+    <string name="content_desc_leave_session">Leave Session</string>
+
+    <!-- Session Setup Screen -->
+    <string name="session_setup_subtitle">Connect with your party to share characters, weapons, and items in real time.</string>
+    <string name="session_button_create">Create Session (Dungeon Master)</string>
+    <string name="session_button_join">Join Session (Player)</string>
+    <string name="session_code_title">Your Session Code</string>
+    <string name="session_code_subtitle">Share this code with your players so they can join your session.</string>
+    <string name="session_code_copy">Copy session code</string>
+    <string name="session_button_start">Start Playing</string>
+    <string name="session_join_title">Join a Session</string>
+    <string name="session_join_subtitle">Enter the session code provided by your Dungeon Master.</string>
+    <string name="session_label_code">Session Code</string>
+    <string name="session_button_join_confirm">Join Session</string>
+    <string name="session_select_character_title">Pick Your Character</string>
+    <string name="session_select_character_subtitle">Select the character you will be playing in this session.</string>
+    <string name="session_no_characters">No characters found. Ask your DM to add characters, or go to the Characters screen to create one first.</string>
+    <string name="session_error_title">Session Error</string>
 </resources>

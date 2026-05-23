@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Delete
@@ -67,7 +68,8 @@ import org.koin.androidx.compose.koinViewModel
 fun CharacterScreen(
     viewModel: CharacterViewModel = koinViewModel(),
     itemViewModel: ItemViewModel = koinViewModel(),
-    onNavigateToEditWeapon: (Weapon) -> Unit
+    onNavigateToEditWeapon: (Weapon) -> Unit,
+    onLeaveSession: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val itemState by itemViewModel.uiState.collectAsState()
@@ -79,6 +81,14 @@ fun CharacterScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.title_characters), modifier = Modifier.testTag("screen_title_characters")) },
+                actions = {
+                    IconButton(onClick = onLeaveSession) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = stringResource(R.string.content_desc_leave_session)
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer

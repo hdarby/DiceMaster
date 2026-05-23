@@ -82,7 +82,7 @@ Each entry follows this structure:
 - **Area**: `data/remote/`, `domain/`, `di/AppModule.kt`, `ui/screens/`, `viewmodel/`, Firebase Console
 - **Added**: 2026-05-23
 - **Priority**: High
-- **Status**: Backlog
+- **Status**: In Progress
 - **Description**: Real-time Firestore sync so the DM and players share live campaign data. The DM has full read/write access; each player sees and edits only their own character. Broken into sub-tasks FEAT-006a through FEAT-006h — track progress there.
 
 ---
@@ -110,7 +110,7 @@ Each entry follows this structure:
 - **Area**: `domain/model/`, `data/local/` (DataStore or SharedPreferences), `di/AppModule.kt`
 - **Added**: 2026-05-23
 - **Priority**: High
-- **Status**: Backlog
+- **Status**: Done
 - **Depends on**: FEAT-006a
 - **Description**: Establish the identity foundation. Every device signs in anonymously via Firebase Auth to receive a stable UID. A `UserRole` sealed class (`DungeonMaster`, `Player(characterId: Long)`) and a `Session` domain model (sessionId, role) are added to the domain layer. The current role and session ID are persisted locally (Jetpack DataStore) so the user is not asked again after the first setup. No UI changes yet — the app still opens directly to the existing screens.
 - **Acceptance Criteria**:
@@ -129,7 +129,7 @@ Each entry follows this structure:
 - **Area**: `ui/screens/SessionSetupScreen.kt`, `viewmodel/SessionViewModel.kt`, `ui/navigation/`, `MainActivity.kt`
 - **Added**: 2026-05-23
 - **Priority**: High
-- **Status**: Backlog
+- **Status**: Done
 - **Depends on**: FEAT-006b
 - **Description**: A new Session Setup screen shown on first launch (or when no active session is stored). The DM taps "Create Session", which generates a short alphanumeric session code and saves their role. A player taps "Join Session", enters the code, and is shown a list of characters that the DM has created; they pick one and their `Player(characterId)` role is saved. After setup the user is taken to the normal app flow. A "Leave Session" option in a Settings screen clears the stored session so setup is shown again.
 - **Acceptance Criteria**:

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -61,7 +62,8 @@ import org.koin.androidx.compose.koinViewModel
 fun WeaponScreen(
     weaponViewModel: WeaponViewModel = koinViewModel(),
     characterViewModel: CharacterViewModel = koinViewModel(),
-    editWeaponId: Long? = null
+    editWeaponId: Long? = null,
+    onLeaveSession: () -> Unit
 ) {
     val uiState by weaponViewModel.uiState.collectAsState()
     val characterState by characterViewModel.uiState.collectAsState()
@@ -84,6 +86,14 @@ fun WeaponScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.title_weapons), modifier = Modifier.testTag("screen_title_weapons")) },
+                actions = {
+                    IconButton(onClick = onLeaveSession) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = stringResource(R.string.content_desc_leave_session)
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
