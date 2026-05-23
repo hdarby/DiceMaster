@@ -70,6 +70,36 @@ Each entry follows this structure:
 
 <!-- Add new features below this line -->
 
+### [FEAT-006] Firebase sync with role-based access for DM and players
+- **Type**: Add
+- **Area**: `data/remote/`, `domain/repository/`, `di/AppModule.kt`, `ui/screens/`, `viewmodel/`, Firebase Console
+- **Added**: 2026-05-23
+- **Priority**: High
+- **Status**: Backlog
+- **Description**: Introduces real-time data synchronisation via **Firebase Firestore** (NoSQL) so that a Dungeon Master and their players can share a live view of campaign data from their own devices. On first launch (or from a Settings screen) the user identifies themselves as either the DM or a specific player character. The DM has full read/write access to all campaign data. Each player can only read and interact with the data belonging to their own character. Firestore Security Rules enforce these access boundaries server-side so no client-side workaround can expose another player's data.
+- **Implementation Notes**:
+  - Add `firebase-bom`, `firebase-firestore-ktx`, and `firebase-auth-ktx` dependencies.
+  - Use **Firebase Anonymous Auth** (or Google Sign-In) to give every device a stable UID; map that UID to a role (`dm` or a `characterId`) in a top-level `roles/{uid}` Firestore document.
+  - Firestore data model (top level):
+    - `sessions/{sessionId}/characters/{characterId}` — character profile, stats, assigned weapons.
+    - `sessions/{sessionId}/weapons/{weaponId}` — weapon definitions.
+    - `sessions/{sessionId}/items/{itemId}` — consumable item definitions.
+    - `sessions/{sessionId}/characterItems/{characterId}/entries/{itemId}` — per-character item quantities (cross-refs).
+  - Security Rules: DM UID may read/write all paths under `sessions/{sessionId}/**`; a player UID may read/write only `characters/{their characterId}` and `characterItems/{their characterId}/**`; item and weapon definitions are readable by all session members but writable only by the DM.
+  - Introduce a `RemoteDataSource` abstraction in `data/remote/` so the repository layer stays technology-agnostic and local-only mode (Room) continues to work offline or without a session.
+  - On first launch show a **Session Setup screen** where the user enters a session code (or creates one as DM). The DM's device generates the session and shares the code; players enter it to join.
+  - Changes made locally (by the DM or a player) propagate in real-time to all other connected devices via Firestore snapshot listeners.
+- **Acceptance Criteria**:
+  - A new Session Setup screen lets a user create a session (DM) or join an existing one (player) by entering a session code.
+  - A player joining a session selects which character they are from a list provided by the DM; they can only see and interact with that character's card, items, and quantities.
+  - The DM sees all characters, weapons, and items — identical to the current local experience — and all writes are reflected on player devices within a few seconds.
+  - A player incrementing or decrementing an item quantity updates the shared Firestore document; the DM's device reflects the change in real-time without a manual refresh.
+  - Firestore Security Rules are deployed alongside the app and block any attempt by a player UID to read another character's data or modify DM-only collections (weapons, item definitions).
+  - The app continues to work fully offline using the local Room database when no session is active; syncing is opt-in, not required.
+  - All new remote repository methods are covered by unit tests using a faked/mocked `RemoteDataSource`.
+
+---
+
 ### [FEAT-004] Instrumentation tests for Item screen and item section on Character screen
 - **Type**: Add
 - **Area**: `androidTest/`, `ui/screens/ItemScreen.kt`, `ui/screens/CharacterScreen.kt`
