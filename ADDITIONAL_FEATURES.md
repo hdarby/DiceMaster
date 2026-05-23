@@ -70,5 +70,18 @@ Each entry follows this structure:
 
 <!-- Add new features below this line -->
 
+### [FEAT-004] Instrumentation tests for Item screen and item section on Character screen
+- **Type**: Add
+- **Area**: `androidTest/`, `ui/screens/ItemScreen.kt`, `ui/screens/CharacterScreen.kt`
+- **Added**: 2026-05-23
+- **Priority**: Medium
+- **Status**: Backlog
+- **Description**: FEAT-003 introduced `ItemScreen` composables (`ItemCard`, `AddEditItemDialog`, `ItemScreenContent`) and item-related sections on `CharacterScreen` (`ItemQuantityRow`, `AssignItemDialog`). These currently have no instrumentation test coverage. Dedicated UI tests and/or integration tests should be written to close the gap noted in `COVERAGE_STRATEGY.md`.
+- **Acceptance Criteria**:
+    - `ItemScreenTest` covers `ItemCard` render, edit and delete actions, the FAB → `AddEditItemDialog` flow, the edit dialog pre-population, and error/loading states.
+    - `ItemWorkflowIntegrationTest` covers end-to-end add → assign to character → increment/decrement → auto-unassign at zero flow.
+    - All new tests pass in CI (`connectedDebugAndroidTest`).
+    - `COVERAGE_STRATEGY.md` integration test inventory is updated to reflect the new files.
+
 
 

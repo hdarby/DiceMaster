@@ -62,10 +62,10 @@ Each entry follows this structure:
 ---
 
 ### [DEBT-006] Error state in ViewModels is never cleared
-- **Area**: `viewmodel/CharacterViewModel.kt`, `viewmodel/WeaponViewModel.kt`, `viewmodel/state/CharacterUiState.kt`, `viewmodel/state/WeaponUiState.kt`
-- **Added**: 2026-05-19
-- **Description**: Both ViewModels set `error: String?` in their UI state on failures, but neither exposes a `clearError()` function. Once an error is set it persists indefinitely — it is never dismissible by the user and is only replaced by the next successful data load.
-- **Resolution**: Add `fun clearError()` to both ViewModels. Call it from the UI when the user dismisses the error, or automatically after a successful operation.
+- **Area**: `viewmodel/CharacterViewModel.kt`, `viewmodel/WeaponViewModel.kt`, `viewmodel/ItemViewModel.kt`, `viewmodel/state/CharacterUiState.kt`, `viewmodel/state/WeaponUiState.kt`, `viewmodel/state/ItemUiState.kt`
+- **Added**: 2026-05-19 (extended 2026-05-23 to include ItemViewModel)
+- **Description**: `CharacterViewModel`, `WeaponViewModel`, and `ItemViewModel` all set `error: String?` in their UI state on failures, but none of them expose a `clearError()` function. Once an error is set it persists indefinitely — it is never dismissible by the user and is only replaced by the next successful data load.
+- **Resolution**: Add `fun clearError()` to all three ViewModels. Call it from the UI when the user dismisses the error, or automatically after a successful operation.
 
 ---
 

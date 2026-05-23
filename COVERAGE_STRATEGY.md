@@ -22,6 +22,15 @@ This document outlines the strategy for achieving and maintaining 100% test cove
 | `CharacterWorkflowIntegrationTest.kt` | E2E | Character create/edit/delete workflows, tab navigation |
 | `WeaponAssignmentIntegrationTest.kt` | E2E | Weapon create/edit/delete, single & multiple weapon assignment to characters |
 
+## Unit Test Inventory (`app/src/test/`)
+
+| File | Layer | What is covered |
+|------|-------|-----------------|
+| `data/repository/ItemRepositoryImplTest.kt` | Repository | `getAllItems`, `getItemsByCharacter`, `addItem`, `updateItem`, `deleteItem`, `assignItemToCharacter`, `unassignItemFromCharacter`, `updateItemQuantity`; entity↔domain mapping |
+| `viewmodel/ItemViewModelTest.kt` | ViewModel | `addItem`, `updateItem`, `deleteItem`, `assignItem`, `unassignItem`, `incrementQuantity`, `decrementQuantity` (including auto-unassign at quantity 1); loading/error states; Flow collection via Turbine |
+
+> **Gap**: `ItemScreen` composables (`ItemCard`, `AddEditItemDialog`, `ItemScreenContent`) and the item-related additions to `CharacterScreen` (`ItemQuantityRow`, `AssignItemDialog`) have no instrumentation test coverage yet. See `ADDITIONAL_FEATURES.md` for tracking.
+
 ## Strategy to Reach 100% Coverage
 
 ### 1. Business Logic (Repository & ViewModel)

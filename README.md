@@ -1,6 +1,6 @@
 # DiceMaster
 
-An Android application for tabletop RPG players to roll dice, manage characters, and track weapon inventories.
+An Android application for tabletop RPG players to roll dice, manage characters, track weapon inventories, and manage consumable items.
 
 ---
 
@@ -99,4 +99,5 @@ app/src/
 | `CLAUDE.md` | AI agent rules and project conventions |
 | `COVERAGE_STRATEGY.md` | Test coverage goals, tooling notes, and thresholds |
 | `TECH_DEBT.md` | Running log of known shortcuts and deferred improvements |
+| `ADDITIONAL_FEATURES.md` | Backlog of features to add, edit, or delete in the app |
 
