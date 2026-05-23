@@ -24,7 +24,7 @@ Each entry follows this structure:
 ### [DEBT-001] `fallbackToDestructiveMigration()` used in production database builder
 - **Area**: `di/AppModule.kt`
 - **Added**: 2026-05-19
-- **Description**: The Room database builder uses `fallbackToDestructiveMigration()`, which silently wipes all user data on any schema version bump instead of running a proper migration. The DB is already on version 2, meaning data loss has already occurred once.
+- **Description**: The Room database builder uses `fallbackToDestructiveMigration()`, which silently wipes all user data on any schema version bump instead of running a proper migration. The DB is already on version 4 (bumped 1→2, 2→3 for FEAT-003, 3→4 for FEAT-005 `totalQuantity` column), meaning data loss has already occurred on every upgrade.
 - **Resolution**: Write explicit `Migration` objects for each version transition and register them via `.addMigrations(...)` in the `databaseBuilder`. Remove `fallbackToDestructiveMigration()`.
 
 ---

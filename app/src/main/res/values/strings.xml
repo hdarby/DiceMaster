@@ -32,6 +32,7 @@
     <string name="label_name">Name</string>
     <string name="label_description">Description</string>
     <string name="label_total_quantity">Total Quantity</string>
+    <string name="label_stock_quantity">Stock: %1$d</string>
     <string name="label_race">Race</string>
     <string name="label_weapon_type">Weapon Type (e.g. Sword)</string>
     <string name="label_damage_dice">Damage Dice (e.g. 1d8)</string>

@@ -58,6 +58,18 @@ class ItemRepositoryImplTest {
         }
     }
 
+    @Test
+    fun `getAllItems maps non-default totalQuantity from entity to domain`() = runTest {
+        val entityWithQuantity = ItemEntity(id = 3L, name = "Rope", description = "50 ft rope", totalQuantity = 5)
+        every { itemDao.getAllItems() } returns flowOf(listOf(entityWithQuantity))
+
+        repository.getAllItems().test {
+            val result = awaitItem()
+            assertEquals(5, result.first().totalQuantity)
+            awaitComplete()
+        }
+    }
+
     // --- getItemsByCharacter ---
 
     @Test
@@ -72,6 +84,19 @@ class ItemRepositoryImplTest {
                 listOf(CharacterItemEntry(item = item, quantity = 2)),
                 result[10L]
             )
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `getItemsByCharacter preserves totalQuantity on item`() = runTest {
+        val entityWithQuantity = ItemEntity(id = 1L, name = "Healing Potion", description = "Restores 2d4+2 HP", totalQuantity = 10)
+        val assignment = CharacterItemAssignment(characterId = 10L, item = entityWithQuantity, quantity = 3)
+        every { itemDao.getAllCharacterItems() } returns flowOf(listOf(assignment))
+
+        repository.getItemsByCharacter().test {
+            val entry = awaitItem()[10L]?.first()
+            assertEquals(10, entry?.item?.totalQuantity)
             awaitComplete()
         }
     }
@@ -125,6 +150,16 @@ class ItemRepositoryImplTest {
 
         assertEquals(1L, result)
         coVerify { itemDao.insertItem(match { it.name == "Healing Potion" && it.description == "Restores 2d4+2 HP" }) }
+    }
+
+    @Test
+    fun `addItem passes totalQuantity to dao`() = runTest {
+        val itemWithStock = ConsumableItem(id = 0, name = "Arrow", description = "Standard arrow", totalQuantity = 20)
+        coEvery { itemDao.insertItem(any()) } returns 5L
+
+        repository.addItem(itemWithStock)
+
+        coVerify { itemDao.insertItem(match { it.totalQuantity == 20 }) }
     }
 
     // --- updateItem ---
@@ -197,4 +232,9 @@ class ItemRepositoryImplTest {
         }
     }
 }
+
+
+
+
+
 

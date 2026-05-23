@@ -168,6 +168,11 @@ fun ItemCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    Text(
+                        text = stringResource(R.string.label_stock_quantity, item.totalQuantity),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
                 }
                 Row {
                     IconButton(onClick = { onEdit(item) }) {
@@ -268,8 +273,6 @@ fun ItemScreenPreview() {
         )
     }
 }
-
-
 
 
 

@@ -83,5 +83,20 @@ Each entry follows this structure:
     - All new tests pass in CI (`connectedDebugAndroidTest`).
     - `COVERAGE_STRATEGY.md` integration test inventory is updated to reflect the new files.
 
+---
+
+### [FEAT-005] Total quantity field on consumable items
+- **Type**: Add
+- **Area**: `ui/screens/ItemScreen.kt`, `domain/model/ConsumableItem.kt`, `data/local/entity/ItemEntity.kt`, `data/repository/ItemRepositoryImpl.kt`
+- **Added**: 2026-05-23
+- **Priority**: Medium
+- **Status**: Done
+- **Description**: Each consumable item can now have a total stock quantity set at creation (or editing). This is distinct from the per-character assigned quantity — `totalQuantity` represents global stock of the item, while the cross-ref quantity tracks how many a particular character is carrying.
+- **Acceptance Criteria**:
+    - `AddEditItemDialog` includes a numeric "Total Quantity" field (default 1, accepts only integers ≥ 1). ✅
+    - Editing an existing item pre-populates the Total Quantity field with the saved value. ✅
+    - `ItemCard` in the Item Repository screen shows the stock quantity as "Stock: N". ✅
+    - `totalQuantity` is persisted in the Room database (`consumable_items.totalQuantity` column). ✅
+
 
 
