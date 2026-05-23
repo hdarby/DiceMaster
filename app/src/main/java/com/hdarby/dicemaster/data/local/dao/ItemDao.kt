@@ -36,6 +36,9 @@ interface ItemDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCharacterItemCrossRef(crossRef: CharacterItemCrossRef)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertCharacterItemCrossRef(crossRef: CharacterItemCrossRef)
+
     @Query("""
         UPDATE character_item_cross_ref
         SET quantity = :quantity
@@ -49,4 +52,5 @@ interface ItemDao {
     """)
     suspend fun deleteCharacterItemCrossRef(characterId: Long, itemId: Long)
 }
+
 

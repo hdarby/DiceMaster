@@ -10,8 +10,10 @@ import com.hdarby.dicemaster.data.local.sessionDataStore
 import com.hdarby.dicemaster.data.remote.CharacterRemoteDataSource
 import com.hdarby.dicemaster.data.remote.FirebaseAuthDataSource
 import com.hdarby.dicemaster.data.remote.FirestoreCharacterDataSource
+import com.hdarby.dicemaster.data.remote.FirestoreItemDataSource
 import com.hdarby.dicemaster.data.remote.FirestoreSessionDataSource
 import com.hdarby.dicemaster.data.remote.FirestoreWeaponDataSource
+import com.hdarby.dicemaster.data.remote.ItemRemoteDataSource
 import com.hdarby.dicemaster.data.remote.SessionRemoteDataSource
 import com.hdarby.dicemaster.data.remote.WeaponRemoteDataSource
 import com.hdarby.dicemaster.data.repository.CharacterRepositoryImpl
@@ -76,7 +78,7 @@ val appModule = module {
     single<DiceRepository> { DiceRepositoryImpl() }
     single<CharacterRepository> { CharacterRepositoryImpl(get(), get(), get(), get(), get()) }
     single<WeaponRepository> { WeaponRepositoryImpl(get(), get(), get()) }
-    single<ItemRepository> { ItemRepositoryImpl(get()) }
+    single<ItemRepository> { ItemRepositoryImpl(get(), get(), get()) }
     single<SessionRepository> { SessionRepositoryImpl(get()) }
 
     // Firebase
@@ -86,6 +88,7 @@ val appModule = module {
     single<SessionRemoteDataSource> { FirestoreSessionDataSource(get()) }
     single<CharacterRemoteDataSource> { FirestoreCharacterDataSource(get()) }
     single<WeaponRemoteDataSource> { FirestoreWeaponDataSource(get()) }
+    single<ItemRemoteDataSource> { FirestoreItemDataSource(get()) }
 
     // Use Cases
     factory { RollDiceUseCase(get()) }

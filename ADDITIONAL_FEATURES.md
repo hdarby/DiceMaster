@@ -169,7 +169,7 @@ Each entry follows this structure:
 - **Area**: `data/remote/`, `data/repository/ItemRepositoryImpl.kt`, `di/AppModule.kt`
 - **Added**: 2026-05-23
 - **Priority**: High
-- **Status**: Backlog
+- **Status**: Done
 - **Depends on**: FEAT-006d
 - **Description**: Extend the `RemoteDataSource` interface and `FirestoreRemoteDataSource` to cover consumable items and per-character item quantities. The Firestore paths are `sessions/{sessionId}/items/{itemId}` for item definitions and `sessions/{sessionId}/characterItems/{characterId}/entries/{itemId}` for per-character quantities. `ItemRepositoryImpl` adopts the same dual-write + snapshot-listener pattern established in FEAT-006d. A player adjusting their item count writes directly to the `characterItems/{their characterId}/entries/{itemId}` path; the DM's device reflects the change in real-time.
 - **Acceptance Criteria**:
