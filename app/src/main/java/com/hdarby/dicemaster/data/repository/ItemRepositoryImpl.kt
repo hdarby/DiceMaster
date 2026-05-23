@@ -41,8 +41,9 @@ class ItemRepositoryImpl(private val itemDao: ItemDao) : ItemRepository {
     override suspend fun updateItemQuantity(characterId: Long, itemId: Long, quantity: Int) =
         itemDao.updateQuantity(characterId, itemId, quantity)
 
-    private fun ItemEntity.toDomain() = ConsumableItem(id = id, name = name, description = description)
+    private fun ItemEntity.toDomain() = ConsumableItem(id = id, name = name, description = description, totalQuantity = totalQuantity)
 
-    private fun ConsumableItem.toEntity() = ItemEntity(id = id, name = name, description = description)
+    private fun ConsumableItem.toEntity() = ItemEntity(id = id, name = name, description = description, totalQuantity = totalQuantity)
 }
+
 

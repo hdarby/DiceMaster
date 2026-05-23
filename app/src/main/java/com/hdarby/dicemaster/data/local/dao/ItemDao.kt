@@ -18,7 +18,7 @@ interface ItemDao {
     fun getAllItems(): Flow<List<ItemEntity>>
 
     @Query("""
-        SELECT cir.characterId, i.id, i.name, i.description, cir.quantity
+        SELECT cir.characterId, i.id, i.name, i.description, i.totalQuantity, cir.quantity
         FROM consumable_items i
         INNER JOIN character_item_cross_ref cir ON i.id = cir.itemId
     """)
@@ -49,4 +49,5 @@ interface ItemDao {
     """)
     suspend fun deleteCharacterItemCrossRef(characterId: Long, itemId: Long)
 }
+
 

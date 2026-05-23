@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -40,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hdarby.dicemaster.R
@@ -188,6 +190,9 @@ fun AddEditItemDialog(
 ) {
     var name by remember { mutableStateOf(item?.name ?: "") }
     var description by remember { mutableStateOf(item?.description ?: "") }
+    var totalQuantity by remember { mutableStateOf(item?.totalQuantity?.toString() ?: "1") }
+
+    val isValidQuantity = { input: String -> input.isEmpty() || (input.toIntOrNull() != null && input.toInt() >= 1) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -214,11 +219,26 @@ fun AddEditItemDialog(
                     minLines = 2,
                     maxLines = 4
                 )
+                OutlinedTextField(
+                    value = totalQuantity,
+                    onValueChange = { if (isValidQuantity(it)) totalQuantity = it },
+                    label = { Text(stringResource(R.string.label_total_quantity)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
             }
         },
         confirmButton = {
             Button(onClick = {
-                onConfirm(ConsumableItem(id = item?.id ?: 0, name = name, description = description))
+                onConfirm(
+                    ConsumableItem(
+                        id = item?.id ?: 0,
+                        name = name,
+                        description = description,
+                        totalQuantity = totalQuantity.toIntOrNull() ?: 1
+                    )
+                )
             }) {
                 Text(stringResource(R.string.button_confirm))
             }
@@ -238,8 +258,8 @@ fun ItemScreenPreview() {
         ItemScreenContent(
             uiState = ItemUiState(
                 items = listOf(
-                    ConsumableItem(1, "Healing Potion", "Restores 2d4+2 HP"),
-                    ConsumableItem(2, "Scroll of Fireball", "Casts fireball (8d6 damage)")
+                    ConsumableItem(1, "Healing Potion", "Restores 2d4+2 HP", totalQuantity = 5),
+                    ConsumableItem(2, "Scroll of Fireball", "Casts fireball (8d6 damage)", totalQuantity = 1)
                 )
             ),
             onAddItem = {},
@@ -248,4 +268,8 @@ fun ItemScreenPreview() {
         )
     }
 }
+
+
+
+
 
