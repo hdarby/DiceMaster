@@ -1,14 +1,21 @@
 package com.hdarby.dicemaster.di
 
 import androidx.room.Room
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.google.firebase.auth.FirebaseAuth
 import com.hdarby.dicemaster.data.local.DiceMasterDatabase
+import com.hdarby.dicemaster.data.local.sessionDataStore
+import com.hdarby.dicemaster.data.remote.FirebaseAuthDataSource
 import com.hdarby.dicemaster.data.repository.CharacterRepositoryImpl
 import com.hdarby.dicemaster.data.repository.DiceRepositoryImpl
 import com.hdarby.dicemaster.data.repository.ItemRepositoryImpl
+import com.hdarby.dicemaster.data.repository.SessionRepositoryImpl
 import com.hdarby.dicemaster.data.repository.WeaponRepositoryImpl
 import com.hdarby.dicemaster.domain.repository.CharacterRepository
 import com.hdarby.dicemaster.domain.repository.DiceRepository
 import com.hdarby.dicemaster.domain.repository.ItemRepository
+import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.repository.WeaponRepository
 import com.hdarby.dicemaster.domain.usecase.RollAdvantageUseCase
 import com.hdarby.dicemaster.domain.usecase.RollDiceUseCase
@@ -54,11 +61,19 @@ val appModule = module {
     single { get<DiceMasterDatabase>().weaponDao() }
     single { get<DiceMasterDatabase>().itemDao() }
 
+    // DataStore
+    single<DataStore<Preferences>> { androidContext().sessionDataStore }
+
     // Repositories
     single<DiceRepository> { DiceRepositoryImpl() }
     single<CharacterRepository> { CharacterRepositoryImpl(get(), get()) }
     single<WeaponRepository> { WeaponRepositoryImpl(get()) }
     single<ItemRepository> { ItemRepositoryImpl(get()) }
+    single<SessionRepository> { SessionRepositoryImpl(get()) }
+
+    // Firebase
+    single { FirebaseAuth.getInstance() }
+    single { FirebaseAuthDataSource(get()) }
 
     // Use Cases
     factory { RollDiceUseCase(get()) }
