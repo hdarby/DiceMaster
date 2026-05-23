@@ -92,7 +92,7 @@ Each entry follows this structure:
 - **Area**: `app/build.gradle.kts`, `build.gradle.kts`, `google-services.json`, `libs.versions.toml`
 - **Added**: 2026-05-23
 - **Priority**: High
-- **Status**: Backlog
+- **Status**: Done
 - **Depends on**: nothing
 - **Description**: Wire Firebase into the build system. No runtime behaviour changes — the app continues to work exactly as before. This step exists solely to land the dependency changes in isolation so subsequent sub-tasks have clean ground to build on.
 - **Acceptance Criteria**:
