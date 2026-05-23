@@ -19,6 +19,7 @@ import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUs
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UpdateCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.item.AddItemUseCase
+import com.hdarby.dicemaster.domain.usecase.item.AdjustItemStockUseCase
 import com.hdarby.dicemaster.domain.usecase.item.AssignItemToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.item.DeleteItemUseCase
 import com.hdarby.dicemaster.domain.usecase.item.GetItemsByCharacterUseCase
@@ -87,11 +88,12 @@ val appModule = module {
     factory { AssignItemToCharacterUseCase(get()) }
     factory { UnassignItemFromCharacterUseCase(get()) }
     factory { UpdateItemQuantityUseCase(get()) }
+    factory { AdjustItemStockUseCase(get()) }
 
     // ViewModels
     viewModel { DiceViewModel(get(), get()) }
     viewModel { CharacterViewModel(get(), get(), get(), get(), get()) }
     viewModel { WeaponViewModel(get(), get(), get(), get(), get()) }
-    viewModel { ItemViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { ItemViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { DebugViewModel() }
 }

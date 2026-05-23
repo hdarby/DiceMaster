@@ -221,6 +221,26 @@ class ItemRepositoryImplTest {
         coVerify { itemDao.updateQuantity(10L, 1L, 5) }
     }
 
+    // --- adjustItemStock ---
+
+    @Test
+    fun `adjustItemStock delegates delta to dao`() = runTest {
+        coEvery { itemDao.adjustItemStock(any(), any()) } returns Unit
+
+        repository.adjustItemStock(itemId = 1L, delta = -1)
+
+        coVerify { itemDao.adjustItemStock(itemId = 1L, delta = -1) }
+    }
+
+    @Test
+    fun `adjustItemStock passes positive delta when returning stock`() = runTest {
+        coEvery { itemDao.adjustItemStock(any(), any()) } returns Unit
+
+        repository.adjustItemStock(itemId = 2L, delta = 3)
+
+        coVerify { itemDao.adjustItemStock(itemId = 2L, delta = 3) }
+    }
+
     @Test
     fun `assignItemToCharacter creates cross-ref with correct characterId and itemId`() = runTest {
         coEvery { itemDao.insertCharacterItemCrossRef(any()) } returns Unit
@@ -232,6 +252,7 @@ class ItemRepositoryImplTest {
         }
     }
 }
+
 
 
 

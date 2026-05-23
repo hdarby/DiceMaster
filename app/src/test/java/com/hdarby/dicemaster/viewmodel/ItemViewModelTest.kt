@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.CharacterItemEntry
 import com.hdarby.dicemaster.domain.model.ConsumableItem
 import com.hdarby.dicemaster.domain.usecase.item.AddItemUseCase
+import com.hdarby.dicemaster.domain.usecase.item.AdjustItemStockUseCase
 import com.hdarby.dicemaster.domain.usecase.item.AssignItemToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.item.DeleteItemUseCase
 import com.hdarby.dicemaster.domain.usecase.item.GetItemsByCharacterUseCase
@@ -41,6 +42,7 @@ class ItemViewModelTest {
     private val assignItemToCharacterUseCase: AssignItemToCharacterUseCase = mockk()
     private val unassignItemFromCharacterUseCase: UnassignItemFromCharacterUseCase = mockk()
     private val updateItemQuantityUseCase: UpdateItemQuantityUseCase = mockk()
+    private val adjustItemStockUseCase: AdjustItemStockUseCase = mockk(relaxed = true)
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: ItemViewModel
@@ -69,7 +71,8 @@ class ItemViewModelTest {
         deleteItemUseCase,
         assignItemToCharacterUseCase,
         unassignItemFromCharacterUseCase,
-        updateItemQuantityUseCase
+        updateItemQuantityUseCase,
+        adjustItemStockUseCase
     )
 
     // --- Initialisation ---
@@ -207,6 +210,53 @@ class ItemViewModelTest {
         coVerify { unassignItemFromCharacterUseCase(1L, 1L) }
     }
 
+    // --- Stock adjustment ---
+
+    @Test
+    fun `assignItem decrements stock by one`() = runTest {
+        coEvery { assignItemToCharacterUseCase(1L, 1L) } returns Unit
+
+        viewModel.assignItem(characterId = 1L, itemId = 1L)
+
+        coVerify { adjustItemStockUseCase(itemId = 1L, delta = -1) }
+    }
+
+    @Test
+    fun `unassignItem increments stock by quantityToReturn`() = runTest {
+        coEvery { unassignItemFromCharacterUseCase(1L, 1L) } returns Unit
+
+        viewModel.unassignItem(characterId = 1L, itemId = 1L, quantityToReturn = 3)
+
+        coVerify { adjustItemStockUseCase(itemId = 1L, delta = 3) }
+    }
+
+    @Test
+    fun `incrementQuantity decrements stock by one`() = runTest {
+        coEvery { updateItemQuantityUseCase(1L, 1L, 4) } returns Unit
+
+        viewModel.incrementQuantity(characterId = 1L, itemId = 1L, currentQuantity = 3)
+
+        coVerify { adjustItemStockUseCase(itemId = 1L, delta = -1) }
+    }
+
+    @Test
+    fun `decrementQuantity increments stock by one`() = runTest {
+        coEvery { updateItemQuantityUseCase(1L, 1L, 2) } returns Unit
+
+        viewModel.decrementQuantity(characterId = 1L, itemId = 1L, currentQuantity = 3)
+
+        coVerify { adjustItemStockUseCase(itemId = 1L, delta = 1) }
+    }
+
+    @Test
+    fun `decrementQuantity increments stock by one when auto-unassigning`() = runTest {
+        coEvery { unassignItemFromCharacterUseCase(1L, 1L) } returns Unit
+
+        viewModel.decrementQuantity(characterId = 1L, itemId = 1L, currentQuantity = 1)
+
+        coVerify { adjustItemStockUseCase(itemId = 1L, delta = 1) }
+    }
+
     // --- Error handling ---
 
     @Test
@@ -293,4 +343,8 @@ class ItemViewModelTest {
         }
     }
 }
+
+
+
+
 

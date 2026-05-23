@@ -13,5 +13,7 @@ interface ItemRepository {
     suspend fun assignItemToCharacter(characterId: Long, itemId: Long)
     suspend fun unassignItemFromCharacter(characterId: Long, itemId: Long)
     suspend fun updateItemQuantity(characterId: Long, itemId: Long, quantity: Int)
+    suspend fun adjustItemStock(itemId: Long, delta: Int)
 }
+
 
