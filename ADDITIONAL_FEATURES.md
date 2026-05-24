@@ -70,6 +70,65 @@ Each entry follows this structure:
 
 <!-- Add new features below this line -->
 
+### [FEAT-007] Hit Points tracking with death saving throws
+- **Type**: Add
+- **Area**: `domain/model/Character.kt`, `data/local/entity/CharacterEntity.kt`, `data/local/dao/CharacterDao.kt`, `data/repository/CharacterRepositoryImpl.kt`, `ui/screens/CharacterScreen.kt`, `viewmodel/CharacterViewModel.kt`
+- **Added**: 2026-05-24
+- **Priority**: High
+- **Status**: Done
+- **Description**: Add Hit Points (HP) to each character, including a maximum HP value set at creation/edit and a current HP value adjusted in the Character screen via increment/decrement buttons. When current HP reaches zero the character is marked as "Down" and a death saving throw tracker (three checkboxes) appears. If all three are checked the app confirms whether the character should be marked as Dead.
+- **Acceptance Criteria**:
+  - `Character` domain model gains `maxHitPoints: Int` and `currentHitPoints: Int` fields.
+  - `AddEditCharacterDialog` includes a "Max HP" numeric field (integer ≥ 1); new characters default `currentHitPoints` to `maxHitPoints`.
+  - Each `CharacterCard` shows current / max HP (e.g. `12 / 20 HP`).
+  - An increment (+) button heals the character; the value cannot exceed `maxHitPoints`.
+  - A decrement (−) button deals damage; the value cannot go below 0.
+  - When `currentHitPoints == 0`, the character card displays a **"Down"** label and shows a row of three death-saving-throw checkboxes.
+  - Checking the third death-saving-throw checkbox triggers a confirmation dialog: "Has [name] failed all saving throws and should be declared Dead?".
+  - Confirming marks the character as `isDead = true` and displays a **"Dead"** label in place of the Down state.
+  - All HP and death-throw state is persisted in Room and synced to Firestore when a session is active.
+  - Unit tests cover ViewModel increment/decrement clamping, Down state transitions, and Death confirmation logic.
+  - `./gradlew assembleDebug testDebugUnitTest` passes.
+
+---
+
+### [FEAT-008] Soft-delete characters with confirmation dialog
+- **Type**: Edit
+- **Area**: `domain/model/Character.kt`, `data/local/entity/CharacterEntity.kt`, `data/local/dao/CharacterDao.kt`, `data/repository/CharacterRepositoryImpl.kt`, `ui/screens/CharacterScreen.kt`, `viewmodel/CharacterViewModel.kt`
+- **Added**: 2026-05-24
+- **Priority**: High
+- **Status**: Backlog
+- **Description**: Replace the current hard-delete of characters with a soft-delete pattern. Deleting a character first presents a confirmation dialog; if confirmed the character is marked `isDeleted = true` in the database rather than being physically removed, preserving historical data and enabling future restore functionality.
+- **Acceptance Criteria**:
+  - Tapping the delete icon on a `CharacterCard` opens a confirmation dialog: "Delete [name]? This character will be removed from the active roster but can be restored later."
+  - Cancelling the dialog performs no action.
+  - Confirming sets `isDeleted = true` on the `CharacterEntity` in Room (no row is deleted).
+  - `CharacterDao.getAllCharacters()` filters out soft-deleted characters (`WHERE isDeleted = 0`).
+  - Soft-deleted characters are not synced to Firestore as active characters; remote sync marks the Firestore document with `deleted: true`.
+  - The `CharacterRepository` interface retains `deleteCharacter(character)` but its implementation performs the soft-delete.
+  - Unit tests cover: confirmation dialog → soft-delete path; no-confirm → no change; deleted characters are excluded from the active list.
+  - `./gradlew assembleDebug testDebugUnitTest` passes.
+
+---
+
+### [FEAT-009] Armor Class field on characters
+- **Type**: Add
+- **Area**: `domain/model/Character.kt`, `data/local/entity/CharacterEntity.kt`, `data/local/dao/CharacterDao.kt`, `data/repository/CharacterRepositoryImpl.kt`, `ui/screens/CharacterScreen.kt`, `viewmodel/CharacterViewModel.kt`
+- **Added**: 2026-05-24
+- **Priority**: Medium
+- **Status**: Backlog
+- **Description**: Add an editable Armor Class (AC) field to each character in line with D&D rules. AC is set in the `AddEditCharacterDialog` and displayed prominently on the `CharacterCard`. It can be updated inline on the card without opening the full edit dialog.
+- **Acceptance Criteria**:
+  - `Character` domain model gains `armorClass: Int` (default 10, per D&D base AC rules).
+  - `AddEditCharacterDialog` includes an "Armor Class" numeric field (integer ≥ 0).
+  - Each `CharacterCard` displays the AC value (e.g. `AC 15`) alongside the character's stats.
+  - The AC value is editable directly on the card via a small edit control (tap-to-edit or stepper), without requiring the full edit dialog.
+  - `armorClass` is persisted in Room and synced to Firestore when a session is active.
+  - Unit tests cover ViewModel AC update logic and mapping.
+  - `./gradlew assembleDebug testDebugUnitTest` passes.
+
+---
+
 <!--
   FEAT-006 is a multi-session feature broken into 8 sequential sub-tasks (a–h).
   Each sub-task is independently completable and leaves the app in a fully

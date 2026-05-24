@@ -105,4 +105,87 @@ class CharacterUseCasesTest {
 
         coVerify { repository.unassignWeaponFromCharacter(5L) }
     }
+
+    // ── Hit Points use cases ─────────────────────────────────────────────────
+
+    @Test
+    fun `HealCharacterUseCase increments currentHitPoints by one`() = runTest {
+        val useCase = HealCharacterUseCase(repository)
+        val char = character.copy(maxHitPoints = 20, currentHitPoints = 10)
+        coEvery { repository.updateCharacter(any()) } returns Unit
+
+        useCase(char)
+
+        coVerify { repository.updateCharacter(match { it.currentHitPoints == 11 }) }
+    }
+
+    @Test
+    fun `HealCharacterUseCase caps at maxHitPoints`() = runTest {
+        val useCase = HealCharacterUseCase(repository)
+        val char = character.copy(maxHitPoints = 20, currentHitPoints = 20)
+        coEvery { repository.updateCharacter(any()) } returns Unit
+
+        useCase(char)
+
+        coVerify { repository.updateCharacter(match { it.currentHitPoints == 20 }) }
+    }
+
+    @Test
+    fun `DamageCharacterUseCase decrements currentHitPoints by one`() = runTest {
+        val useCase = DamageCharacterUseCase(repository)
+        val char = character.copy(maxHitPoints = 20, currentHitPoints = 10)
+        coEvery { repository.updateCharacter(any()) } returns Unit
+
+        useCase(char)
+
+        coVerify { repository.updateCharacter(match { it.currentHitPoints == 9 }) }
+    }
+
+    @Test
+    fun `DamageCharacterUseCase floors at zero`() = runTest {
+        val useCase = DamageCharacterUseCase(repository)
+        val char = character.copy(maxHitPoints = 20, currentHitPoints = 0)
+        coEvery { repository.updateCharacter(any()) } returns Unit
+
+        useCase(char)
+
+        coVerify { repository.updateCharacter(match { it.currentHitPoints == 0 }) }
+    }
+
+    @Test
+    fun `SetDeathSaveFailuresUseCase updates failure count`() = runTest {
+        val useCase = SetDeathSaveFailuresUseCase(repository)
+        val char = character.copy(currentHitPoints = 0, deathSaveFailures = 1)
+        coEvery { repository.updateCharacter(any()) } returns Unit
+
+        useCase(char, 2)
+
+        coVerify { repository.updateCharacter(match { it.deathSaveFailures == 2 }) }
+    }
+
+    @Test
+    fun `SetDeathSaveFailuresUseCase clamps value to 0-3 range`() = runTest {
+        val useCase = SetDeathSaveFailuresUseCase(repository)
+        val char = character.copy(currentHitPoints = 0, deathSaveFailures = 0)
+        coEvery { repository.updateCharacter(any()) } returns Unit
+
+        useCase(char, 99)
+
+        coVerify { repository.updateCharacter(match { it.deathSaveFailures == 3 }) }
+    }
+
+    @Test
+    fun `MarkCharacterDeadUseCase sets isDead, maxes failures, zeroes HP`() = runTest {
+        val useCase = MarkCharacterDeadUseCase(repository)
+        val char = character.copy(maxHitPoints = 20, currentHitPoints = 0, deathSaveFailures = 2)
+        coEvery { repository.updateCharacter(any()) } returns Unit
+
+        useCase(char)
+
+        coVerify {
+            repository.updateCharacter(match {
+                it.isDead && it.deathSaveFailures == 3 && it.currentHitPoints == 0
+            })
+        }
+    }
 }

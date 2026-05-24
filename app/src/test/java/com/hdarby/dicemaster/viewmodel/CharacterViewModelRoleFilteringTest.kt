@@ -9,8 +9,12 @@ import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.DamageCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
+import com.hdarby.dicemaster.domain.usecase.character.HealCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.MarkCharacterDeadUseCase
+import com.hdarby.dicemaster.domain.usecase.character.SetDeathSaveFailuresUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UpdateCharacterUseCase
 import io.mockk.every
@@ -40,6 +44,10 @@ class CharacterViewModelRoleFilteringTest {
     private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase = mockk(relaxed = true)
     private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase = mockk(relaxed = true)
     private val sessionRepository: SessionRepository = mockk()
+    private val healCharacterUseCase: HealCharacterUseCase = mockk(relaxed = true)
+    private val damageCharacterUseCase: DamageCharacterUseCase = mockk(relaxed = true)
+    private val setDeathSaveFailuresUseCase: SetDeathSaveFailuresUseCase = mockk(relaxed = true)
+    private val markCharacterDeadUseCase: MarkCharacterDeadUseCase = mockk(relaxed = true)
 
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -64,7 +72,9 @@ class CharacterViewModelRoleFilteringTest {
     private fun buildViewModel(): CharacterViewModel = CharacterViewModel(
         getCharactersWithWeaponsUseCase, addCharacterUseCase, updateCharacterUseCase,
         deleteCharacterUseCase, unassignWeaponFromCharacterUseCase,
-        assignWeaponToCharacterUseCase, sessionRepository
+        assignWeaponToCharacterUseCase, sessionRepository,
+        healCharacterUseCase, damageCharacterUseCase,
+        setDeathSaveFailuresUseCase, markCharacterDeadUseCase
     )
 
     // ── No-session (local-only) mode ─────────────────────────────────────────
@@ -201,6 +211,8 @@ class CharacterViewModelRoleFilteringTest {
         }
     }
 }
+
+
 
 
 

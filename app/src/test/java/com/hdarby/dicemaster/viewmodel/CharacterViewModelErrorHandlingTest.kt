@@ -7,8 +7,12 @@ import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.DamageCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
+import com.hdarby.dicemaster.domain.usecase.character.HealCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.MarkCharacterDeadUseCase
+import com.hdarby.dicemaster.domain.usecase.character.SetDeathSaveFailuresUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UpdateCharacterUseCase
 import io.mockk.coEvery
@@ -37,6 +41,10 @@ class CharacterViewModelErrorHandlingTest {
     private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase = mockk()
     private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase = mockk(relaxed = true)
     private val sessionRepository: SessionRepository = mockk()
+    private val healCharacterUseCase: HealCharacterUseCase = mockk(relaxed = true)
+    private val damageCharacterUseCase: DamageCharacterUseCase = mockk(relaxed = true)
+    private val setDeathSaveFailuresUseCase: SetDeathSaveFailuresUseCase = mockk(relaxed = true)
+    private val markCharacterDeadUseCase: MarkCharacterDeadUseCase = mockk(relaxed = true)
 
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -65,6 +73,14 @@ class CharacterViewModelErrorHandlingTest {
         Dispatchers.resetMain()
     }
 
+    private fun buildViewModel() = CharacterViewModel(
+        getCharactersWithWeaponsUseCase, addCharacterUseCase, updateCharacterUseCase,
+        deleteCharacterUseCase, unassignWeaponFromCharacterUseCase,
+        assignWeaponToCharacterUseCase, sessionRepository,
+        healCharacterUseCase, damageCharacterUseCase,
+        setDeathSaveFailuresUseCase, markCharacterDeadUseCase
+    )
+
     @Test
     fun `loadCharacters handles database connectivity error`() = runTest {
         val errorMessage = "Database connection failed"
@@ -72,11 +88,7 @@ class CharacterViewModelErrorHandlingTest {
             throw Exception(errorMessage)
         }
 
-        val viewModel = CharacterViewModel(
-            getCharactersWithWeaponsUseCase, addCharacterUseCase, updateCharacterUseCase,
-            deleteCharacterUseCase, unassignWeaponFromCharacterUseCase,
-            assignWeaponToCharacterUseCase, sessionRepository
-        )
+        val viewModel = buildViewModel()
 
         viewModel.uiState.test {
             val state = awaitItem()
@@ -89,11 +101,7 @@ class CharacterViewModelErrorHandlingTest {
         every { getCharactersWithWeaponsUseCase() } returns flow { emit(emptyList()) }
         coEvery { addCharacterUseCase(any()) } throws NullPointerException()
 
-        val viewModel = CharacterViewModel(
-            getCharactersWithWeaponsUseCase, addCharacterUseCase, updateCharacterUseCase,
-            deleteCharacterUseCase, unassignWeaponFromCharacterUseCase,
-            assignWeaponToCharacterUseCase, sessionRepository
-        )
+        val viewModel = buildViewModel()
 
         viewModel.addCharacter(character)
 
@@ -108,11 +116,7 @@ class CharacterViewModelErrorHandlingTest {
         every { getCharactersWithWeaponsUseCase() } returns flow { emit(emptyList()) }
         coEvery { addCharacterUseCase(any()) } throws Exception("Add error")
 
-        val viewModel = CharacterViewModel(
-            getCharactersWithWeaponsUseCase, addCharacterUseCase, updateCharacterUseCase,
-            deleteCharacterUseCase, unassignWeaponFromCharacterUseCase,
-            assignWeaponToCharacterUseCase, sessionRepository
-        )
+        val viewModel = buildViewModel()
 
         viewModel.addCharacter(character)
         coEvery { deleteCharacterUseCase(any()) } throws Exception("Delete error")
@@ -130,11 +134,7 @@ class CharacterViewModelErrorHandlingTest {
         every { getCharactersWithWeaponsUseCase() } returns flow { emit(listOf(characterWithWeapons)) }
         coEvery { unassignWeaponFromCharacterUseCase(any()) } throws Exception("Unassign failed")
 
-        val viewModel = CharacterViewModel(
-            getCharactersWithWeaponsUseCase, addCharacterUseCase, updateCharacterUseCase,
-            deleteCharacterUseCase, unassignWeaponFromCharacterUseCase,
-            assignWeaponToCharacterUseCase, sessionRepository
-        )
+        val viewModel = buildViewModel()
 
         viewModel.unassignWeapon(2L)
 

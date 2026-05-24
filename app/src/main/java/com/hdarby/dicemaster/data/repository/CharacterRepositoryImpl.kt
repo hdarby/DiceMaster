@@ -110,7 +110,11 @@ class CharacterRepositoryImpl(
             intelligence = intelligence, intelligenceModifier = intelligenceModifier,
             wisdom = wisdom, wisdomModifier = wisdomModifier,
             charisma = charisma, charismaModifier = charismaModifier
-        )
+        ),
+        maxHitPoints = maxHitPoints,
+        currentHitPoints = currentHitPoints,
+        deathSaveFailures = deathSaveFailures,
+        isDead = isDead
     )
 
     private fun Character.toEntity() = CharacterEntity(
@@ -120,7 +124,11 @@ class CharacterRepositoryImpl(
         constitution = stats.constitution, constitutionModifier = stats.constitutionModifier,
         intelligence = stats.intelligence, intelligenceModifier = stats.intelligenceModifier,
         wisdom = stats.wisdom, wisdomModifier = stats.wisdomModifier,
-        charisma = stats.charisma, charismaModifier = stats.charismaModifier
+        charisma = stats.charisma, charismaModifier = stats.charismaModifier,
+        maxHitPoints = maxHitPoints,
+        currentHitPoints = currentHitPoints,
+        deathSaveFailures = deathSaveFailures,
+        isDead = isDead
     )
 
     private fun com.hdarby.dicemaster.data.local.entity.WeaponEntity.toDomain() = Weapon(

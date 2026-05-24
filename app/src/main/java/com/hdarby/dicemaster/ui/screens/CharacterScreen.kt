@@ -23,12 +23,15 @@ import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -38,6 +41,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -86,6 +90,7 @@ fun CharacterScreen(
     var editingCharacter by remember { mutableStateOf<Character?>(null) }
     var assignItemToCharacter by remember { mutableStateOf<Character?>(null) }
     var assignWeaponToCharacter by remember { mutableStateOf<Character?>(null) }
+    var confirmDeathCharacter by remember { mutableStateOf<Character?>(null) }
 
     // Atomic weapon IDs already assigned somewhere — used to prevent double-assigning atomic weapons
     val assignedAtomicWeaponIds = remember(uiState.characters) {
@@ -155,6 +160,17 @@ fun CharacterScreen(
                             },
                             onDecrementItem = { entry ->
                                 itemViewModel.decrementQuantity(entry.assignmentId, entry.quantity)
+                            },
+                            onHeal = { viewModel.heal(it) },
+                            onDamage = { viewModel.damage(it) },
+                            onDeathSaveChanged = { character, failures ->
+                                if (failures == MAX_DEATH_SAVE_FAILURES) {
+                                    // Stage death save update and await confirmation
+                                    viewModel.setDeathSaveFailures(character, failures)
+                                    confirmDeathCharacter = character.copy(deathSaveFailures = failures)
+                                } else {
+                                    viewModel.setDeathSaveFailures(character, failures)
+                                }
                             }
                         )
                     }
@@ -207,8 +223,25 @@ fun CharacterScreen(
                 }
             )
         }
+
+        confirmDeathCharacter?.let { character ->
+            ConfirmDeathDialog(
+                characterName = character.name,
+                onConfirm = {
+                    viewModel.markDead(character)
+                    confirmDeathCharacter = null
+                },
+                onDismiss = {
+                    // Revert to 2 failed saves — the user cancelled the death confirmation
+                    viewModel.setDeathSaveFailures(character, MAX_DEATH_SAVE_FAILURES - 1)
+                    confirmDeathCharacter = null
+                }
+            )
+        }
     }
 }
+
+private const val MAX_DEATH_SAVE_FAILURES = 3
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -223,15 +256,17 @@ fun CharacterCard(
     onAssignWeapon: (Character) -> Unit = {},
     onAssignItem: (Character) -> Unit = {},
     onIncrementItem: (CharacterItemEntry) -> Unit = {},
-    onDecrementItem: (CharacterItemEntry) -> Unit = {}
+    onDecrementItem: (CharacterItemEntry) -> Unit = {},
+    onHeal: (Character) -> Unit = {},
+    onDamage: (Character) -> Unit = {},
+    onDeathSaveChanged: (Character, Int) -> Unit = { _, _ -> }
 ) {
     val character = characterWithWeapons.character
     val weaponEntries = characterWithWeapons.weapons
 
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // ── Header row: name / race / edit / delete ──────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -243,10 +278,7 @@ fun CharacterCard(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(
-                        text = character.race,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Text(text = character.race, style = MaterialTheme.typography.bodyMedium)
                 }
                 if (isDungeonMaster) {
                     Row {
@@ -259,7 +291,10 @@ fun CharacterCard(
                     }
                 }
             }
+
             Spacer(modifier = Modifier.height(8.dp))
+
+            // ── Stats row ────────────────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -273,6 +308,18 @@ fun CharacterCard(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
+
+            // ── Hit Points section ───────────────────────────────────────────
+            HitPointsSection(
+                character = character,
+                onHeal = onHeal,
+                onDamage = onDamage,
+                onDeathSaveChanged = onDeathSaveChanged
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // ── Weapons section ──────────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -323,6 +370,8 @@ fun CharacterCard(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
+
+            // ── Items section ────────────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -357,6 +406,141 @@ fun CharacterCard(
             }
         }
     }
+}
+
+@Composable
+fun HitPointsSection(
+    character: Character,
+    onHeal: (Character) -> Unit,
+    onDamage: (Character) -> Unit,
+    onDeathSaveChanged: (Character, Int) -> Unit
+) {
+    when {
+        character.isDead -> {
+            Surface(
+                color = MaterialTheme.colorScheme.errorContainer,
+                shape = MaterialTheme.shapes.small
+            ) {
+                Text(
+                    text = stringResource(R.string.label_status_dead),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                )
+            }
+        }
+        character.currentHitPoints == 0 -> {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                        shape = MaterialTheme.shapes.small
+                    ) {
+                        Text(
+                            text = stringResource(R.string.label_status_down),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.label_hp_display, 0, character.maxHitPoints),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    IconButton(onClick = { onHeal(character) }) {
+                        Icon(
+                            Icons.Default.Favorite,
+                            contentDescription = stringResource(R.string.content_desc_heal),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                DeathSaveTracker(
+                    failures = character.deathSaveFailures,
+                    onFailuresChanged = { newCount -> onDeathSaveChanged(character, newCount) }
+                )
+            }
+        }
+        else -> {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(R.string.label_hp_display, character.currentHitPoints, character.maxHitPoints),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = { onDamage(character) },
+                        enabled = character.currentHitPoints > 0
+                    ) {
+                        Icon(
+                            Icons.Default.RemoveCircleOutline,
+                            contentDescription = stringResource(R.string.content_desc_damage),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                    IconButton(
+                        onClick = { onHeal(character) },
+                        enabled = character.currentHitPoints < character.maxHitPoints
+                    ) {
+                        Icon(
+                            Icons.Default.Favorite,
+                            contentDescription = stringResource(R.string.content_desc_heal),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DeathSaveTracker(
+    failures: Int,
+    onFailuresChanged: (Int) -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = stringResource(R.string.label_death_saves_failed),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        for (index in 1..MAX_DEATH_SAVE_FAILURES) {
+            Checkbox(
+                checked = failures >= index,
+                onCheckedChange = { checked ->
+                    onFailuresChanged(if (checked) index else index - 1)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun ConfirmDeathDialog(
+    characterName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.title_confirm_death)) },
+        text = { Text(stringResource(R.string.message_confirm_death, characterName)) },
+        confirmButton = {
+            Button(onClick = onConfirm) { Text(stringResource(R.string.button_mark_dead)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) }
+        }
+    )
 }
 
 @Composable
@@ -398,6 +582,7 @@ fun AddEditCharacterDialog(
     var wisMod by remember { mutableStateOf(character?.stats?.wisdomModifier?.toString() ?: "0") }
     var cha by remember { mutableStateOf(character?.stats?.charisma?.toString() ?: "10") }
     var chaMod by remember { mutableStateOf(character?.stats?.charismaModifier?.toString() ?: "0") }
+    var maxHp by remember { mutableStateOf(character?.maxHitPoints?.toString() ?: "10") }
 
     val isValidInput = { it: String -> it.isEmpty() || it == "-" || it.toIntOrNull() != null }
 
@@ -411,6 +596,14 @@ fun AddEditCharacterDialog(
                 }
                 item {
                     OutlinedTextField(value = race, onValueChange = { race = it }, label = { Text(stringResource(R.string.label_race)) })
+                }
+                item {
+                    OutlinedTextField(
+                        value = maxHp,
+                        onValueChange = { if (it.isEmpty() || it.toIntOrNull() != null) maxHp = it },
+                        label = { Text(stringResource(R.string.label_max_hp)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
                 }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -460,7 +653,24 @@ fun AddEditCharacterDialog(
                     wisdom = wis.toIntOrNull() ?: 10, wisdomModifier = wisMod.toIntOrNull() ?: 0,
                     charisma = cha.toIntOrNull() ?: 10, charismaModifier = chaMod.toIntOrNull() ?: 0
                 )
-                onConfirm(Character(id = character?.id ?: 0, name = name, race = race, stats = stats))
+                val newMaxHp = maxHp.toIntOrNull()?.coerceAtLeast(1) ?: 10
+                val newCurrentHp = if (character == null) {
+                    newMaxHp
+                } else {
+                    character.currentHitPoints.coerceAtMost(newMaxHp)
+                }
+                onConfirm(
+                    Character(
+                        id = character?.id ?: 0,
+                        name = name,
+                        race = race,
+                        stats = stats,
+                        maxHitPoints = newMaxHp,
+                        currentHitPoints = newCurrentHp,
+                        deathSaveFailures = character?.deathSaveFailures ?: 0,
+                        isDead = character?.isDead ?: false
+                    )
+                )
             }) {
                 Text(stringResource(R.string.button_confirm))
             }

@@ -126,4 +126,16 @@
     <string name="label_weapon_atomic_desc">When checked, only one character can hold this weapon.</string>
     <string name="content_desc_unassign_weapon">Unassign weapon</string>
     <string name="label_no_weapons_to_assign">No weapons available. Add weapons in the Weapons screen first.</string>
+
+    <!-- Hit Points -->
+    <string name="label_max_hp">Max HP</string>
+    <string name="label_hp_display">%1$d / %2$d HP</string>
+    <string name="label_status_down">⚠ DOWN</string>
+    <string name="label_status_dead">💀 DEAD</string>
+    <string name="label_death_saves_failed">Death Saves Failed</string>
+    <string name="title_confirm_death">Character Defeated?</string>
+    <string name="message_confirm_death">Has %1$s failed all death saving throws and should be declared dead?</string>
+    <string name="button_mark_dead">Mark as Dead</string>
+    <string name="content_desc_heal">Heal</string>
+    <string name="content_desc_damage">Deal damage</string>
 </resources>

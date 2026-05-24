@@ -73,7 +73,11 @@ class FirestoreCharacterDataSource(
                 wisdomModifier = getLong(FIELD_WISDOM_MOD)?.toInt() ?: 0,
                 charisma = getLong(FIELD_CHARISMA)?.toInt() ?: 10,
                 charismaModifier = getLong(FIELD_CHARISMA_MOD)?.toInt() ?: 0
-            )
+            ),
+            maxHitPoints = getLong(FIELD_MAX_HIT_POINTS)?.toInt() ?: 10,
+            currentHitPoints = getLong(FIELD_CURRENT_HIT_POINTS)?.toInt() ?: 10,
+            deathSaveFailures = getLong(FIELD_DEATH_SAVE_FAILURES)?.toInt() ?: 0,
+            isDead = getBoolean(FIELD_IS_DEAD) ?: false
         )
     }
 
@@ -95,6 +99,11 @@ class FirestoreCharacterDataSource(
         private const val FIELD_WISDOM_MOD = "wisdomModifier"
         private const val FIELD_CHARISMA = "charisma"
         private const val FIELD_CHARISMA_MOD = "charismaModifier"
+        private const val FIELD_MAX_HIT_POINTS = "maxHitPoints"
+        private const val FIELD_CURRENT_HIT_POINTS = "currentHitPoints"
+        private const val FIELD_DEATH_SAVE_FAILURES = "deathSaveFailures"
+        private const val FIELD_IS_DEAD = "isDead"
     }
 }
+
 

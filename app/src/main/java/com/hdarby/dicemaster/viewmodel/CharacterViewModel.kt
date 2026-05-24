@@ -7,8 +7,12 @@ import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.DamageCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
+import com.hdarby.dicemaster.domain.usecase.character.HealCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.MarkCharacterDeadUseCase
+import com.hdarby.dicemaster.domain.usecase.character.SetDeathSaveFailuresUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UpdateCharacterUseCase
 import com.hdarby.dicemaster.viewmodel.state.CharacterUiState
@@ -30,7 +34,11 @@ class CharacterViewModel(
     private val deleteCharacterUseCase: DeleteCharacterUseCase,
     private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase,
     private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase,
-    private val sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository,
+    private val healCharacterUseCase: HealCharacterUseCase,
+    private val damageCharacterUseCase: DamageCharacterUseCase,
+    private val setDeathSaveFailuresUseCase: SetDeathSaveFailuresUseCase,
+    private val markCharacterDeadUseCase: MarkCharacterDeadUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CharacterUiState())
@@ -103,6 +111,46 @@ class CharacterViewModel(
         viewModelScope.launch {
             try {
                 unassignWeaponFromCharacterUseCase(assignmentId)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun heal(character: Character) {
+        viewModelScope.launch {
+            try {
+                healCharacterUseCase(character)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun damage(character: Character) {
+        viewModelScope.launch {
+            try {
+                damageCharacterUseCase(character)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun setDeathSaveFailures(character: Character, failures: Int) {
+        viewModelScope.launch {
+            try {
+                setDeathSaveFailuresUseCase(character, failures)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun markDead(character: Character) {
+        viewModelScope.launch {
+            try {
+                markCharacterDeadUseCase(character)
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }

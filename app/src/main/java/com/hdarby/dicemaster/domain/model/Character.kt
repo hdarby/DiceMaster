@@ -4,7 +4,11 @@ data class Character(
     val id: Long = 0,
     val name: String,
     val race: String,
-    val stats: Stats
+    val stats: Stats,
+    val maxHitPoints: Int = 10,
+    val currentHitPoints: Int = maxHitPoints,
+    val deathSaveFailures: Int = 0,
+    val isDead: Boolean = false
 )
 
 data class Stats(

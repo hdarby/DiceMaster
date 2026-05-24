@@ -7,8 +7,12 @@ import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.DamageCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
+import com.hdarby.dicemaster.domain.usecase.character.HealCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.MarkCharacterDeadUseCase
+import com.hdarby.dicemaster.domain.usecase.character.SetDeathSaveFailuresUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UpdateCharacterUseCase
 import io.mockk.coEvery
@@ -40,9 +44,27 @@ class CharacterViewModelTest {
     private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase = mockk()
     private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase = mockk()
     private val sessionRepository: SessionRepository = mockk()
+    private val healCharacterUseCase: HealCharacterUseCase = mockk(relaxed = true)
+    private val damageCharacterUseCase: DamageCharacterUseCase = mockk(relaxed = true)
+    private val setDeathSaveFailuresUseCase: SetDeathSaveFailuresUseCase = mockk(relaxed = true)
+    private val markCharacterDeadUseCase: MarkCharacterDeadUseCase = mockk(relaxed = true)
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: CharacterViewModel
+
+    private fun buildViewModel() = CharacterViewModel(
+        getCharactersWithWeaponsUseCase,
+        addCharacterUseCase,
+        updateCharacterUseCase,
+        deleteCharacterUseCase,
+        unassignWeaponFromCharacterUseCase,
+        assignWeaponToCharacterUseCase,
+        sessionRepository,
+        healCharacterUseCase,
+        damageCharacterUseCase,
+        setDeathSaveFailuresUseCase,
+        markCharacterDeadUseCase
+    )
 
     private val character = Character(
         id = 1,
@@ -64,15 +86,7 @@ class CharacterViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { getCharactersWithWeaponsUseCase() } returns flowOf(listOf(characterWithWeapons))
         every { sessionRepository.observeSession() } returns flowOf(null)
-        viewModel = CharacterViewModel(
-            getCharactersWithWeaponsUseCase,
-            addCharacterUseCase,
-            updateCharacterUseCase,
-            deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase,
-            assignWeaponToCharacterUseCase,
-            sessionRepository
-        )
+        viewModel = buildViewModel()
     }
 
     @After
@@ -129,9 +143,9 @@ class CharacterViewModelTest {
     fun `addCharacter updates error on failure`() = runTest {
         val errorMessage = "Failed to add"
         coEvery { addCharacterUseCase(any()) } throws Exception(errorMessage)
-        
+
         viewModel.addCharacter(character)
-        
+
         viewModel.uiState.test {
             assertEquals(errorMessage, awaitItem().error)
         }
@@ -180,16 +194,8 @@ class CharacterViewModelTest {
             emit(listOf(characterWithWeapons))
         }
         
-        val vm = CharacterViewModel(
-            getCharactersWithWeaponsUseCase,
-            addCharacterUseCase,
-            updateCharacterUseCase,
-            deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase,
-            assignWeaponToCharacterUseCase,
-            sessionRepository
-        )
-        
+        val vm = buildViewModel()
+
         vm.uiState.test {
             assertTrue(awaitItem().isLoading)
             assertFalse(awaitItem().isLoading)
@@ -203,20 +209,86 @@ class CharacterViewModelTest {
             throw RuntimeException(errorMessage)
         }
         
-        val vm = CharacterViewModel(
-            getCharactersWithWeaponsUseCase,
-            addCharacterUseCase,
-            updateCharacterUseCase,
-            deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase,
-            assignWeaponToCharacterUseCase,
-            sessionRepository
-        )
-        
+        val vm = buildViewModel()
+
         vm.uiState.test {
             // Initial state from init {} block load attempt
             val state = awaitItem()
             assertEquals(errorMessage, state.error)
+        }
+    }
+
+    // ── Hit Points ViewModel actions ─────────────────────────────────────────
+
+    @Test
+    fun `heal calls healCharacterUseCase`() = runTest {
+        viewModel.heal(character)
+        coVerify { healCharacterUseCase(character) }
+    }
+
+    @Test
+    fun `damage calls damageCharacterUseCase`() = runTest {
+        viewModel.damage(character)
+        coVerify { damageCharacterUseCase(character) }
+    }
+
+    @Test
+    fun `setDeathSaveFailures calls setDeathSaveFailuresUseCase`() = runTest {
+        viewModel.setDeathSaveFailures(character, 2)
+        coVerify { setDeathSaveFailuresUseCase(character, 2) }
+    }
+
+    @Test
+    fun `markDead calls markCharacterDeadUseCase`() = runTest {
+        viewModel.markDead(character)
+        coVerify { markCharacterDeadUseCase(character) }
+    }
+
+    @Test
+    fun `heal updates error on failure`() = runTest {
+        val errorMessage = "Heal failed"
+        coEvery { healCharacterUseCase(any()) } throws Exception(errorMessage)
+
+        viewModel.heal(character)
+
+        viewModel.uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
+        }
+    }
+
+    @Test
+    fun `damage updates error on failure`() = runTest {
+        val errorMessage = "Damage failed"
+        coEvery { damageCharacterUseCase(any()) } throws Exception(errorMessage)
+
+        viewModel.damage(character)
+
+        viewModel.uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
+        }
+    }
+
+    @Test
+    fun `setDeathSaveFailures updates error on failure`() = runTest {
+        val errorMessage = "Save update failed"
+        coEvery { setDeathSaveFailuresUseCase(any(), any()) } throws Exception(errorMessage)
+
+        viewModel.setDeathSaveFailures(character, 3)
+
+        viewModel.uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
+        }
+    }
+
+    @Test
+    fun `markDead updates error on failure`() = runTest {
+        val errorMessage = "Mark dead failed"
+        coEvery { markCharacterDeadUseCase(any()) } throws Exception(errorMessage)
+
+        viewModel.markDead(character)
+
+        viewModel.uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
         }
     }
 }
