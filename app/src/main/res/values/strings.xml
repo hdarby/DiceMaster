@@ -98,6 +98,7 @@
     <string name="session_setup_subtitle">Connect with your party to share characters, weapons, and items in real time.</string>
     <string name="session_button_create">Create Session (Dungeon Master)</string>
     <string name="session_button_join">Join Session (Player)</string>
+    <string name="session_button_continue">Continue Existing Session</string>
     <string name="session_code_title">Your Session Code</string>
     <string name="session_code_subtitle">Share this code with your players so they can join your session.</string>
     <string name="session_code_copy">Copy session code</string>

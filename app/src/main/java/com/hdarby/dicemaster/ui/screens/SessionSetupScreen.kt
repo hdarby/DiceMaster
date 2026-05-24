@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.GroupAdd
@@ -57,7 +58,10 @@ import com.hdarby.dicemaster.viewmodel.state.SessionUiState
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun SessionSetupScreen(viewModel: SessionViewModel = koinViewModel()) {
+fun SessionSetupScreen(
+    viewModel: SessionViewModel = koinViewModel(),
+    onContinueSession: () -> Unit = {}
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     SessionSetupContent(
@@ -68,7 +72,8 @@ fun SessionSetupScreen(viewModel: SessionViewModel = koinViewModel()) {
         onJoinCodeChanged = viewModel::onJoinCodeChanged,
         onJoinCodeSubmitted = viewModel::onJoinCodeSubmitted,
         onCharacterSelected = viewModel::onCharacterSelected,
-        onErrorDismissed = viewModel::onErrorDismissed
+        onErrorDismissed = viewModel::onErrorDismissed,
+        onContinueSessionClicked = onContinueSession
     )
 }
 
@@ -81,14 +86,17 @@ fun SessionSetupContent(
     onJoinCodeChanged: (String) -> Unit,
     onJoinCodeSubmitted: () -> Unit,
     onCharacterSelected: (Character) -> Unit,
-    onErrorDismissed: () -> Unit
+    onErrorDismissed: () -> Unit,
+    onContinueSessionClicked: () -> Unit = {}
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         when (uiState.setupStep) {
             SessionSetupStep.Landing -> LandingStep(
-                isLoading = uiState.isLoading,
+                isLoading = uiState.isLoading || uiState.isCheckingSession,
+                hasActiveSession = uiState.currentSession != null,
                 onCreateSessionClicked = onCreateSessionClicked,
-                onJoinSessionClicked = onJoinSessionClicked
+                onJoinSessionClicked = onJoinSessionClicked,
+                onContinueSessionClicked = onContinueSessionClicked
             )
             SessionSetupStep.ShowingSessionCode -> ShowingSessionCodeStep(
                 code = uiState.generatedCode.orEmpty(),
@@ -125,8 +133,10 @@ fun SessionSetupContent(
 @Composable
 private fun LandingStep(
     isLoading: Boolean,
+    hasActiveSession: Boolean,
     onCreateSessionClicked: () -> Unit,
-    onJoinSessionClicked: () -> Unit
+    onJoinSessionClicked: () -> Unit,
+    onContinueSessionClicked: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -181,6 +191,16 @@ private fun LandingStep(
             Icon(Icons.Default.GroupAdd, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text(stringResource(R.string.session_button_join))
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedButton(
+            onClick = onContinueSessionClicked,
+            enabled = hasActiveSession && !isLoading,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.AutoMirrored.Filled.Login, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(stringResource(R.string.session_button_continue))
         }
     }
 }
@@ -478,4 +498,10 @@ private fun SessionSetupSelectCharacterPreview() {
         )
     }
 }
+
+
+
+
+
+
 

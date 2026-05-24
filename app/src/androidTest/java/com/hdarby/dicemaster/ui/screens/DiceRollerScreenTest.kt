@@ -25,7 +25,6 @@ class DiceRollerScreenTest {
                     uiState = DiceUiState(),
                     onUpdateFaces = {},
                     onUpdateQuantity = {},
-                    onUpdateModifier = {},
                     onRollDice = {},
                     onDismissResults = {},
                     onNavigateToDebug = {}
@@ -44,7 +43,6 @@ class DiceRollerScreenTest {
                     uiState = DiceUiState(),
                     onUpdateFaces = {},
                     onUpdateQuantity = {},
-                    onUpdateModifier = {},
                     onRollDice = {},
                     onDismissResults = {},
                     onNavigateToDebug = {}
@@ -64,7 +62,6 @@ class DiceRollerScreenTest {
                     uiState = DiceUiState(showResults = true, rollResult = rollResult, faces = 20),
                     onUpdateFaces = {},
                     onUpdateQuantity = {},
-                    onUpdateModifier = {},
                     onRollDice = {},
                     onDismissResults = {},
                     onNavigateToDebug = {}
@@ -85,7 +82,6 @@ class DiceRollerScreenTest {
                     uiState = DiceUiState(showResults = true, rollResult = rollResult, faces = 6),
                     onUpdateFaces = {},
                     onUpdateQuantity = {},
-                    onUpdateModifier = {},
                     onRollDice = {},
                     onDismissResults = {},
                     onNavigateToDebug = {}
@@ -106,7 +102,6 @@ class DiceRollerScreenTest {
                     uiState = DiceUiState(showResults = false, rollResult = null),
                     onUpdateFaces = {},
                     onUpdateQuantity = {},
-                    onUpdateModifier = {},
                     onRollDice = {},
                     onDismissResults = {},
                     onNavigateToDebug = {}
@@ -129,10 +124,8 @@ class DiceRollerScreenTest {
                 DiceConfigurationSection(
                     faces = 20,
                     quantity = 1,
-                    modifierValue = 0,
                     onUpdateFaces = {},
-                    onUpdateQuantity = {},
-                    onUpdateModifier = {}
+                    onUpdateQuantity = {}
                 )
             }
         }
@@ -148,10 +141,8 @@ class DiceRollerScreenTest {
                 DiceConfigurationSection(
                     faces = 6,
                     quantity = 3,
-                    modifierValue = 0,
                     onUpdateFaces = {},
-                    onUpdateQuantity = {},
-                    onUpdateModifier = {}
+                    onUpdateQuantity = {}
                 )
             }
         }
@@ -161,39 +152,19 @@ class DiceRollerScreenTest {
     }
 
     @Test
-    fun diceConfigurationSection_displaysModifierLabel() {
+    fun diceConfigurationSection_doesNotDisplayModifierField() {
         composeTestRule.setContent {
             DiceMasterTheme {
                 DiceConfigurationSection(
                     faces = 20,
                     quantity = 1,
-                    modifierValue = 0,
                     onUpdateFaces = {},
-                    onUpdateQuantity = {},
-                    onUpdateModifier = {}
+                    onUpdateQuantity = {}
                 )
             }
         }
 
-        composeTestRule.onNodeWithText("Modifier").assertIsDisplayed()
-    }
-
-    @Test
-    fun diceConfigurationSection_nonZeroModifier_displaysModifierValue() {
-        composeTestRule.setContent {
-            DiceMasterTheme {
-                DiceConfigurationSection(
-                    faces = 20,
-                    quantity = 1,
-                    modifierValue = 5,
-                    onUpdateFaces = {},
-                    onUpdateQuantity = {},
-                    onUpdateModifier = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText("5").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Modifier").assertDoesNotExist()
     }
 
     // endregion

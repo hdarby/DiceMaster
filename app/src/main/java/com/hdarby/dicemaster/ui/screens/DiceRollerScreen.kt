@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -58,7 +57,6 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -87,7 +85,6 @@ fun DiceRollerScreen(
         uiState = uiState,
         onUpdateFaces = viewModel::updateFaces,
         onUpdateQuantity = viewModel::updateQuantity,
-        onUpdateModifier = viewModel::updateModifier,
         onRollDice = viewModel::rollDice,
         onRollAdvantage = viewModel::rollWithAdvantage,
         onDismissResults = viewModel::dismissResults,
@@ -102,12 +99,11 @@ fun DiceMasterScreen(
     uiState: DiceUiState,
     onUpdateFaces: (Int) -> Unit,
     onUpdateQuantity: (Int) -> Unit,
-    onUpdateModifier: (Int) -> Unit,
     onRollDice: () -> Unit,
-    onRollAdvantage: (AdvantageMode) -> Unit,
+    onRollAdvantage: (AdvantageMode) -> Unit = {},
     onDismissResults: () -> Unit,
     onNavigateToDebug: () -> Unit,
-    onLeaveSession: () -> Unit
+    onLeaveSession: () -> Unit = {}
 ) {
     val sheetState = rememberModalBottomSheetState()
 
@@ -166,10 +162,8 @@ fun DiceMasterScreen(
                 DiceConfigurationSection(
                     faces = uiState.faces,
                     quantity = uiState.quantity,
-                    modifierValue = uiState.modifier,
                     onUpdateFaces = onUpdateFaces,
-                    onUpdateQuantity = onUpdateQuantity,
-                    onUpdateModifier = onUpdateModifier
+                    onUpdateQuantity = onUpdateQuantity
                 )
 
                 Spacer(modifier = Modifier.height(64.dp))
@@ -259,10 +253,8 @@ fun DiceMasterScreen(
 fun DiceConfigurationSection(
     faces: Int,
     quantity: Int,
-    modifierValue: Int,
     onUpdateFaces: (Int) -> Unit,
-    onUpdateQuantity: (Int) -> Unit,
-    onUpdateModifier: (Int) -> Unit
+    onUpdateQuantity: (Int) -> Unit
 ) {
     val faceOptions = listOf(3, 4, 6, 8, 10, 12, 20, 100)
     val quantityOptions = (1..10).toList()
@@ -275,31 +267,12 @@ fun DiceConfigurationSection(
             onValueChange = onUpdateFaces,
             prefix = stringResource(R.string.label_dice_face_prefix)
         )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Box(modifier = Modifier.weight(1f)) {
-                DropdownSelector(
-                    label = stringResource(R.string.label_quantity),
-                    currentValue = quantity,
-                    options = quantityOptions,
-                    onValueChange = onUpdateQuantity
-                )
-            }
-            OutlinedTextField(
-                value = if (modifierValue == 0) "" else modifierValue.toString(),
-                onValueChange = { onUpdateModifier(it.toIntOrNull() ?: 0) },
-                label = { Text(stringResource(R.string.label_modifier)) },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
-                )
-            )
-        }
+        DropdownSelector(
+            label = stringResource(R.string.label_quantity),
+            currentValue = quantity,
+            options = quantityOptions,
+            onValueChange = onUpdateQuantity
+        )
     }
 }
 
@@ -606,10 +579,9 @@ fun AdvantageResultItem(value: Int, isSelected: Boolean) {
 fun DiceMasterPreview() {
     DiceMasterTheme {
         DiceMasterScreen(
-            uiState = DiceUiState(faces = 20, quantity = 3, modifier = 5, showResults = false),
+            uiState = DiceUiState(faces = 20, quantity = 3, showResults = false),
             onUpdateFaces = {},
             onUpdateQuantity = {},
-            onUpdateModifier = {},
             onRollDice = {},
             onRollAdvantage = {},
             onDismissResults = {},

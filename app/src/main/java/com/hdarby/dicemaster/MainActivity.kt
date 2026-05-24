@@ -70,15 +70,11 @@ fun MainContainer(sessionViewModel: SessionViewModel = koinViewModel()) {
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomNav = currentRoute != Screen.SessionSetup.route
 
-    // Navigate based on session state once the check completes
+    // Navigate to SessionSetup if session is lost while on another screen
     LaunchedEffect(sessionUiState.isCheckingSession, sessionUiState.currentSession) {
         if (sessionUiState.isCheckingSession) return@LaunchedEffect
         val onSetupScreen = navController.currentDestination?.route == Screen.SessionSetup.route
-        if (sessionUiState.currentSession != null && onSetupScreen) {
-            navController.navigate(Screen.Roller.route) {
-                popUpTo(Screen.SessionSetup.route) { inclusive = true }
-            }
-        } else if (sessionUiState.currentSession == null && !onSetupScreen) {
+        if (sessionUiState.currentSession == null && !onSetupScreen) {
             navController.navigate(Screen.SessionSetup.route) {
                 popUpTo(Screen.Roller.route) { inclusive = true }
             }
@@ -118,7 +114,14 @@ fun MainContainer(sessionViewModel: SessionViewModel = koinViewModel()) {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.SessionSetup.route) {
-                SessionSetupScreen(viewModel = sessionViewModel)
+                SessionSetupScreen(
+                    viewModel = sessionViewModel,
+                    onContinueSession = {
+                        navController.navigate(Screen.Roller.route) {
+                            popUpTo(Screen.SessionSetup.route) { inclusive = true }
+                        }
+                    }
+                )
             }
             composable(Screen.Roller.route) {
                 DiceRollerScreen(
