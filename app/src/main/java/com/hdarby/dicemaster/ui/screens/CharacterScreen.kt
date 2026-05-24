@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.HeartBroken
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -481,7 +482,7 @@ fun HitPointsSection(
                         enabled = character.currentHitPoints > 0
                     ) {
                         Icon(
-                            Icons.Default.RemoveCircleOutline,
+                            Icons.Default.HeartBroken,
                             contentDescription = stringResource(R.string.content_desc_damage),
                             tint = MaterialTheme.colorScheme.error
                         )
