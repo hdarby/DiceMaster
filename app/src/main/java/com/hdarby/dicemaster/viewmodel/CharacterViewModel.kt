@@ -3,6 +3,8 @@ package com.hdarby.dicemaster.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hdarby.dicemaster.domain.model.Character
+import com.hdarby.dicemaster.domain.model.UserRole
+import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -24,7 +27,8 @@ class CharacterViewModel(
     private val addCharacterUseCase: AddCharacterUseCase,
     private val updateCharacterUseCase: UpdateCharacterUseCase,
     private val deleteCharacterUseCase: DeleteCharacterUseCase,
-    private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase
+    private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CharacterUiState())
@@ -36,9 +40,16 @@ class CharacterViewModel(
 
     private fun loadCharacters() {
         getCharactersWithWeaponsUseCase()
+            .combine(sessionRepository.observeSession()) { characters, session ->
+                Pair(characters, session?.role)
+            }
             .onStart { _uiState.update { it.copy(isLoading = true) } }
-            .onEach { characters ->
-                _uiState.update { it.copy(characters = characters, isLoading = false) }
+            .onEach { (characters, role) ->
+                val visible = when (role) {
+                    is UserRole.Player -> characters.filter { it.character.id == role.characterId }
+                    else -> characters
+                }
+                _uiState.update { it.copy(characters = visible, userRole = role, isLoading = false) }
             }
             .catch { error ->
                 _uiState.update { it.copy(error = error.message, isLoading = false) }

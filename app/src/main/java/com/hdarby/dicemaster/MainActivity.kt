@@ -24,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.ui.navigation.Screen
 import com.hdarby.dicemaster.ui.screens.CharacterScreen
 import com.hdarby.dicemaster.ui.screens.DebugRngScreen
@@ -52,12 +53,17 @@ fun MainContainer(sessionViewModel: SessionViewModel = koinViewModel()) {
     val navController = rememberNavController()
     val sessionUiState by sessionViewModel.uiState.collectAsState()
 
-    val bottomNavItems = listOf(
+    val allBottomNavItems = listOf(
         Screen.Roller,
         Screen.Characters,
         Screen.Weapons,
         Screen.Items
     )
+
+    val bottomNavItems = when (sessionUiState.currentSession?.role) {
+        is UserRole.Player -> allBottomNavItems.filterNot { it == Screen.Items }
+        else -> allBottomNavItems
+    }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route

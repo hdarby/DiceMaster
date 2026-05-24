@@ -3,6 +3,7 @@ package com.hdarby.dicemaster.viewmodel
 import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.CharacterItemEntry
 import com.hdarby.dicemaster.domain.model.ConsumableItem
+import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.item.AddItemUseCase
 import com.hdarby.dicemaster.domain.usecase.item.AssignItemToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.item.DeleteItemUseCase
@@ -41,6 +42,7 @@ class ItemViewModelTest {
     private val assignItemToCharacterUseCase: AssignItemToCharacterUseCase = mockk()
     private val unassignItemFromCharacterUseCase: UnassignItemFromCharacterUseCase = mockk()
     private val updateItemQuantityUseCase: UpdateItemQuantityUseCase = mockk()
+    private val sessionRepository: SessionRepository = mockk()
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: ItemViewModel
@@ -53,6 +55,7 @@ class ItemViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { getItemsUseCase() } returns flowOf(listOf(healingPotion))
         every { getItemsByCharacterUseCase() } returns flowOf(emptyMap())
+        every { sessionRepository.observeSession() } returns flowOf(null)
         viewModel = buildViewModel()
     }
 
@@ -69,7 +72,8 @@ class ItemViewModelTest {
         deleteItemUseCase,
         assignItemToCharacterUseCase,
         unassignItemFromCharacterUseCase,
-        updateItemQuantityUseCase
+        updateItemQuantityUseCase,
+        sessionRepository
     )
 
     // --- Initialisation ---
@@ -302,4 +306,8 @@ class ItemViewModelTest {
         }
     }
 }
+
+
+
+
 

@@ -120,9 +120,9 @@ val appModule = module {
 
     // ViewModels
     viewModel { DiceViewModel(get(), get()) }
-    viewModel { CharacterViewModel(get(), get(), get(), get(), get()) }
-    viewModel { WeaponViewModel(get(), get(), get(), get(), get()) }
-    viewModel { ItemViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { CharacterViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { WeaponViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { ItemViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { DebugViewModel() }
     viewModel { SessionViewModel(get(), get(), get(), get()) }
 }

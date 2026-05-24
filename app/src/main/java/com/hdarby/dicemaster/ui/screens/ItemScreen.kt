@@ -47,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hdarby.dicemaster.R
 import com.hdarby.dicemaster.domain.model.ConsumableItem
+import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.ui.theme.DiceMasterTheme
 import com.hdarby.dicemaster.viewmodel.ItemViewModel
 import com.hdarby.dicemaster.viewmodel.state.ItemUiState
@@ -77,6 +78,7 @@ fun ItemScreenContent(
     onDeleteItem: (ConsumableItem) -> Unit,
     onLeaveSession: () -> Unit
 ) {
+    val isDungeonMaster = uiState.userRole !is UserRole.Player
     var showAddDialog by remember { mutableStateOf(false) }
     var editingItem by remember { mutableStateOf<ConsumableItem?>(null) }
 
@@ -104,8 +106,10 @@ fun ItemScreenContent(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.content_desc_add_item))
+            if (isDungeonMaster) {
+                FloatingActionButton(onClick = { showAddDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.content_desc_add_item))
+                }
             }
         }
     ) { padding ->
@@ -125,6 +129,7 @@ fun ItemScreenContent(
                     items(uiState.items) { item ->
                         ItemCard(
                             item = item,
+                            isDungeonMaster = isDungeonMaster,
                             onEdit = { editingItem = it },
                             onDelete = onDeleteItem
                         )
@@ -133,7 +138,7 @@ fun ItemScreenContent(
             }
         }
 
-        if (showAddDialog) {
+        if (isDungeonMaster && showAddDialog) {
             AddEditItemDialog(
                 onDismiss = { showAddDialog = false },
                 onConfirm = {
@@ -143,15 +148,17 @@ fun ItemScreenContent(
             )
         }
 
-        editingItem?.let { item ->
-            AddEditItemDialog(
-                item = item,
-                onDismiss = { editingItem = null },
-                onConfirm = {
-                    onUpdateItem(it)
-                    editingItem = null
-                }
-            )
+        if (isDungeonMaster) {
+            editingItem?.let { item ->
+                AddEditItemDialog(
+                    item = item,
+                    onDismiss = { editingItem = null },
+                    onConfirm = {
+                        onUpdateItem(it)
+                        editingItem = null
+                    }
+                )
+            }
         }
     }
 }
@@ -159,6 +166,7 @@ fun ItemScreenContent(
 @Composable
 fun ItemCard(
     item: ConsumableItem,
+    isDungeonMaster: Boolean = true,
     onEdit: (ConsumableItem) -> Unit,
     onDelete: (ConsumableItem) -> Unit
 ) {
@@ -188,12 +196,14 @@ fun ItemCard(
                         color = MaterialTheme.colorScheme.secondary
                     )
                 }
-                Row {
-                    IconButton(onClick = { onEdit(item) }) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.content_desc_edit))
-                    }
-                    IconButton(onClick = { onDelete(item) }) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.content_desc_delete))
+                if (isDungeonMaster) {
+                    Row {
+                        IconButton(onClick = { onEdit(item) }) {
+                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.content_desc_edit))
+                        }
+                        IconButton(onClick = { onDelete(item) }) {
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.content_desc_delete))
+                        }
                     }
                 }
             }
@@ -288,6 +298,9 @@ fun ItemScreenPreview() {
         )
     }
 }
+
+
+
 
 
 

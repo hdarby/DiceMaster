@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
+import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
@@ -15,6 +16,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -32,6 +34,7 @@ class CharacterViewModelErrorHandlingTest {
     private val updateCharacterUseCase: UpdateCharacterUseCase = mockk()
     private val deleteCharacterUseCase: DeleteCharacterUseCase = mockk()
     private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase = mockk()
+    private val sessionRepository: SessionRepository = mockk()
 
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -52,6 +55,7 @@ class CharacterViewModelErrorHandlingTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        every { sessionRepository.observeSession() } returns flowOf(null)
     }
 
     @After
@@ -71,7 +75,8 @@ class CharacterViewModelErrorHandlingTest {
             addCharacterUseCase,
             updateCharacterUseCase,
             deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase
+            unassignWeaponFromCharacterUseCase,
+            sessionRepository
         )
 
         viewModel.uiState.test {
@@ -92,7 +97,8 @@ class CharacterViewModelErrorHandlingTest {
             addCharacterUseCase,
             updateCharacterUseCase,
             deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase
+            unassignWeaponFromCharacterUseCase,
+            sessionRepository
         )
 
         viewModel.addCharacter(character)
@@ -115,7 +121,8 @@ class CharacterViewModelErrorHandlingTest {
             addCharacterUseCase,
             updateCharacterUseCase,
             deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase
+            unassignWeaponFromCharacterUseCase,
+            sessionRepository
         )
 
         viewModel.addCharacter(character)
@@ -141,7 +148,8 @@ class CharacterViewModelErrorHandlingTest {
             addCharacterUseCase,
             updateCharacterUseCase,
             deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase
+            unassignWeaponFromCharacterUseCase,
+            sessionRepository
         )
 
         viewModel.unassignWeapon(1L, 2L)
@@ -153,4 +161,3 @@ class CharacterViewModelErrorHandlingTest {
         }
     }
 }
-

@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
+import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
@@ -36,7 +37,8 @@ class CharacterViewModelTest {
     private val updateCharacterUseCase: UpdateCharacterUseCase = mockk()
     private val deleteCharacterUseCase: DeleteCharacterUseCase = mockk()
     private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase = mockk()
-    
+    private val sessionRepository: SessionRepository = mockk()
+
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: CharacterViewModel
 
@@ -59,12 +61,14 @@ class CharacterViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         every { getCharactersWithWeaponsUseCase() } returns flowOf(listOf(characterWithWeapons))
+        every { sessionRepository.observeSession() } returns flowOf(null)
         viewModel = CharacterViewModel(
             getCharactersWithWeaponsUseCase,
             addCharacterUseCase,
             updateCharacterUseCase,
             deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase
+            unassignWeaponFromCharacterUseCase,
+            sessionRepository
         )
     }
 
@@ -178,7 +182,8 @@ class CharacterViewModelTest {
             addCharacterUseCase,
             updateCharacterUseCase,
             deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase
+            unassignWeaponFromCharacterUseCase,
+            sessionRepository
         )
         
         vm.uiState.test {
@@ -199,7 +204,8 @@ class CharacterViewModelTest {
             addCharacterUseCase,
             updateCharacterUseCase,
             deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase
+            unassignWeaponFromCharacterUseCase,
+            sessionRepository
         )
         
         vm.uiState.test {

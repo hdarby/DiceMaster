@@ -58,6 +58,7 @@ import com.hdarby.dicemaster.domain.model.CharacterItemEntry
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.ConsumableItem
 import com.hdarby.dicemaster.domain.model.Stats
+import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.viewmodel.CharacterViewModel
 import com.hdarby.dicemaster.viewmodel.ItemViewModel
@@ -73,6 +74,7 @@ fun CharacterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val itemState by itemViewModel.uiState.collectAsState()
+    val isDungeonMaster = uiState.userRole !is UserRole.Player
     var showAddDialog by remember { mutableStateOf(false) }
     var editingCharacter by remember { mutableStateOf<Character?>(null) }
     var assignItemToCharacter by remember { mutableStateOf<Character?>(null) }
@@ -96,8 +98,10 @@ fun CharacterScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.content_desc_add_character))
+            if (isDungeonMaster) {
+                FloatingActionButton(onClick = { showAddDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.content_desc_add_character))
+                }
             }
         }
     ) { padding ->
@@ -122,9 +126,10 @@ fun CharacterScreen(
                         CharacterCard(
                             characterWithWeapons = characterWithWeapons,
                             items = characterItems,
+                            isDungeonMaster = isDungeonMaster,
                             onEdit = { editingCharacter = it },
                             onDelete = { viewModel.deleteCharacter(it) },
-                            onWeaponClick = onNavigateToEditWeapon,
+                            onWeaponClick = if (isDungeonMaster) onNavigateToEditWeapon else { _ -> },
                             onAssignItem = { assignItemToCharacter = it },
                             onIncrementItem = { entry ->
                                 itemViewModel.incrementQuantity(
@@ -188,6 +193,7 @@ fun CharacterScreen(
 fun CharacterCard(
     characterWithWeapons: CharacterWithWeapons,
     items: List<CharacterItemEntry> = emptyList(),
+    isDungeonMaster: Boolean = true,
     onEdit: (Character) -> Unit,
     onDelete: (Character) -> Unit,
     onWeaponClick: (Weapon) -> Unit = {},
@@ -218,12 +224,14 @@ fun CharacterCard(
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
-                Row {
-                    IconButton(onClick = { onEdit(character) }) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.content_desc_edit))
-                    }
-                    IconButton(onClick = { onDelete(character) }) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.content_desc_delete))
+                if (isDungeonMaster) {
+                    Row {
+                        IconButton(onClick = { onEdit(character) }) {
+                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.content_desc_edit))
+                        }
+                        IconButton(onClick = { onDelete(character) }) {
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.content_desc_delete))
+                        }
                     }
                 }
             }

@@ -5,19 +5,28 @@ service cloud.firestore {
 
     // ── Helper functions ────────────────────────────────────────────────────
 
+    // Returns the session document resource, or null if it does not exist.
+    function sessionDoc(sessionId) {
+      return get(/databases/$(database)/documents/sessions/$(sessionId));
+    }
+
     // Returns true when the caller is the DM who created this session.
+    // Guards against null data so the rule degrades gracefully when the
+    // session document is absent (avoids a null-dereference error that the
+    // Rules Simulator surfaces as "simulated read denied").
     function isDungeonMaster(sessionId) {
+      let doc = sessionDoc(sessionId);
       return request.auth != null
-          && get(/databases/$(database)/documents/sessions/$(sessionId)).data.createdBy
-             == request.auth.uid;
+          && doc.data != null
+          && doc.data.createdBy == request.auth.uid;
     }
 
     // Returns true when the caller's UID is a recognised member of the session.
-    // Membership is implicit: anyone who knows the session code (and is signed
-    // in) is considered a member; the DM is the creator.
+    // Membership is implicit: any authenticated user whose request targets an
+    // existing session is considered a member; the DM is also the creator.
     function isSessionMember(sessionId) {
       return request.auth != null
-          && exists(/databases/$(database)/documents/sessions/$(sessionId));
+          && sessionDoc(sessionId).data != null;
     }
 
     // ── Session documents ───────────────────────────────────────────────────
@@ -87,4 +96,5 @@ service cloud.firestore {
     }
   }
 }
+
 

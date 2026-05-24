@@ -3,6 +3,7 @@ package com.hdarby.dicemaster.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hdarby.dicemaster.domain.model.Weapon
+import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.AddWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.DeleteWeaponUseCase
@@ -24,14 +25,23 @@ class WeaponViewModel(
     private val addWeaponUseCase: AddWeaponUseCase,
     private val updateWeaponUseCase: UpdateWeaponUseCase,
     private val deleteWeaponUseCase: DeleteWeaponUseCase,
-    private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase
+    private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WeaponUiState())
     val uiState: StateFlow<WeaponUiState> = _uiState.asStateFlow()
 
     init {
+        observeSessionRole()
         loadWeapons()
+    }
+
+    private fun observeSessionRole() {
+        sessionRepository.observeSession()
+            .onEach { session -> _uiState.update { it.copy(userRole = session?.role) } }
+            .catch { error -> _uiState.update { it.copy(error = error.message) } }
+            .launchIn(viewModelScope)
     }
 
     private fun loadWeapons() {

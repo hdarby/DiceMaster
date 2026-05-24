@@ -3,6 +3,7 @@ package com.hdarby.dicemaster.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hdarby.dicemaster.domain.model.ConsumableItem
+import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.item.AddItemUseCase
 import com.hdarby.dicemaster.domain.usecase.item.AssignItemToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.item.DeleteItemUseCase
@@ -32,15 +33,24 @@ class ItemViewModel(
     private val deleteItemUseCase: DeleteItemUseCase,
     private val assignItemToCharacterUseCase: AssignItemToCharacterUseCase,
     private val unassignItemFromCharacterUseCase: UnassignItemFromCharacterUseCase,
-    private val updateItemQuantityUseCase: UpdateItemQuantityUseCase
+    private val updateItemQuantityUseCase: UpdateItemQuantityUseCase,
+    private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ItemUiState())
     val uiState: StateFlow<ItemUiState> = _uiState.asStateFlow()
 
     init {
+        observeSessionRole()
         loadItems()
         loadItemsByCharacter()
+    }
+
+    private fun observeSessionRole() {
+        sessionRepository.observeSession()
+            .onEach { session -> _uiState.update { it.copy(userRole = session?.role) } }
+            .catch { error -> _uiState.update { it.copy(error = error.message) } }
+            .launchIn(viewModelScope)
     }
 
     private fun loadItems() {

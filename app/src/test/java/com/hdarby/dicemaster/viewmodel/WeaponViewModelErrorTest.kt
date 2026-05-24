@@ -2,6 +2,7 @@ package com.hdarby.dicemaster.viewmodel
 
 import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.Weapon
+import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.weapon.AddWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.DeleteWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.GetWeaponsUseCase
@@ -31,6 +32,7 @@ class WeaponViewModelErrorTest {
     private val updateWeaponUseCase: UpdateWeaponUseCase = mockk()
     private val deleteWeaponUseCase: DeleteWeaponUseCase = mockk()
     private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase = mockk()
+    private val sessionRepository: SessionRepository = mockk()
 
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -46,6 +48,7 @@ class WeaponViewModelErrorTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        every { sessionRepository.observeSession() } returns flowOf(null)
     }
 
     @After
@@ -61,11 +64,8 @@ class WeaponViewModelErrorTest {
         }
 
         val viewModel = WeaponViewModel(
-            getWeaponsUseCase,
-            addWeaponUseCase,
-            updateWeaponUseCase,
-            deleteWeaponUseCase,
-            assignWeaponToCharacterUseCase
+            getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase,
+            deleteWeaponUseCase, assignWeaponToCharacterUseCase, sessionRepository
         )
 
         viewModel.uiState.test {
@@ -81,11 +81,8 @@ class WeaponViewModelErrorTest {
         coEvery { addWeaponUseCase(any()) } throws Exception(errorMessage)
 
         val viewModel = WeaponViewModel(
-            getWeaponsUseCase,
-            addWeaponUseCase,
-            updateWeaponUseCase,
-            deleteWeaponUseCase,
-            assignWeaponToCharacterUseCase
+            getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase,
+            deleteWeaponUseCase, assignWeaponToCharacterUseCase, sessionRepository
         )
 
         viewModel.addWeapon(weapon)
@@ -103,11 +100,8 @@ class WeaponViewModelErrorTest {
         coEvery { updateWeaponUseCase(any()) } throws IllegalArgumentException(errorMessage)
 
         val viewModel = WeaponViewModel(
-            getWeaponsUseCase,
-            addWeaponUseCase,
-            updateWeaponUseCase,
-            deleteWeaponUseCase,
-            assignWeaponToCharacterUseCase
+            getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase,
+            deleteWeaponUseCase, assignWeaponToCharacterUseCase, sessionRepository
         )
 
         viewModel.updateWeapon(weapon)
@@ -125,11 +119,8 @@ class WeaponViewModelErrorTest {
         coEvery { deleteWeaponUseCase(any()) } throws Exception(errorMessage)
 
         val viewModel = WeaponViewModel(
-            getWeaponsUseCase,
-            addWeaponUseCase,
-            updateWeaponUseCase,
-            deleteWeaponUseCase,
-            assignWeaponToCharacterUseCase
+            getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase,
+            deleteWeaponUseCase, assignWeaponToCharacterUseCase, sessionRepository
         )
 
         viewModel.deleteWeapon(weapon)
@@ -147,11 +138,8 @@ class WeaponViewModelErrorTest {
         coEvery { assignWeaponToCharacterUseCase(any(), any()) } throws Exception(errorMessage)
 
         val viewModel = WeaponViewModel(
-            getWeaponsUseCase,
-            addWeaponUseCase,
-            updateWeaponUseCase,
-            deleteWeaponUseCase,
-            assignWeaponToCharacterUseCase
+            getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase,
+            deleteWeaponUseCase, assignWeaponToCharacterUseCase, sessionRepository
         )
 
         viewModel.assignWeaponToCharacter(99L, weapon.id)
@@ -168,11 +156,8 @@ class WeaponViewModelErrorTest {
         coEvery { updateWeaponUseCase(any()) } throws Exception("Update failed")
 
         val viewModel = WeaponViewModel(
-            getWeaponsUseCase,
-            addWeaponUseCase,
-            updateWeaponUseCase,
-            deleteWeaponUseCase,
-            assignWeaponToCharacterUseCase
+            getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase,
+            deleteWeaponUseCase, assignWeaponToCharacterUseCase, sessionRepository
         )
 
         viewModel.updateWeapon(weapon)
@@ -184,4 +169,3 @@ class WeaponViewModelErrorTest {
         }
     }
 }
-

@@ -52,6 +52,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.hdarby.dicemaster.R
 import com.hdarby.dicemaster.domain.model.Character
+import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.viewmodel.CharacterViewModel
 import com.hdarby.dicemaster.viewmodel.WeaponViewModel
@@ -67,6 +68,7 @@ fun WeaponScreen(
 ) {
     val uiState by weaponViewModel.uiState.collectAsState()
     val characterState by characterViewModel.uiState.collectAsState()
+    val isDungeonMaster = uiState.userRole !is UserRole.Player
 
     var showAddDialog by remember { mutableStateOf(false) }
     var editingWeapon by remember { mutableStateOf<Weapon?>(null) }
@@ -101,8 +103,10 @@ fun WeaponScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.content_desc_add_weapon))
+            if (isDungeonMaster) {
+                FloatingActionButton(onClick = { showAddDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.content_desc_add_weapon))
+                }
             }
         }
     ) { padding ->
@@ -124,6 +128,7 @@ fun WeaponScreen(
                     items(uiState.weapons) { weapon ->
                         WeaponCard(
                             weapon = weapon,
+                            isDungeonMaster = isDungeonMaster,
                             onEdit = { editingWeapon = it },
                             onDelete = { weaponViewModel.deleteWeapon(it) },
                             onAssign = { assigningWeapon = it }
@@ -171,6 +176,7 @@ fun WeaponScreen(
 @Composable
 fun WeaponCard(
     weapon: Weapon,
+    isDungeonMaster: Boolean = true,
     onEdit: (Weapon) -> Unit,
     onDelete: (Weapon) -> Unit,
     onAssign: (Weapon) -> Unit
@@ -208,15 +214,17 @@ fun WeaponCard(
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
-                Row {
-                    IconButton(onClick = { onAssign(weapon) }) {
-                        Icon(Icons.Default.Link, contentDescription = stringResource(R.string.content_desc_assign))
-                    }
-                    IconButton(onClick = { onEdit(weapon) }) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.content_desc_edit))
-                    }
-                    IconButton(onClick = { onDelete(weapon) }) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.content_desc_delete))
+                if (isDungeonMaster) {
+                    Row {
+                        IconButton(onClick = { onAssign(weapon) }) {
+                            Icon(Icons.Default.Link, contentDescription = stringResource(R.string.content_desc_assign))
+                        }
+                        IconButton(onClick = { onEdit(weapon) }) {
+                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.content_desc_edit))
+                        }
+                        IconButton(onClick = { onDelete(weapon) }) {
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.content_desc_delete))
+                        }
                     }
                 }
             }

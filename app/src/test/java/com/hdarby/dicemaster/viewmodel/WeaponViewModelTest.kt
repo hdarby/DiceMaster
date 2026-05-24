@@ -2,6 +2,7 @@ package com.hdarby.dicemaster.viewmodel
 
 import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.Weapon
+import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.AddWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.DeleteWeaponUseCase
@@ -34,6 +35,7 @@ class WeaponViewModelTest {
     private val updateWeaponUseCase: UpdateWeaponUseCase = mockk()
     private val deleteWeaponUseCase: DeleteWeaponUseCase = mockk()
     private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase = mockk()
+    private val sessionRepository: SessionRepository = mockk()
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: WeaponViewModel
@@ -44,12 +46,14 @@ class WeaponViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         every { getWeaponsUseCase() } returns flowOf(listOf(weapon))
+        every { sessionRepository.observeSession() } returns flowOf(null)
         viewModel = WeaponViewModel(
             getWeaponsUseCase,
             addWeaponUseCase,
             updateWeaponUseCase,
             deleteWeaponUseCase,
-            assignWeaponToCharacterUseCase
+            assignWeaponToCharacterUseCase,
+            sessionRepository
         )
     }
 
@@ -163,7 +167,8 @@ class WeaponViewModelTest {
             addWeaponUseCase,
             updateWeaponUseCase,
             deleteWeaponUseCase,
-            assignWeaponToCharacterUseCase
+            assignWeaponToCharacterUseCase,
+            sessionRepository
         )
         
         vm.uiState.test {
@@ -184,7 +189,8 @@ class WeaponViewModelTest {
             addWeaponUseCase,
             updateWeaponUseCase,
             deleteWeaponUseCase,
-            assignWeaponToCharacterUseCase
+            assignWeaponToCharacterUseCase,
+            sessionRepository
         )
         
         vm.uiState.test {
