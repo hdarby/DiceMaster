@@ -18,7 +18,7 @@ interface ItemDao {
     fun getAllItems(): Flow<List<ItemEntity>>
 
     @Query("""
-        SELECT cir.characterId, i.id, i.name, i.description, i.totalQuantity, cir.quantity
+        SELECT cir.assignmentId, cir.characterId, i.id, i.name, i.description, i.totalQuantity, cir.quantity
         FROM consumable_items i
         INNER JOIN character_item_cross_ref cir ON i.id = cir.itemId
     """)
@@ -34,23 +34,11 @@ interface ItemDao {
     suspend fun deleteItem(item: ItemEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertCharacterItemCrossRef(crossRef: CharacterItemCrossRef)
+    suspend fun insertCharacterItemCrossRef(crossRef: CharacterItemCrossRef): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertCharacterItemCrossRef(crossRef: CharacterItemCrossRef)
+    @Query("UPDATE character_item_cross_ref SET quantity = :quantity WHERE assignmentId = :assignmentId")
+    suspend fun updateQuantity(assignmentId: Long, quantity: Int)
 
-    @Query("""
-        UPDATE character_item_cross_ref
-        SET quantity = :quantity
-        WHERE characterId = :characterId AND itemId = :itemId
-    """)
-    suspend fun updateQuantity(characterId: Long, itemId: Long, quantity: Int)
-
-    @Query("""
-        DELETE FROM character_item_cross_ref
-        WHERE characterId = :characterId AND itemId = :itemId
-    """)
-    suspend fun deleteCharacterItemCrossRef(characterId: Long, itemId: Long)
+    @Query("DELETE FROM character_item_cross_ref WHERE assignmentId = :assignmentId")
+    suspend fun deleteCharacterItemCrossRef(assignmentId: Long)
 }
-
-

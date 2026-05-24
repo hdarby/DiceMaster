@@ -33,7 +33,7 @@ class WeaponRepositoryImpl(
                 if (session == null) return@collectLatest
                 weaponRemoteDataSource!!.observeWeapons(session.sessionId).collect { remoteWeapons ->
                     remoteWeapons.forEach { remoteWeapon ->
-                        weaponDao.insertWeapon(remoteWeapon.weapon.toEntity(remoteWeapon.characterId))
+                        weaponDao.insertWeapon(remoteWeapon.weapon.toEntity())
                     }
                 }
             }
@@ -71,16 +71,17 @@ class WeaponRepositoryImpl(
         type = type,
         damageDice = damageDice,
         damageType = damageType,
-        modifier = modifier
+        modifier = modifier,
+        isAtomic = isAtomic
     )
 
-    private fun Weapon.toEntity(characterId: Long? = null) = WeaponEntity(
+    private fun Weapon.toEntity() = WeaponEntity(
         id = id,
         name = name,
         type = type,
         damageDice = damageDice,
         damageType = damageType,
         modifier = modifier,
-        characterId = characterId
+        isAtomic = isAtomic
     )
 }

@@ -1,5 +1,6 @@
 package com.hdarby.dicemaster.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.RemoveCircleOutline
@@ -32,6 +34,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -55,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import com.hdarby.dicemaster.R
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.CharacterItemEntry
+import com.hdarby.dicemaster.domain.model.CharacterWeaponEntry
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.ConsumableItem
 import com.hdarby.dicemaster.domain.model.Stats
@@ -62,6 +66,7 @@ import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.viewmodel.CharacterViewModel
 import com.hdarby.dicemaster.viewmodel.ItemViewModel
+import com.hdarby.dicemaster.viewmodel.WeaponViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,15 +74,27 @@ import org.koin.androidx.compose.koinViewModel
 fun CharacterScreen(
     viewModel: CharacterViewModel = koinViewModel(),
     itemViewModel: ItemViewModel = koinViewModel(),
+    weaponViewModel: WeaponViewModel = koinViewModel(),
     onNavigateToEditWeapon: (Weapon) -> Unit,
     onLeaveSession: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val itemState by itemViewModel.uiState.collectAsState()
+    val weaponState by weaponViewModel.uiState.collectAsState()
     val isDungeonMaster = uiState.userRole !is UserRole.Player
     var showAddDialog by remember { mutableStateOf(false) }
     var editingCharacter by remember { mutableStateOf<Character?>(null) }
     var assignItemToCharacter by remember { mutableStateOf<Character?>(null) }
+    var assignWeaponToCharacter by remember { mutableStateOf<Character?>(null) }
+
+    // Atomic weapon IDs already assigned somewhere — used to prevent double-assigning atomic weapons
+    val assignedAtomicWeaponIds = remember(uiState.characters) {
+        uiState.characters
+            .flatMap { it.weapons }
+            .filter { it.weapon.isAtomic }
+            .map { it.weapon.id }
+            .toSet()
+    }
 
     Scaffold(
         topBar = {
@@ -130,20 +147,14 @@ fun CharacterScreen(
                             onEdit = { editingCharacter = it },
                             onDelete = { viewModel.deleteCharacter(it) },
                             onWeaponClick = if (isDungeonMaster) onNavigateToEditWeapon else { _ -> },
+                            onUnassignWeapon = { assignmentId -> viewModel.unassignWeapon(assignmentId) },
+                            onAssignWeapon = { assignWeaponToCharacter = it },
                             onAssignItem = { assignItemToCharacter = it },
                             onIncrementItem = { entry ->
-                                itemViewModel.incrementQuantity(
-                                    characterWithWeapons.character.id,
-                                    entry.item.id,
-                                    entry.quantity
-                                )
+                                itemViewModel.incrementQuantity(entry.assignmentId, entry.quantity)
                             },
                             onDecrementItem = { entry ->
-                                itemViewModel.decrementQuantity(
-                                    characterWithWeapons.character.id,
-                                    entry.item.id,
-                                    entry.quantity
-                                )
+                                itemViewModel.decrementQuantity(entry.assignmentId, entry.quantity)
                             }
                         )
                     }
@@ -176,12 +187,23 @@ fun CharacterScreen(
             AssignItemDialog(
                 characterName = character.name,
                 availableItems = itemState.items,
-                assignedItemIds = (itemState.itemsByCharacterId[character.id] ?: emptyList())
-                    .map { it.item.id }.toSet(),
                 onDismiss = { assignItemToCharacter = null },
                 onAssign = { item ->
                     itemViewModel.assignItem(character.id, item.id)
                     assignItemToCharacter = null
+                }
+            )
+        }
+
+        assignWeaponToCharacter?.let { character ->
+            AssignWeaponToCharacterDialog(
+                characterName = character.name,
+                availableWeapons = weaponState.weapons,
+                disabledAtomicWeaponIds = assignedAtomicWeaponIds,
+                onDismiss = { assignWeaponToCharacter = null },
+                onAssign = { weapon ->
+                    viewModel.assignWeapon(character.id, weapon.id)
+                    assignWeaponToCharacter = null
                 }
             )
         }
@@ -197,12 +219,14 @@ fun CharacterCard(
     onEdit: (Character) -> Unit,
     onDelete: (Character) -> Unit,
     onWeaponClick: (Weapon) -> Unit = {},
+    onUnassignWeapon: (Long) -> Unit = {},
+    onAssignWeapon: (Character) -> Unit = {},
     onAssignItem: (Character) -> Unit = {},
     onIncrementItem: (CharacterItemEntry) -> Unit = {},
     onDecrementItem: (CharacterItemEntry) -> Unit = {}
 ) {
     val character = characterWithWeapons.character
-    val weapons = characterWithWeapons.weapons
+    val weaponEntries = characterWithWeapons.weapons
 
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -248,21 +272,48 @@ fun CharacterCard(
                 StatItem(stringResource(R.string.label_stat_cha), character.stats.charisma, character.stats.charismaModifier)
             }
 
-            if (weapons.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = stringResource(R.string.label_weapons_section),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.secondary
                 )
+                if (isDungeonMaster) {
+                    IconButton(
+                        onClick = { onAssignWeapon(character) },
+                        modifier = Modifier.testTag("assign_weapon_${character.id}")
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = stringResource(R.string.content_desc_add_weapon),
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+            }
+            if (weaponEntries.isNotEmpty()) {
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    weapons.forEach { weapon ->
+                    weaponEntries.forEach { entry ->
                         AssistChip(
-                            onClick = { onWeaponClick(weapon) },
-                            label = { Text(stringResource(R.string.format_weapon_chip_label, weapon.name, weapon.type)) },
+                            onClick = { onWeaponClick(entry.weapon) },
+                            label = { Text(stringResource(R.string.format_weapon_chip_label, entry.weapon.name, entry.weapon.type)) },
+                            trailingIcon = if (isDungeonMaster) {
+                                {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.content_desc_unassign_weapon),
+                                        modifier = Modifier.clickable { onUnassignWeapon(entry.assignmentId) }
+                                    )
+                                }
+                            } else null,
                             colors = AssistChipDefaults.assistChipColors(
                                 labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -363,110 +414,38 @@ fun AddEditCharacterDialog(
                 }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = str,
-                            onValueChange = { if (isValidInput(it)) str = it },
-                            label = { Text(stringResource(R.string.label_stat_str)) },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
-                        OutlinedTextField(
-                            value = strMod,
-                            onValueChange = { if (isValidInput(it)) strMod = it },
-                            label = { Text(stringResource(R.string.label_stat_mod)) },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
+                        OutlinedTextField(value = str, onValueChange = { if (isValidInput(it)) str = it }, label = { Text(stringResource(R.string.label_stat_str)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                        OutlinedTextField(value = strMod, onValueChange = { if (isValidInput(it)) strMod = it }, label = { Text(stringResource(R.string.label_stat_mod)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                     }
                 }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = dex,
-                            onValueChange = { if (isValidInput(it)) dex = it },
-                            label = { Text(stringResource(R.string.label_stat_dex)) },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
-                        OutlinedTextField(
-                            value = dexMod,
-                            onValueChange = { if (isValidInput(it)) dexMod = it },
-                            label = { Text(stringResource(R.string.label_stat_mod)) },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
+                        OutlinedTextField(value = dex, onValueChange = { if (isValidInput(it)) dex = it }, label = { Text(stringResource(R.string.label_stat_dex)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                        OutlinedTextField(value = dexMod, onValueChange = { if (isValidInput(it)) dexMod = it }, label = { Text(stringResource(R.string.label_stat_mod)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                     }
                 }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = con,
-                            onValueChange = { if (isValidInput(it)) con = it },
-                            label = { Text(stringResource(R.string.label_stat_con)) },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
-                        OutlinedTextField(
-                            value = conMod,
-                            onValueChange = { if (isValidInput(it)) conMod = it },
-                            label = { Text(stringResource(R.string.label_stat_mod)) },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
+                        OutlinedTextField(value = con, onValueChange = { if (isValidInput(it)) con = it }, label = { Text(stringResource(R.string.label_stat_con)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                        OutlinedTextField(value = conMod, onValueChange = { if (isValidInput(it)) conMod = it }, label = { Text(stringResource(R.string.label_stat_mod)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                     }
                 }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = intel,
-                            onValueChange = { if (isValidInput(it)) intel = it },
-                            label = { Text(stringResource(R.string.label_stat_int)) },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
-                        OutlinedTextField(
-                            value = intMod,
-                            onValueChange = { if (isValidInput(it)) intMod = it },
-                            label = { Text(stringResource(R.string.label_stat_mod)) },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
+                        OutlinedTextField(value = intel, onValueChange = { if (isValidInput(it)) intel = it }, label = { Text(stringResource(R.string.label_stat_int)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                        OutlinedTextField(value = intMod, onValueChange = { if (isValidInput(it)) intMod = it }, label = { Text(stringResource(R.string.label_stat_mod)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                     }
                 }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = wis,
-                            onValueChange = { if (isValidInput(it)) wis = it },
-                            label = { Text(stringResource(R.string.label_stat_wis)) },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
-                        OutlinedTextField(
-                            value = wisMod,
-                            onValueChange = { if (isValidInput(it)) wisMod = it },
-                            label = { Text(stringResource(R.string.label_stat_mod)) },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
+                        OutlinedTextField(value = wis, onValueChange = { if (isValidInput(it)) wis = it }, label = { Text(stringResource(R.string.label_stat_wis)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                        OutlinedTextField(value = wisMod, onValueChange = { if (isValidInput(it)) wisMod = it }, label = { Text(stringResource(R.string.label_stat_mod)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                     }
                 }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = cha,
-                            onValueChange = { if (isValidInput(it)) cha = it },
-                            label = { Text(stringResource(R.string.label_stat_cha)) },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
-                        OutlinedTextField(
-                            value = chaMod,
-                            onValueChange = { if (isValidInput(it)) chaMod = it },
-                            label = { Text(stringResource(R.string.label_stat_mod)) },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
+                        OutlinedTextField(value = cha, onValueChange = { if (isValidInput(it)) cha = it }, label = { Text(stringResource(R.string.label_stat_cha)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                        OutlinedTextField(value = chaMod, onValueChange = { if (isValidInput(it)) chaMod = it }, label = { Text(stringResource(R.string.label_stat_mod)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                     }
                 }
             }
@@ -474,18 +453,12 @@ fun AddEditCharacterDialog(
         confirmButton = {
             Button(onClick = {
                 val stats = Stats(
-                    strength = str.toIntOrNull() ?: 10,
-                    strengthModifier = strMod.toIntOrNull() ?: 0,
-                    dexterity = dex.toIntOrNull() ?: 10,
-                    dexterityModifier = dexMod.toIntOrNull() ?: 0,
-                    constitution = con.toIntOrNull() ?: 10,
-                    constitutionModifier = conMod.toIntOrNull() ?: 0,
-                    intelligence = intel.toIntOrNull() ?: 10,
-                    intelligenceModifier = intMod.toIntOrNull() ?: 0,
-                    wisdom = wis.toIntOrNull() ?: 10,
-                    wisdomModifier = wisMod.toIntOrNull() ?: 0,
-                    charisma = cha.toIntOrNull() ?: 10,
-                    charismaModifier = chaMod.toIntOrNull() ?: 0
+                    strength = str.toIntOrNull() ?: 10, strengthModifier = strMod.toIntOrNull() ?: 0,
+                    dexterity = dex.toIntOrNull() ?: 10, dexterityModifier = dexMod.toIntOrNull() ?: 0,
+                    constitution = con.toIntOrNull() ?: 10, constitutionModifier = conMod.toIntOrNull() ?: 0,
+                    intelligence = intel.toIntOrNull() ?: 10, intelligenceModifier = intMod.toIntOrNull() ?: 0,
+                    wisdom = wis.toIntOrNull() ?: 10, wisdomModifier = wisMod.toIntOrNull() ?: 0,
+                    charisma = cha.toIntOrNull() ?: 10, charismaModifier = chaMod.toIntOrNull() ?: 0
                 )
                 onConfirm(Character(id = character?.id ?: 0, name = name, race = race, stats = stats))
             }) {
@@ -493,9 +466,7 @@ fun AddEditCharacterDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
-            }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) }
         }
     )
 }
@@ -538,21 +509,18 @@ fun ItemQuantityRow(
 fun AssignItemDialog(
     characterName: String,
     availableItems: List<ConsumableItem>,
-    assignedItemIds: Set<Long>,
     onDismiss: () -> Unit,
     onAssign: (ConsumableItem) -> Unit
 ) {
-    val unassignedItems = availableItems.filterNot { it.id in assignedItemIds }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.title_assign_item, characterName)) },
         text = {
-            if (unassignedItems.isEmpty()) {
+            if (availableItems.isEmpty()) {
                 Text(stringResource(R.string.label_no_items_to_assign))
             } else {
                 LazyColumn {
-                    items(unassignedItems) { item ->
+                    items(availableItems) { item ->
                         TextButton(
                             onClick = { onAssign(item) },
                             modifier = Modifier.fillMaxWidth()
@@ -570,9 +538,58 @@ fun AssignItemDialog(
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) }
+        }
+    )
+}
+
+@Composable
+fun AssignWeaponToCharacterDialog(
+    characterName: String,
+    availableWeapons: List<Weapon>,
+    disabledAtomicWeaponIds: Set<Long>,
+    onDismiss: () -> Unit,
+    onAssign: (Weapon) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.title_assign_weapon, characterName)) },
+        text = {
+            if (availableWeapons.isEmpty()) {
+                Text(stringResource(R.string.label_no_weapons_to_assign))
+            } else {
+                LazyColumn {
+                    items(availableWeapons) { weapon ->
+                        val isDisabled = weapon.isAtomic && weapon.id in disabledAtomicWeaponIds
+                        ListItem(
+                            headlineContent = {
+                                Text(
+                                    text = stringResource(R.string.format_weapon_chip_label, weapon.name, weapon.type),
+                                    color = if (isDisabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                            else MaterialTheme.colorScheme.onSurface
+                                )
+                            },
+                            supportingContent = {
+                                Text(
+                                    text = stringResource(R.string.format_weapon_damage_details, weapon.damageDice, weapon.damageType, weapon.modifier),
+                                    color = if (isDisabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                            else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            trailingContent = if (weapon.isAtomic) {
+                                { Text(stringResource(R.string.label_weapon_atomic), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary) }
+                            } else null,
+                            modifier = Modifier.fillMaxWidth().let {
+                                if (isDisabled) it else it.clickable { onAssign(weapon) }
+                            }
+                        )
+                    }
+                }
             }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) }
         }
     )
 }

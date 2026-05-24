@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.hdarby.dicemaster.data.local.dao.CharacterDao
 import com.hdarby.dicemaster.data.local.dao.WeaponDao
 import com.hdarby.dicemaster.data.local.entity.CharacterEntity
+import com.hdarby.dicemaster.data.local.entity.CharacterWeaponAssignment
 import com.hdarby.dicemaster.data.local.entity.WeaponEntity
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.Stats
@@ -65,20 +66,20 @@ class CharacterRepositoryImplTest {
     }
 
     @Test
-    fun `getCharactersWithWeapons returns domain models`() = runTest {
+    fun `getCharactersWithWeapons combines characters and weapon assignments`() = runTest {
         val weaponEntity = WeaponEntity(1, "Axe", "Axe", "1d12", "Slashing", 2)
-        val charWithWeaponsEntity = com.hdarby.dicemaster.data.local.entity.CharacterWithWeapons(
-            character = characterEntity,
-            weapons = listOf(weaponEntity)
-        )
+        val assignment = CharacterWeaponAssignment(assignmentId = 10L, characterId = 1L, weapon = weaponEntity)
 
-        every { characterDao.getCharactersWithWeapons() } returns flowOf(listOf(charWithWeaponsEntity))
+        every { characterDao.getAllCharacters() } returns flowOf(listOf(characterEntity))
+        every { weaponDao.getAllCharacterWeapons() } returns flowOf(listOf(assignment))
 
         repository.getCharactersWithWeapons().test {
             val result = awaitItem()
             assertEquals(1, result.size)
             assertEquals("Grog", result[0].character.name)
-            assertEquals("Axe", result[0].weapons[0].name)
+            assertEquals(1, result[0].weapons.size)
+            assertEquals("Axe", result[0].weapons[0].weapon.name)
+            assertEquals(10L, result[0].weapons[0].assignmentId)
             awaitComplete()
         }
     }
@@ -112,20 +113,35 @@ class CharacterRepositoryImplTest {
     }
 
     @Test
-    fun `assignWeaponToCharacter updates weapon FK`() = runTest {
-        coEvery { weaponDao.assignToCharacter(any(), any()) } returns Unit
+    fun `assignWeaponToCharacter inserts cross-ref for nonatomic weapon`() = runTest {
+        coEvery { weaponDao.isAtomicWeapon(2L) } returns false
+        coEvery { weaponDao.getWeaponAssignmentCount(2L) } returns 0
+        coEvery { weaponDao.insertCharacterWeaponCrossRef(any()) } returns 1L
 
         repository.assignWeaponToCharacter(characterId = 1L, weaponId = 2L)
 
-        coVerify { weaponDao.assignToCharacter(weaponId = 2L, characterId = 1L) }
+        coVerify { weaponDao.insertCharacterWeaponCrossRef(match { it.characterId == 1L && it.weaponId == 2L }) }
     }
 
     @Test
-    fun `unassignWeaponFromCharacter clears weapon FK`() = runTest {
-        coEvery { weaponDao.unassignFromCharacter(any()) } returns Unit
+    fun `assignWeaponToCharacter throws for atomic weapon already assigned`() = runTest {
+        coEvery { weaponDao.isAtomicWeapon(2L) } returns true
+        coEvery { weaponDao.getWeaponAssignmentCount(2L) } returns 1
 
-        repository.unassignWeaponFromCharacter(characterId = 1L, weaponId = 2L)
+        try {
+            repository.assignWeaponToCharacter(characterId = 1L, weaponId = 2L)
+            assert(false) { "Expected IllegalStateException" }
+        } catch (e: IllegalStateException) {
+            assert(e.message!!.isNotBlank())
+        }
+    }
 
-        coVerify { weaponDao.unassignFromCharacter(weaponId = 2L) }
+    @Test
+    fun `unassignWeaponFromCharacter deletes cross-ref by assignmentId`() = runTest {
+        coEvery { weaponDao.deleteCharacterWeaponCrossRef(5L) } returns Unit
+
+        repository.unassignWeaponFromCharacter(assignmentId = 5L)
+
+        coVerify { weaponDao.deleteCharacterWeaponCrossRef(5L) }
     }
 }

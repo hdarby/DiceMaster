@@ -99,10 +99,10 @@ class CharacterUseCasesTest {
     @Test
     fun `UnassignWeaponFromCharacterUseCase calls repository`() = runTest {
         val useCase = UnassignWeaponFromCharacterUseCase(repository)
-        coEvery { repository.unassignWeaponFromCharacter(1L, 2L) } returns Unit
+        coEvery { repository.unassignWeaponFromCharacter(assignmentId = 5L) } returns Unit
 
-        useCase(1L, 2L)
+        useCase(5L)
 
-        coVerify { repository.unassignWeaponFromCharacter(1L, 2L) }
+        coVerify { repository.unassignWeaponFromCharacter(5L) }
     }
 }

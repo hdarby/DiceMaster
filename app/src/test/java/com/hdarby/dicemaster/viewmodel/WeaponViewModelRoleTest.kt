@@ -5,7 +5,6 @@ import com.hdarby.dicemaster.domain.model.Session
 import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.domain.repository.SessionRepository
-import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.AddWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.DeleteWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.GetWeaponsUseCase
@@ -33,7 +32,6 @@ class WeaponViewModelRoleTest {
     private val addWeaponUseCase: AddWeaponUseCase = mockk(relaxed = true)
     private val updateWeaponUseCase: UpdateWeaponUseCase = mockk(relaxed = true)
     private val deleteWeaponUseCase: DeleteWeaponUseCase = mockk(relaxed = true)
-    private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase = mockk(relaxed = true)
     private val sessionRepository: SessionRepository = mockk()
 
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -52,12 +50,7 @@ class WeaponViewModelRoleTest {
     }
 
     private fun buildViewModel() = WeaponViewModel(
-        getWeaponsUseCase,
-        addWeaponUseCase,
-        updateWeaponUseCase,
-        deleteWeaponUseCase,
-        assignWeaponToCharacterUseCase,
-        sessionRepository
+        getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase, deleteWeaponUseCase, sessionRepository
     )
 
     @Test
@@ -71,9 +64,7 @@ class WeaponViewModelRoleTest {
 
     @Test
     fun `DM role - userRole is DungeonMaster in state`() = runTest {
-        every { sessionRepository.observeSession() } returns flowOf(
-            Session("ABC123", UserRole.DungeonMaster)
-        )
+        every { sessionRepository.observeSession() } returns flowOf(Session("ABC123", UserRole.DungeonMaster))
 
         buildViewModel().uiState.test {
             assertEquals(UserRole.DungeonMaster, awaitItem().userRole)
@@ -108,4 +99,3 @@ class WeaponViewModelRoleTest {
         }
     }
 }
-

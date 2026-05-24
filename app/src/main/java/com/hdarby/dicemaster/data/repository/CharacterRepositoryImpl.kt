@@ -3,11 +3,11 @@ package com.hdarby.dicemaster.data.repository
 import com.hdarby.dicemaster.data.local.dao.CharacterDao
 import com.hdarby.dicemaster.data.local.dao.WeaponDao
 import com.hdarby.dicemaster.data.local.entity.CharacterEntity
-import com.hdarby.dicemaster.data.local.entity.WeaponEntity
-import com.hdarby.dicemaster.data.local.entity.CharacterWithWeapons as CharacterWithWeaponsEntity
+import com.hdarby.dicemaster.data.local.entity.CharacterWeaponCrossRef
 import com.hdarby.dicemaster.data.remote.CharacterRemoteDataSource
 import com.hdarby.dicemaster.data.remote.WeaponRemoteDataSource
 import com.hdarby.dicemaster.domain.model.Character
+import com.hdarby.dicemaster.domain.model.CharacterWeaponEntry
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.model.Weapon
@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -45,23 +46,24 @@ class CharacterRepositoryImpl(
                 }
             }
         }
-        if (weaponRemoteDataSource != null) {
-            externalScope.launch {
-                sessionRepository!!.observeSession().collectLatest { session ->
-                    if (session == null) return@collectLatest
-                    weaponRemoteDataSource.observeWeapons(session.sessionId).collect { remoteWeapons ->
-                        remoteWeapons.forEach { rw -> weaponDao.insertWeapon(rw.weapon.toEntity(rw.characterId)) }
-                    }
-                }
-            }
-        }
     }
 
     override fun getAllCharacters(): Flow<List<Character>> =
         characterDao.getAllCharacters().map { it.map { entity -> entity.toDomain() } }
 
     override fun getCharactersWithWeapons(): Flow<List<CharacterWithWeapons>> =
-        characterDao.getCharactersWithWeapons().map { it.map { entity -> entity.toDomain() } }
+        characterDao.getAllCharacters()
+            .combine(weaponDao.getAllCharacterWeapons()) { characters, weaponAssignments ->
+                val weaponsByCharId = weaponAssignments.groupBy { it.characterId }
+                characters.map { char ->
+                    CharacterWithWeapons(
+                        character = char.toDomain(),
+                        weapons = weaponsByCharId[char.id]
+                            ?.map { CharacterWeaponEntry(it.assignmentId, it.weapon.toDomain()) }
+                            ?: emptyList()
+                    )
+                }
+            }
 
     override suspend fun addCharacter(character: Character): Long {
         val localId = characterDao.insertCharacter(character.toEntity())
@@ -86,17 +88,17 @@ class CharacterRepositoryImpl(
     }
 
     override suspend fun assignWeaponToCharacter(characterId: Long, weaponId: Long) {
-        weaponDao.assignToCharacter(weaponId = weaponId, characterId = characterId)
-        sessionRepository?.getActiveSession()?.let { session ->
-            weaponRemoteDataSource?.updateWeaponAssignment(session.sessionId, weaponId, characterId)
+        val isAtomic = weaponDao.isAtomicWeapon(weaponId)
+        if (isAtomic && weaponDao.getWeaponAssignmentCount(weaponId) > 0) {
+            throw IllegalStateException("This weapon is unique and is already assigned to a character.")
         }
+        weaponDao.insertCharacterWeaponCrossRef(
+            CharacterWeaponCrossRef(characterId = characterId, weaponId = weaponId)
+        )
     }
 
-    override suspend fun unassignWeaponFromCharacter(characterId: Long, weaponId: Long) {
-        weaponDao.unassignFromCharacter(weaponId = weaponId)
-        sessionRepository?.getActiveSession()?.let { session ->
-            weaponRemoteDataSource?.updateWeaponAssignment(session.sessionId, weaponId, null)
-        }
+    override suspend fun unassignWeaponFromCharacter(assignmentId: Long) {
+        weaponDao.deleteCharacterWeaponCrossRef(assignmentId)
     }
 
     private fun CharacterEntity.toDomain() = Character(
@@ -121,19 +123,9 @@ class CharacterRepositoryImpl(
         charisma = stats.charisma, charismaModifier = stats.charismaModifier
     )
 
-    private fun WeaponEntity.toDomain() = Weapon(
-        id = id, name = name, type = type,
-        damageDice = damageDice, damageType = damageType, modifier = modifier
-    )
-
-    private fun Weapon.toEntity(characterId: Long? = null) = WeaponEntity(
+    private fun com.hdarby.dicemaster.data.local.entity.WeaponEntity.toDomain() = Weapon(
         id = id, name = name, type = type,
         damageDice = damageDice, damageType = damageType,
-        modifier = modifier, characterId = characterId
-    )
-
-    private fun CharacterWithWeaponsEntity.toDomain() = CharacterWithWeapons(
-        character = character.toDomain(),
-        weapons = weapons.map { it.toDomain() }
+        modifier = modifier, isAtomic = isAtomic
     )
 }

@@ -8,6 +8,7 @@ import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
@@ -37,6 +38,7 @@ class CharacterViewModelRoleFilteringTest {
     private val updateCharacterUseCase: UpdateCharacterUseCase = mockk(relaxed = true)
     private val deleteCharacterUseCase: DeleteCharacterUseCase = mockk(relaxed = true)
     private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase = mockk(relaxed = true)
+    private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase = mockk(relaxed = true)
     private val sessionRepository: SessionRepository = mockk()
 
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -60,12 +62,9 @@ class CharacterViewModelRoleFilteringTest {
     }
 
     private fun buildViewModel(): CharacterViewModel = CharacterViewModel(
-        getCharactersWithWeaponsUseCase,
-        addCharacterUseCase,
-        updateCharacterUseCase,
-        deleteCharacterUseCase,
-        unassignWeaponFromCharacterUseCase,
-        sessionRepository
+        getCharactersWithWeaponsUseCase, addCharacterUseCase, updateCharacterUseCase,
+        deleteCharacterUseCase, unassignWeaponFromCharacterUseCase,
+        assignWeaponToCharacterUseCase, sessionRepository
     )
 
     // ── No-session (local-only) mode ─────────────────────────────────────────
@@ -202,4 +201,7 @@ class CharacterViewModelRoleFilteringTest {
         }
     }
 }
+
+
+
 

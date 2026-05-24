@@ -108,25 +108,14 @@ class WeaponRepositoryWithRemoteTest {
     // ── remote snapshot sync ──────────────────────────────────────────────────
 
     @Test
-    fun `remote weapon snapshot - syncs to Room with characterId`() = runTest {
+    fun `remote weapon snapshot - syncs to Room`() = runTest {
         every { sessionRepository.observeSession() } returns flowOf(activeSession)
 
         buildRepo()
 
-        weaponRemote.simulateRemoteUpdate(RemoteWeapon(testWeapon, characterId = 5L))
+        weaponRemote.simulateRemoteUpdate(RemoteWeapon(testWeapon))
 
-        coVerify { weaponDao.insertWeapon(match { it.name == "Greataxe" && it.characterId == 5L }) }
-    }
-
-    @Test
-    fun `remote weapon snapshot null characterId - syncs to Room without assignment`() = runTest {
-        every { sessionRepository.observeSession() } returns flowOf(activeSession)
-
-        buildRepo()
-
-        weaponRemote.simulateRemoteUpdate(RemoteWeapon(testWeapon, characterId = null))
-
-        coVerify { weaponDao.insertWeapon(match { it.name == "Greataxe" && it.characterId == null }) }
+        coVerify { weaponDao.insertWeapon(match { it.name == "Greataxe" }) }
     }
 
     @Test
@@ -135,7 +124,7 @@ class WeaponRepositoryWithRemoteTest {
 
         buildRepo()
 
-        weaponRemote.simulateRemoteUpdate(RemoteWeapon(testWeapon, null))
+        weaponRemote.simulateRemoteUpdate(RemoteWeapon(testWeapon))
 
         coVerify(exactly = 0) { weaponDao.insertWeapon(any()) }
     }
@@ -156,4 +145,5 @@ class WeaponRepositoryWithRemoteTest {
         assertEquals("Greataxe", result[0][0].name)
     }
 }
+
 

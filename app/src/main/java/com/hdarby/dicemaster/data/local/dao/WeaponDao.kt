@@ -6,6 +6,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.hdarby.dicemaster.data.local.entity.CharacterWeaponAssignment
+import com.hdarby.dicemaster.data.local.entity.CharacterWeaponCrossRef
 import com.hdarby.dicemaster.data.local.entity.WeaponEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -13,6 +15,14 @@ import kotlinx.coroutines.flow.Flow
 interface WeaponDao {
     @Query("SELECT * FROM weapons")
     fun getAllWeapons(): Flow<List<WeaponEntity>>
+
+    @Query("""
+        SELECT cwcr.assignmentId, cwcr.characterId,
+               w.id, w.name, w.type, w.damageDice, w.damageType, w.modifier, w.isAtomic
+        FROM weapons w
+        INNER JOIN character_weapon_cross_ref cwcr ON w.id = cwcr.weaponId
+    """)
+    fun getAllCharacterWeapons(): Flow<List<CharacterWeaponAssignment>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWeapon(weapon: WeaponEntity): Long
@@ -23,9 +33,15 @@ interface WeaponDao {
     @Delete
     suspend fun deleteWeapon(weapon: WeaponEntity)
 
-    @Query("UPDATE weapons SET characterId = :characterId WHERE id = :weaponId")
-    suspend fun assignToCharacter(weaponId: Long, characterId: Long)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertCharacterWeaponCrossRef(crossRef: CharacterWeaponCrossRef): Long
 
-    @Query("UPDATE weapons SET characterId = NULL WHERE id = :weaponId")
-    suspend fun unassignFromCharacter(weaponId: Long)
+    @Query("DELETE FROM character_weapon_cross_ref WHERE assignmentId = :assignmentId")
+    suspend fun deleteCharacterWeaponCrossRef(assignmentId: Long)
+
+    @Query("SELECT COUNT(*) FROM character_weapon_cross_ref WHERE weaponId = :weaponId")
+    suspend fun getWeaponAssignmentCount(weaponId: Long): Int
+
+    @Query("SELECT isAtomic FROM weapons WHERE id = :weaponId")
+    suspend fun isAtomicWeapon(weaponId: Long): Boolean
 }

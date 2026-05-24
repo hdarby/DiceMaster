@@ -7,12 +7,10 @@ import com.hdarby.dicemaster.data.local.entity.CharacterEntity
 import com.hdarby.dicemaster.data.local.entity.WeaponEntity
 import com.hdarby.dicemaster.data.remote.FakeCharacterRemoteDataSource
 import com.hdarby.dicemaster.data.remote.FakeWeaponRemoteDataSource
-import com.hdarby.dicemaster.data.remote.RemoteWeapon
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.Session
 import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.model.UserRole
-import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.domain.repository.SessionRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -42,8 +40,6 @@ class CharacterRepositoryWithRemoteTest {
         race = "Goliath",
         stats = Stats(20, 5, 12, 1, 18, 4, 6, -2, 10, 0, 8, -1)
     )
-
-    private val testWeapon = Weapon(1L, "Greataxe", "Greataxe", "1d12", "Slashing", 2)
 
     private fun buildRepo() = CharacterRepositoryImpl(
         characterDao = characterDao,
@@ -127,26 +123,22 @@ class CharacterRepositoryWithRemoteTest {
     // ── weapon assignment ─────────────────────────────────────────────────────
 
     @Test
-    fun `assignWeaponToCharacter - session active - updates remote assignment`() = runTest {
-        coEvery { sessionRepository.getActiveSession() } returns activeSession
+    fun `assignWeaponToCharacter - inserts cross-ref in local DAO`() = runTest {
         every { sessionRepository.observeSession() } returns flowOf(null)
+        // relaxed mock returns false for isAtomicWeapon and 0 for getWeaponAssignmentCount
 
         buildRepo().assignWeaponToCharacter(characterId = 1L, weaponId = 2L)
 
-        coVerify { weaponDao.assignToCharacter(weaponId = 2L, characterId = 1L) }
-        assertEquals(1, weaponRemote.assignmentCallCount)
-        assertEquals(Triple("SESSION1", 2L, 1L), weaponRemote.lastAssignment)
+        coVerify { weaponDao.insertCharacterWeaponCrossRef(match { it.characterId == 1L && it.weaponId == 2L }) }
     }
 
     @Test
-    fun `unassignWeaponFromCharacter - session active - nullifies remote assignment`() = runTest {
-        coEvery { sessionRepository.getActiveSession() } returns activeSession
+    fun `unassignWeaponFromCharacter - deletes cross-ref by assignmentId`() = runTest {
         every { sessionRepository.observeSession() } returns flowOf(null)
 
-        buildRepo().unassignWeaponFromCharacter(characterId = 1L, weaponId = 2L)
+        buildRepo().unassignWeaponFromCharacter(assignmentId = 5L)
 
-        coVerify { weaponDao.unassignFromCharacter(weaponId = 2L) }
-        assertEquals(Triple("SESSION1", 2L, null), weaponRemote.lastAssignment)
+        coVerify { weaponDao.deleteCharacterWeaponCrossRef(5L) }
     }
 
     // ── remote snapshot sync ──────────────────────────────────────────────────
@@ -161,17 +153,6 @@ class CharacterRepositoryWithRemoteTest {
         characterRemote.simulateRemoteUpdate(testCharacter)
 
         coVerify { characterDao.insertCharacter(match { it.name == "Grog" }) }
-    }
-
-    @Test
-    fun `remote weapon snapshot - syncs to Room with characterId`() = runTest {
-        every { sessionRepository.observeSession() } returns flowOf(activeSession)
-
-        buildRepo()
-
-        weaponRemote.simulateRemoteUpdate(RemoteWeapon(testWeapon, characterId = 1L))
-
-        coVerify { weaponDao.insertWeapon(match { it.name == "Greataxe" && it.characterId == 1L }) }
     }
 
     @Test
@@ -205,4 +186,8 @@ class CharacterRepositoryWithRemoteTest {
         }
     }
 }
+
+
+
+
 

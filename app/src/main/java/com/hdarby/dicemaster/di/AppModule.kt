@@ -30,6 +30,7 @@ import com.hdarby.dicemaster.domain.usecase.RollAdvantageUseCase
 import com.hdarby.dicemaster.domain.usecase.RollDiceUseCase
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
+
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
@@ -120,8 +121,8 @@ val appModule = module {
 
     // ViewModels
     viewModel { DiceViewModel(get(), get()) }
-    viewModel { CharacterViewModel(get(), get(), get(), get(), get(), get()) }
-    viewModel { WeaponViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { CharacterViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { WeaponViewModel(get(), get(), get(), get(), get()) }
     viewModel { ItemViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { DebugViewModel() }
     viewModel { SessionViewModel(get(), get(), get(), get()) }

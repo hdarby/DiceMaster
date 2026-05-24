@@ -6,5 +6,6 @@ data class Weapon(
     val type: String,
     val damageDice: String,
     val damageType: String,
-    val modifier: Int
+    val modifier: Int,
+    val isAtomic: Boolean = true
 )

@@ -6,6 +6,7 @@ import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
@@ -34,6 +35,7 @@ class CharacterViewModelErrorHandlingTest {
     private val updateCharacterUseCase: UpdateCharacterUseCase = mockk()
     private val deleteCharacterUseCase: DeleteCharacterUseCase = mockk()
     private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase = mockk()
+    private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase = mockk(relaxed = true)
     private val sessionRepository: SessionRepository = mockk()
 
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -71,12 +73,9 @@ class CharacterViewModelErrorHandlingTest {
         }
 
         val viewModel = CharacterViewModel(
-            getCharactersWithWeaponsUseCase,
-            addCharacterUseCase,
-            updateCharacterUseCase,
-            deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase,
-            sessionRepository
+            getCharactersWithWeaponsUseCase, addCharacterUseCase, updateCharacterUseCase,
+            deleteCharacterUseCase, unassignWeaponFromCharacterUseCase,
+            assignWeaponToCharacterUseCase, sessionRepository
         )
 
         viewModel.uiState.test {
@@ -87,18 +86,13 @@ class CharacterViewModelErrorHandlingTest {
 
     @Test
     fun `addCharacter with null error message`() = runTest {
-        every { getCharactersWithWeaponsUseCase() } returns flow {
-            emit(emptyList())
-        }
+        every { getCharactersWithWeaponsUseCase() } returns flow { emit(emptyList()) }
         coEvery { addCharacterUseCase(any()) } throws NullPointerException()
 
         val viewModel = CharacterViewModel(
-            getCharactersWithWeaponsUseCase,
-            addCharacterUseCase,
-            updateCharacterUseCase,
-            deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase,
-            sessionRepository
+            getCharactersWithWeaponsUseCase, addCharacterUseCase, updateCharacterUseCase,
+            deleteCharacterUseCase, unassignWeaponFromCharacterUseCase,
+            assignWeaponToCharacterUseCase, sessionRepository
         )
 
         viewModel.addCharacter(character)
@@ -111,18 +105,13 @@ class CharacterViewModelErrorHandlingTest {
 
     @Test
     fun `multiple error states preserve last error`() = runTest {
-        every { getCharactersWithWeaponsUseCase() } returns flow {
-            emit(emptyList())
-        }
+        every { getCharactersWithWeaponsUseCase() } returns flow { emit(emptyList()) }
         coEvery { addCharacterUseCase(any()) } throws Exception("Add error")
 
         val viewModel = CharacterViewModel(
-            getCharactersWithWeaponsUseCase,
-            addCharacterUseCase,
-            updateCharacterUseCase,
-            deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase,
-            sessionRepository
+            getCharactersWithWeaponsUseCase, addCharacterUseCase, updateCharacterUseCase,
+            deleteCharacterUseCase, unassignWeaponFromCharacterUseCase,
+            assignWeaponToCharacterUseCase, sessionRepository
         )
 
         viewModel.addCharacter(character)
@@ -138,21 +127,16 @@ class CharacterViewModelErrorHandlingTest {
     @Test
     fun `unassignWeapon error preserves character state`() = runTest {
         val characterWithWeapons = CharacterWithWeapons(character, emptyList())
-        every { getCharactersWithWeaponsUseCase() } returns flow {
-            emit(listOf(characterWithWeapons))
-        }
-        coEvery { unassignWeaponFromCharacterUseCase(any(), any()) } throws Exception("Unassign failed")
+        every { getCharactersWithWeaponsUseCase() } returns flow { emit(listOf(characterWithWeapons)) }
+        coEvery { unassignWeaponFromCharacterUseCase(any()) } throws Exception("Unassign failed")
 
         val viewModel = CharacterViewModel(
-            getCharactersWithWeaponsUseCase,
-            addCharacterUseCase,
-            updateCharacterUseCase,
-            deleteCharacterUseCase,
-            unassignWeaponFromCharacterUseCase,
-            sessionRepository
+            getCharactersWithWeaponsUseCase, addCharacterUseCase, updateCharacterUseCase,
+            deleteCharacterUseCase, unassignWeaponFromCharacterUseCase,
+            assignWeaponToCharacterUseCase, sessionRepository
         )
 
-        viewModel.unassignWeapon(1L, 2L)
+        viewModel.unassignWeapon(2L)
 
         viewModel.uiState.test {
             val state = awaitItem()

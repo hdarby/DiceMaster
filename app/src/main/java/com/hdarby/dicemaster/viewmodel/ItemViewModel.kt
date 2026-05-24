@@ -109,33 +109,33 @@ class ItemViewModel(
         }
     }
 
-    fun unassignItem(characterId: Long, itemId: Long) {
+    fun unassignItem(assignmentId: Long) {
         viewModelScope.launch {
             try {
-                unassignItemFromCharacterUseCase(characterId, itemId)
+                unassignItemFromCharacterUseCase(assignmentId)
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }
         }
     }
 
-    fun incrementQuantity(characterId: Long, itemId: Long, currentQuantity: Int) {
+    fun incrementQuantity(assignmentId: Long, currentQuantity: Int) {
         viewModelScope.launch {
             try {
-                updateItemQuantityUseCase(characterId, itemId, currentQuantity + 1)
+                updateItemQuantityUseCase(assignmentId, currentQuantity + 1)
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }
         }
     }
 
-    fun decrementQuantity(characterId: Long, itemId: Long, currentQuantity: Int) {
+    fun decrementQuantity(assignmentId: Long, currentQuantity: Int) {
         viewModelScope.launch {
             try {
                 if (currentQuantity <= MIN_ITEM_QUANTITY) {
-                    unassignItemFromCharacterUseCase(characterId, itemId)
+                    unassignItemFromCharacterUseCase(assignmentId)
                 } else {
-                    updateItemQuantityUseCase(characterId, itemId, currentQuantity - 1)
+                    updateItemQuantityUseCase(assignmentId, currentQuantity - 1)
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }

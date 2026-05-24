@@ -1,6 +1,5 @@
 package com.hdarby.dicemaster.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,21 +12,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -42,7 +41,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -51,10 +49,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.hdarby.dicemaster.R
-import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.domain.model.Weapon
-import com.hdarby.dicemaster.viewmodel.CharacterViewModel
 import com.hdarby.dicemaster.viewmodel.WeaponViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -62,17 +58,14 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun WeaponScreen(
     weaponViewModel: WeaponViewModel = koinViewModel(),
-    characterViewModel: CharacterViewModel = koinViewModel(),
     editWeaponId: Long? = null,
     onLeaveSession: () -> Unit
 ) {
     val uiState by weaponViewModel.uiState.collectAsState()
-    val characterState by characterViewModel.uiState.collectAsState()
     val isDungeonMaster = uiState.userRole !is UserRole.Player
 
     var showAddDialog by remember { mutableStateOf(false) }
     var editingWeapon by remember { mutableStateOf<Weapon?>(null) }
-    var assigningWeapon by remember { mutableStateOf<Weapon?>(null) }
     var editConsumed by remember(editWeaponId) { mutableStateOf(false) }
 
     LaunchedEffect(editWeaponId, uiState.weapons) {
@@ -130,8 +123,7 @@ fun WeaponScreen(
                             weapon = weapon,
                             isDungeonMaster = isDungeonMaster,
                             onEdit = { editingWeapon = it },
-                            onDelete = { weaponViewModel.deleteWeapon(it) },
-                            onAssign = { assigningWeapon = it }
+                            onDelete = { weaponViewModel.deleteWeapon(it) }
                         )
                     }
                 }
@@ -158,18 +150,6 @@ fun WeaponScreen(
                 }
             )
         }
-
-        assigningWeapon?.let { weapon ->
-            AssignWeaponDialog(
-                weapon = weapon,
-                characters = characterState.characters.map { it.character },
-                onDismiss = { assigningWeapon = null },
-                onConfirm = { characterId ->
-                    weaponViewModel.assignWeaponToCharacter(characterId, weapon.id)
-                    assigningWeapon = null
-                }
-            )
-        }
     }
 }
 
@@ -178,12 +158,9 @@ fun WeaponCard(
     weapon: Weapon,
     isDungeonMaster: Boolean = true,
     onEdit: (Weapon) -> Unit,
-    onDelete: (Weapon) -> Unit,
-    onAssign: (Weapon) -> Unit
+    onDelete: (Weapon) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -213,12 +190,16 @@ fun WeaponCard(
                         ),
                         style = MaterialTheme.typography.bodyMedium
                     )
+                    if (weapon.isAtomic) {
+                        Text(
+                            text = stringResource(R.string.label_weapon_atomic),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                    }
                 }
                 if (isDungeonMaster) {
                     Row {
-                        IconButton(onClick = { onAssign(weapon) }) {
-                            Icon(Icons.Default.Link, contentDescription = stringResource(R.string.content_desc_assign))
-                        }
                         IconButton(onClick = { onEdit(weapon) }) {
                             Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.content_desc_edit))
                         }
@@ -244,16 +225,17 @@ fun AddEditWeaponDialog(
     var dice by remember { mutableStateOf(weapon?.damageDice ?: "") }
     var damageType by remember { mutableStateOf(weapon?.damageType ?: "") }
     var mod by remember { mutableStateOf(weapon?.modifier?.toString() ?: "0") }
+    var isAtomic by remember { mutableStateOf(weapon?.isAtomic ?: true) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (weapon == null) stringResource(R.string.title_add_weapon) else stringResource(R.string.title_edit_weapon)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.label_name)) })
-                OutlinedTextField(value = type, onValueChange = { type = it }, label = { Text(stringResource(R.string.label_weapon_type)) })
-                OutlinedTextField(value = dice, onValueChange = { dice = it }, label = { Text(stringResource(R.string.label_damage_dice)) })
-                OutlinedTextField(value = damageType, onValueChange = { damageType = it }, label = { Text(stringResource(R.string.label_damage_type)) })
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.label_name)) }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = type, onValueChange = { type = it }, label = { Text(stringResource(R.string.label_weapon_type)) }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = dice, onValueChange = { dice = it }, label = { Text(stringResource(R.string.label_damage_dice)) }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = damageType, onValueChange = { damageType = it }, label = { Text(stringResource(R.string.label_damage_type)) }, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(
                     value = mod,
                     onValueChange = { input ->
@@ -262,19 +244,32 @@ fun AddEditWeaponDialog(
                         }
                     },
                     label = { Text(stringResource(R.string.label_modifier)) },
+                    modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(checked = isAtomic, onCheckedChange = { isAtomic = it })
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text(stringResource(R.string.label_weapon_atomic_checkbox), style = MaterialTheme.typography.bodyMedium)
+                        Text(stringResource(R.string.label_weapon_atomic_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
             }
         },
         confirmButton = {
             Button(onClick = {
                 onConfirm(Weapon(
-                    id = weapon?.id ?: 0, 
-                    name = name, 
+                    id = weapon?.id ?: 0,
+                    name = name,
                     type = type,
-                    damageDice = dice, 
-                    damageType = damageType, 
-                    modifier = mod.toIntOrNull() ?: 0
+                    damageDice = dice,
+                    damageType = damageType,
+                    modifier = mod.toIntOrNull() ?: 0,
+                    isAtomic = isAtomic
                 ))
             }) {
                 Text(stringResource(R.string.button_confirm))
@@ -288,34 +283,3 @@ fun AddEditWeaponDialog(
     )
 }
 
-@Composable
-fun AssignWeaponDialog(
-    weapon: Weapon,
-    characters: List<Character>,
-    onDismiss: () -> Unit,
-    onConfirm: (Long) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.title_assign_weapon, weapon.name)) },
-        text = {
-            LazyColumn {
-                items(characters) { character ->
-                    ListItem(
-                        headlineContent = { Text(character.name) },
-                        supportingContent = { Text(character.race) },
-                        modifier = Modifier.fillMaxWidth().clickable {
-                            onConfirm(character.id)
-                        }
-                    )
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
-            }
-        }
-    )
-}

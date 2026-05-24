@@ -11,5 +11,5 @@ data class WeaponEntity(
     val damageDice: String,
     val damageType: String,
     val modifier: Int,
-    val characterId: Long? = null
+    val isAtomic: Boolean = true
 )

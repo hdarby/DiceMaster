@@ -2,5 +2,5 @@ package com.hdarby.dicemaster.domain.model
 
 data class CharacterWithWeapons(
     val character: Character,
-    val weapons: List<Weapon>
+    val weapons: List<CharacterWeaponEntry>
 )

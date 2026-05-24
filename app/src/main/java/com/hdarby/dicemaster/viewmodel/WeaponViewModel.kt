@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hdarby.dicemaster.domain.model.Weapon
 import com.hdarby.dicemaster.domain.repository.SessionRepository
-import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.AddWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.DeleteWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.GetWeaponsUseCase
@@ -25,7 +24,6 @@ class WeaponViewModel(
     private val addWeaponUseCase: AddWeaponUseCase,
     private val updateWeaponUseCase: UpdateWeaponUseCase,
     private val deleteWeaponUseCase: DeleteWeaponUseCase,
-    private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase,
     private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
@@ -80,16 +78,6 @@ class WeaponViewModel(
         viewModelScope.launch {
             try {
                 deleteWeaponUseCase(weapon)
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message) }
-            }
-        }
-    }
-
-    fun assignWeaponToCharacter(characterId: Long, weaponId: Long) {
-        viewModelScope.launch {
-            try {
-                assignWeaponToCharacterUseCase(characterId, weaponId)
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }

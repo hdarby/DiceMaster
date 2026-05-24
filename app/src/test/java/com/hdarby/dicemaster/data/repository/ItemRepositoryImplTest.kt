@@ -3,7 +3,6 @@ package com.hdarby.dicemaster.data.repository
 import app.cash.turbine.test
 import com.hdarby.dicemaster.data.local.dao.ItemDao
 import com.hdarby.dicemaster.data.local.entity.CharacterItemAssignment
-import com.hdarby.dicemaster.data.local.entity.CharacterItemCrossRef
 import com.hdarby.dicemaster.data.local.entity.ItemEntity
 import com.hdarby.dicemaster.domain.model.CharacterItemEntry
 import com.hdarby.dicemaster.domain.model.ConsumableItem
@@ -74,14 +73,14 @@ class ItemRepositoryImplTest {
 
     @Test
     fun `getItemsByCharacter groups assignments by characterId`() = runTest {
-        val assignment = CharacterItemAssignment(characterId = 10L, item = itemEntity, quantity = 2)
+        val assignment = CharacterItemAssignment(assignmentId = 1L, characterId = 10L, item = itemEntity, quantity = 2)
         every { itemDao.getAllCharacterItems() } returns flowOf(listOf(assignment))
 
         repository.getItemsByCharacter().test {
             val result = awaitItem()
             assertEquals(1, result.size)
             assertEquals(
-                listOf(CharacterItemEntry(item = item, quantity = 2)),
+                listOf(CharacterItemEntry(assignmentId = 1L, item = item, quantity = 2)),
                 result[10L]
             )
             awaitComplete()
@@ -91,7 +90,7 @@ class ItemRepositoryImplTest {
     @Test
     fun `getItemsByCharacter preserves totalQuantity on item`() = runTest {
         val entityWithQuantity = ItemEntity(id = 1L, name = "Healing Potion", description = "Restores 2d4+2 HP", totalQuantity = 10)
-        val assignment = CharacterItemAssignment(characterId = 10L, item = entityWithQuantity, quantity = 3)
+        val assignment = CharacterItemAssignment(assignmentId = 1L, characterId = 10L, item = entityWithQuantity, quantity = 3)
         every { itemDao.getAllCharacterItems() } returns flowOf(listOf(assignment))
 
         repository.getItemsByCharacter().test {
@@ -114,8 +113,8 @@ class ItemRepositoryImplTest {
     @Test
     fun `getItemsByCharacter groups multiple items under the same character`() = runTest {
         val entity2 = ItemEntity(id = 2L, name = "Torch", description = "Provides light")
-        val assignment1 = CharacterItemAssignment(characterId = 5L, item = itemEntity, quantity = 1)
-        val assignment2 = CharacterItemAssignment(characterId = 5L, item = entity2, quantity = 3)
+        val assignment1 = CharacterItemAssignment(assignmentId = 1L, characterId = 5L, item = itemEntity, quantity = 1)
+        val assignment2 = CharacterItemAssignment(assignmentId = 2L, characterId = 5L, item = entity2, quantity = 3)
         every { itemDao.getAllCharacterItems() } returns flowOf(listOf(assignment1, assignment2))
 
         repository.getItemsByCharacter().test {
@@ -127,8 +126,8 @@ class ItemRepositoryImplTest {
 
     @Test
     fun `getItemsByCharacter separates assignments for different characters`() = runTest {
-        val assignment1 = CharacterItemAssignment(characterId = 1L, item = itemEntity, quantity = 1)
-        val assignment2 = CharacterItemAssignment(characterId = 2L, item = itemEntity, quantity = 5)
+        val assignment1 = CharacterItemAssignment(assignmentId = 1L, characterId = 1L, item = itemEntity, quantity = 1)
+        val assignment2 = CharacterItemAssignment(assignmentId = 2L, characterId = 2L, item = itemEntity, quantity = 5)
         every { itemDao.getAllCharacterItems() } returns flowOf(listOf(assignment1, assignment2))
 
         repository.getItemsByCharacter().test {
@@ -188,7 +187,7 @@ class ItemRepositoryImplTest {
 
     @Test
     fun `assignItemToCharacter inserts cross-ref with provided quantity`() = runTest {
-        coEvery { itemDao.insertCharacterItemCrossRef(any()) } returns Unit
+        coEvery { itemDao.insertCharacterItemCrossRef(any()) } returns 1L
 
         repository.assignItemToCharacter(characterId = 10L, itemId = 1L, quantity = 20)
 
@@ -201,37 +200,43 @@ class ItemRepositoryImplTest {
 
     @Test
     fun `assignItemToCharacter creates cross-ref with correct ids and quantity`() = runTest {
-        coEvery { itemDao.insertCharacterItemCrossRef(any()) } returns Unit
+        coEvery { itemDao.insertCharacterItemCrossRef(any()) } returns 5L
 
         repository.assignItemToCharacter(characterId = 99L, itemId = 42L, quantity = 7)
 
         coVerify {
-            itemDao.insertCharacterItemCrossRef(CharacterItemCrossRef(characterId = 99L, itemId = 42L, quantity = 7))
+            itemDao.insertCharacterItemCrossRef(match { it.characterId == 99L && it.itemId == 42L && it.quantity == 7 })
         }
     }
 
     // --- unassignItemFromCharacter ---
 
     @Test
-    fun `unassignItemFromCharacter deletes cross-ref`() = runTest {
-        coEvery { itemDao.deleteCharacterItemCrossRef(any(), any()) } returns Unit
+    fun `unassignItemFromCharacter deletes cross-ref by assignmentId`() = runTest {
+        coEvery { itemDao.deleteCharacterItemCrossRef(any()) } returns Unit
 
-        repository.unassignItemFromCharacter(characterId = 10L, itemId = 1L)
+        repository.unassignItemFromCharacter(assignmentId = 10L)
 
-        coVerify { itemDao.deleteCharacterItemCrossRef(10L, 1L) }
+        coVerify { itemDao.deleteCharacterItemCrossRef(10L) }
     }
 
     // --- updateItemQuantity ---
 
     @Test
     fun `updateItemQuantity calls dao with correct parameters`() = runTest {
-        coEvery { itemDao.updateQuantity(any(), any(), any()) } returns Unit
+        coEvery { itemDao.updateQuantity(any(), any()) } returns Unit
 
-        repository.updateItemQuantity(characterId = 10L, itemId = 1L, quantity = 5)
+        repository.updateItemQuantity(assignmentId = 10L, quantity = 5)
 
-        coVerify { itemDao.updateQuantity(10L, 1L, 5) }
+        coVerify { itemDao.updateQuantity(10L, 5) }
     }
 }
+
+
+
+
+
+
 
 
 

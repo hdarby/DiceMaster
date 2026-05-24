@@ -7,7 +7,6 @@ import com.hdarby.dicemaster.domain.usecase.weapon.AddWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.DeleteWeaponUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.GetWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.weapon.UpdateWeaponUseCase
-import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -31,7 +30,6 @@ class WeaponViewModelErrorTest {
     private val addWeaponUseCase: AddWeaponUseCase = mockk()
     private val updateWeaponUseCase: UpdateWeaponUseCase = mockk()
     private val deleteWeaponUseCase: DeleteWeaponUseCase = mockk()
-    private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase = mockk()
     private val sessionRepository: SessionRepository = mockk()
 
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -56,21 +54,15 @@ class WeaponViewModelErrorTest {
         Dispatchers.resetMain()
     }
 
+    private fun buildViewModel() = WeaponViewModel(getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase, deleteWeaponUseCase, sessionRepository)
+
     @Test
     fun `loadWeapons handles database error`() = runTest {
         val errorMessage = "Failed to load weapons"
-        every { getWeaponsUseCase() } returns flow {
-            throw Exception(errorMessage)
-        }
+        every { getWeaponsUseCase() } returns flow { throw Exception(errorMessage) }
 
-        val viewModel = WeaponViewModel(
-            getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase,
-            deleteWeaponUseCase, assignWeaponToCharacterUseCase, sessionRepository
-        )
-
-        viewModel.uiState.test {
-            val state = awaitItem()
-            assertEquals(errorMessage, state.error)
+        buildViewModel().uiState.test {
+            assertEquals(errorMessage, awaitItem().error)
         }
     }
 
@@ -80,16 +72,11 @@ class WeaponViewModelErrorTest {
         val errorMessage = "Weapon with this name already exists"
         coEvery { addWeaponUseCase(any()) } throws Exception(errorMessage)
 
-        val viewModel = WeaponViewModel(
-            getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase,
-            deleteWeaponUseCase, assignWeaponToCharacterUseCase, sessionRepository
-        )
-
+        val viewModel = buildViewModel()
         viewModel.addWeapon(weapon)
 
         viewModel.uiState.test {
-            val state = awaitItem()
-            assertEquals(errorMessage, state.error)
+            assertEquals(errorMessage, awaitItem().error)
         }
     }
 
@@ -99,16 +86,11 @@ class WeaponViewModelErrorTest {
         val errorMessage = "Invalid weapon data"
         coEvery { updateWeaponUseCase(any()) } throws IllegalArgumentException(errorMessage)
 
-        val viewModel = WeaponViewModel(
-            getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase,
-            deleteWeaponUseCase, assignWeaponToCharacterUseCase, sessionRepository
-        )
-
+        val viewModel = buildViewModel()
         viewModel.updateWeapon(weapon)
 
         viewModel.uiState.test {
-            val state = awaitItem()
-            assertEquals(errorMessage, state.error)
+            assertEquals(errorMessage, awaitItem().error)
         }
     }
 
@@ -118,35 +100,11 @@ class WeaponViewModelErrorTest {
         val errorMessage = "Cannot delete weapon that is assigned to a character"
         coEvery { deleteWeaponUseCase(any()) } throws Exception(errorMessage)
 
-        val viewModel = WeaponViewModel(
-            getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase,
-            deleteWeaponUseCase, assignWeaponToCharacterUseCase, sessionRepository
-        )
-
+        val viewModel = buildViewModel()
         viewModel.deleteWeapon(weapon)
 
         viewModel.uiState.test {
-            val state = awaitItem()
-            assertEquals(errorMessage, state.error)
-        }
-    }
-
-    @Test
-    fun `assignWeaponToCharacter handles invalid character ID`() = runTest {
-        every { getWeaponsUseCase() } returns flowOf(listOf(weapon))
-        val errorMessage = "Character not found"
-        coEvery { assignWeaponToCharacterUseCase(any(), any()) } throws Exception(errorMessage)
-
-        val viewModel = WeaponViewModel(
-            getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase,
-            deleteWeaponUseCase, assignWeaponToCharacterUseCase, sessionRepository
-        )
-
-        viewModel.assignWeaponToCharacter(99L, weapon.id)
-
-        viewModel.uiState.test {
-            val state = awaitItem()
-            assertEquals(errorMessage, state.error)
+            assertEquals(errorMessage, awaitItem().error)
         }
     }
 
@@ -155,11 +113,7 @@ class WeaponViewModelErrorTest {
         every { getWeaponsUseCase() } returns flowOf(listOf(weapon))
         coEvery { updateWeaponUseCase(any()) } throws Exception("Update failed")
 
-        val viewModel = WeaponViewModel(
-            getWeaponsUseCase, addWeaponUseCase, updateWeaponUseCase,
-            deleteWeaponUseCase, assignWeaponToCharacterUseCase, sessionRepository
-        )
-
+        val viewModel = buildViewModel()
         viewModel.updateWeapon(weapon)
 
         viewModel.uiState.test {

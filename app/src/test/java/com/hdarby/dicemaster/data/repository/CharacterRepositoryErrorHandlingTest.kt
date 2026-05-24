@@ -9,6 +9,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -34,11 +35,12 @@ class CharacterRepositoryErrorHandlingTest {
     )
 
     @Test
-    fun `getCharactersWithWeapons handles database error`() = runTest {
+    fun `getCharactersWithWeapons handles database error from character flow`() = runTest {
         val errorMessage = "Database error"
-        every { characterDao.getCharactersWithWeapons() } returns flow {
+        every { characterDao.getAllCharacters() } returns flow {
             throw Exception(errorMessage)
         }
+        every { weaponDao.getAllCharacterWeapons() } returns flowOf(emptyList())
 
         try {
             repository.getCharactersWithWeapons().collect { }
@@ -82,9 +84,8 @@ class CharacterRepositoryErrorHandlingTest {
 
     @Test
     fun `getCharactersWithWeapons parses empty list`() = runTest {
-        every { characterDao.getCharactersWithWeapons() } returns flow {
-            emit(emptyList())
-        }
+        every { characterDao.getAllCharacters() } returns flowOf(emptyList())
+        every { weaponDao.getAllCharacterWeapons() } returns flowOf(emptyList())
 
         val result = mutableListOf<Any>()
         repository.getCharactersWithWeapons().collect { result.add(it) }
@@ -112,4 +113,3 @@ class CharacterRepositoryErrorHandlingTest {
         coVerify { characterDao.updateCharacter(any()) }
     }
 }
-

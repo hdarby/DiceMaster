@@ -7,6 +7,7 @@ import com.hdarby.dicemaster.data.local.dao.ItemDao
 import com.hdarby.dicemaster.data.local.dao.WeaponDao
 import com.hdarby.dicemaster.data.local.entity.CharacterEntity
 import com.hdarby.dicemaster.data.local.entity.CharacterItemCrossRef
+import com.hdarby.dicemaster.data.local.entity.CharacterWeaponCrossRef
 import com.hdarby.dicemaster.data.local.entity.ItemEntity
 import com.hdarby.dicemaster.data.local.entity.WeaponEntity
 
@@ -15,9 +16,10 @@ import com.hdarby.dicemaster.data.local.entity.WeaponEntity
         CharacterEntity::class,
         WeaponEntity::class,
         CharacterItemCrossRef::class,
+        CharacterWeaponCrossRef::class,
         ItemEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class DiceMasterDatabase : RoomDatabase() {

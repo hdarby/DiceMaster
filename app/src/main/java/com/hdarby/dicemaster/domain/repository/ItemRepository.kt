@@ -10,8 +10,7 @@ interface ItemRepository {
     suspend fun addItem(item: ConsumableItem): Long
     suspend fun updateItem(item: ConsumableItem)
     suspend fun deleteItem(item: ConsumableItem)
-    suspend fun assignItemToCharacter(characterId: Long, itemId: Long, quantity: Int)
-    suspend fun unassignItemFromCharacter(characterId: Long, itemId: Long)
-    suspend fun updateItemQuantity(characterId: Long, itemId: Long, quantity: Int)
+    suspend fun assignItemToCharacter(characterId: Long, itemId: Long, quantity: Int): Long
+    suspend fun unassignItemFromCharacter(assignmentId: Long)
+    suspend fun updateItemQuantity(assignmentId: Long, quantity: Int)
 }
-

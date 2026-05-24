@@ -6,6 +6,7 @@ import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
@@ -37,6 +38,7 @@ class CharacterViewModelTest {
     private val updateCharacterUseCase: UpdateCharacterUseCase = mockk()
     private val deleteCharacterUseCase: DeleteCharacterUseCase = mockk()
     private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase = mockk()
+    private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase = mockk()
     private val sessionRepository: SessionRepository = mockk()
 
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -68,6 +70,7 @@ class CharacterViewModelTest {
             updateCharacterUseCase,
             deleteCharacterUseCase,
             unassignWeaponFromCharacterUseCase,
+            assignWeaponToCharacterUseCase,
             sessionRepository
         )
     }
@@ -115,11 +118,11 @@ class CharacterViewModelTest {
 
     @Test
     fun `unassignWeapon calls use case`() = runTest {
-        coEvery { unassignWeaponFromCharacterUseCase(1L, 2L) } returns Unit
-        
-        viewModel.unassignWeapon(1L, 2L)
-        
-        coVerify { unassignWeaponFromCharacterUseCase(1L, 2L) }
+        coEvery { unassignWeaponFromCharacterUseCase(2L) } returns Unit
+
+        viewModel.unassignWeapon(2L)
+
+        coVerify { unassignWeaponFromCharacterUseCase(2L) }
     }
 
     @Test
@@ -161,10 +164,10 @@ class CharacterViewModelTest {
     @Test
     fun `unassignWeapon updates error on failure`() = runTest {
         val errorMessage = "Failed to unassign"
-        coEvery { unassignWeaponFromCharacterUseCase(any(), any()) } throws Exception(errorMessage)
-        
-        viewModel.unassignWeapon(1L, 2L)
-        
+        coEvery { unassignWeaponFromCharacterUseCase(any()) } throws Exception(errorMessage)
+
+        viewModel.unassignWeapon(2L)
+
         viewModel.uiState.test {
             assertEquals(errorMessage, awaitItem().error)
         }
@@ -183,6 +186,7 @@ class CharacterViewModelTest {
             updateCharacterUseCase,
             deleteCharacterUseCase,
             unassignWeaponFromCharacterUseCase,
+            assignWeaponToCharacterUseCase,
             sessionRepository
         )
         
@@ -205,6 +209,7 @@ class CharacterViewModelTest {
             updateCharacterUseCase,
             deleteCharacterUseCase,
             unassignWeaponFromCharacterUseCase,
+            assignWeaponToCharacterUseCase,
             sessionRepository
         )
         

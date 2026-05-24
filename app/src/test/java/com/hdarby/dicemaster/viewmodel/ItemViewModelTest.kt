@@ -48,7 +48,7 @@ class ItemViewModelTest {
     private lateinit var viewModel: ItemViewModel
 
     private val healingPotion = ConsumableItem(1L, "Healing Potion", "Restores 2d4+2 HP", totalQuantity = 5)
-    private val characterItemEntry = CharacterItemEntry(item = healingPotion, quantity = 3)
+    private val characterItemEntry = CharacterItemEntry(assignmentId = 10L, item = healingPotion, quantity = 3)
 
     @Before
     fun setup() {
@@ -65,15 +65,9 @@ class ItemViewModelTest {
     }
 
     private fun buildViewModel() = ItemViewModel(
-        getItemsUseCase,
-        getItemsByCharacterUseCase,
-        addItemUseCase,
-        updateItemUseCase,
-        deleteItemUseCase,
-        assignItemToCharacterUseCase,
-        unassignItemFromCharacterUseCase,
-        updateItemQuantityUseCase,
-        sessionRepository
+        getItemsUseCase, getItemsByCharacterUseCase, addItemUseCase, updateItemUseCase,
+        deleteItemUseCase, assignItemToCharacterUseCase, unassignItemFromCharacterUseCase,
+        updateItemQuantityUseCase, sessionRepository
     )
 
     // --- Initialisation ---
@@ -156,7 +150,7 @@ class ItemViewModelTest {
 
     @Test
     fun `assignItem uses item totalQuantity as initial character quantity`() = runTest {
-        coEvery { assignItemToCharacterUseCase(1L, 1L, 5) } returns Unit
+        coEvery { assignItemToCharacterUseCase(1L, 1L, 5) } returns 10L
 
         viewModel.assignItem(characterId = 1L, itemId = 1L)
 
@@ -165,7 +159,7 @@ class ItemViewModelTest {
 
     @Test
     fun `assignItem falls back to 1 when item not found in state`() = runTest {
-        coEvery { assignItemToCharacterUseCase(1L, 99L, 1) } returns Unit
+        coEvery { assignItemToCharacterUseCase(1L, 99L, 1) } returns 11L
 
         viewModel.assignItem(characterId = 1L, itemId = 99L)
 
@@ -173,51 +167,51 @@ class ItemViewModelTest {
     }
 
     @Test
-    fun `unassignItem calls use case`() = runTest {
-        coEvery { unassignItemFromCharacterUseCase(1L, 1L) } returns Unit
+    fun `unassignItem calls use case with assignmentId`() = runTest {
+        coEvery { unassignItemFromCharacterUseCase(10L) } returns Unit
 
-        viewModel.unassignItem(characterId = 1L, itemId = 1L)
+        viewModel.unassignItem(assignmentId = 10L)
 
-        coVerify { unassignItemFromCharacterUseCase(1L, 1L) }
+        coVerify { unassignItemFromCharacterUseCase(10L) }
     }
 
     // --- Quantity management ---
 
     @Test
-    fun `incrementQuantity calls updateItemQuantity with currentQuantity plus one`() = runTest {
-        coEvery { updateItemQuantityUseCase(1L, 1L, 4) } returns Unit
+    fun `incrementQuantity calls updateItemQuantity with assignmentId and currentQuantity plus one`() = runTest {
+        coEvery { updateItemQuantityUseCase(10L, 4) } returns Unit
 
-        viewModel.incrementQuantity(characterId = 1L, itemId = 1L, currentQuantity = 3)
+        viewModel.incrementQuantity(assignmentId = 10L, currentQuantity = 3)
 
-        coVerify { updateItemQuantityUseCase(1L, 1L, 4) }
+        coVerify { updateItemQuantityUseCase(10L, 4) }
     }
 
     @Test
     fun `decrementQuantity calls updateItemQuantity when currentQuantity is greater than one`() = runTest {
-        coEvery { updateItemQuantityUseCase(1L, 1L, 2) } returns Unit
+        coEvery { updateItemQuantityUseCase(10L, 2) } returns Unit
 
-        viewModel.decrementQuantity(characterId = 1L, itemId = 1L, currentQuantity = 3)
+        viewModel.decrementQuantity(assignmentId = 10L, currentQuantity = 3)
 
-        coVerify { updateItemQuantityUseCase(1L, 1L, 2) }
+        coVerify { updateItemQuantityUseCase(10L, 2) }
     }
 
     @Test
     fun `decrementQuantity unassigns item when currentQuantity is one`() = runTest {
-        coEvery { unassignItemFromCharacterUseCase(1L, 1L) } returns Unit
+        coEvery { unassignItemFromCharacterUseCase(10L) } returns Unit
 
-        viewModel.decrementQuantity(characterId = 1L, itemId = 1L, currentQuantity = 1)
+        viewModel.decrementQuantity(assignmentId = 10L, currentQuantity = 1)
 
-        coVerify { unassignItemFromCharacterUseCase(1L, 1L) }
-        coVerify(exactly = 0) { updateItemQuantityUseCase(any(), any(), any()) }
+        coVerify { unassignItemFromCharacterUseCase(10L) }
+        coVerify(exactly = 0) { updateItemQuantityUseCase(any(), any()) }
     }
 
     @Test
     fun `decrementQuantity unassigns item when currentQuantity is zero`() = runTest {
-        coEvery { unassignItemFromCharacterUseCase(1L, 1L) } returns Unit
+        coEvery { unassignItemFromCharacterUseCase(10L) } returns Unit
 
-        viewModel.decrementQuantity(characterId = 1L, itemId = 1L, currentQuantity = 0)
+        viewModel.decrementQuantity(assignmentId = 10L, currentQuantity = 0)
 
-        coVerify { unassignItemFromCharacterUseCase(1L, 1L) }
+        coVerify { unassignItemFromCharacterUseCase(10L) }
     }
 
     // --- Error handling ---
@@ -273,9 +267,9 @@ class ItemViewModelTest {
     @Test
     fun `unassignItem sets error on failure`() = runTest {
         val errorMessage = "Failed to unassign item"
-        coEvery { unassignItemFromCharacterUseCase(any(), any()) } throws Exception(errorMessage)
+        coEvery { unassignItemFromCharacterUseCase(any()) } throws Exception(errorMessage)
 
-        viewModel.unassignItem(characterId = 1L, itemId = 1L)
+        viewModel.unassignItem(assignmentId = 10L)
 
         viewModel.uiState.test {
             assertEquals(errorMessage, awaitItem().error)
@@ -285,9 +279,9 @@ class ItemViewModelTest {
     @Test
     fun `incrementQuantity sets error on failure`() = runTest {
         val errorMessage = "Failed to update quantity"
-        coEvery { updateItemQuantityUseCase(any(), any(), any()) } throws Exception(errorMessage)
+        coEvery { updateItemQuantityUseCase(any(), any()) } throws Exception(errorMessage)
 
-        viewModel.incrementQuantity(characterId = 1L, itemId = 1L, currentQuantity = 2)
+        viewModel.incrementQuantity(assignmentId = 10L, currentQuantity = 2)
 
         viewModel.uiState.test {
             assertEquals(errorMessage, awaitItem().error)
@@ -297,17 +291,14 @@ class ItemViewModelTest {
     @Test
     fun `decrementQuantity sets error on failure`() = runTest {
         val errorMessage = "Failed to decrement quantity"
-        coEvery { updateItemQuantityUseCase(any(), any(), any()) } throws Exception(errorMessage)
+        coEvery { updateItemQuantityUseCase(any(), any()) } throws Exception(errorMessage)
 
-        viewModel.decrementQuantity(characterId = 1L, itemId = 1L, currentQuantity = 3)
+        viewModel.decrementQuantity(assignmentId = 10L, currentQuantity = 3)
 
         viewModel.uiState.test {
             assertEquals(errorMessage, awaitItem().error)
         }
     }
 }
-
-
-
 
 

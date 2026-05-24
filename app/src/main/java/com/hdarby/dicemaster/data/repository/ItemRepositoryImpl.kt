@@ -38,18 +38,6 @@ class ItemRepositoryImpl(
                 }
             }
         }
-        externalScope.launch {
-            sessionRepository!!.observeSession().collectLatest { session ->
-                if (session == null) return@collectLatest
-                itemRemoteDataSource!!.observeCharacterItems(session.sessionId).collect { refs ->
-                    refs.forEach { ref ->
-                        itemDao.upsertCharacterItemCrossRef(
-                            CharacterItemCrossRef(ref.characterId, ref.itemId, ref.quantity)
-                        )
-                    }
-                }
-            }
-        }
     }
 
     override fun getAllItems(): Flow<List<ConsumableItem>> =
@@ -60,7 +48,7 @@ class ItemRepositoryImpl(
             assignments
                 .groupBy { it.characterId }
                 .mapValues { (_, entries) ->
-                    entries.map { CharacterItemEntry(item = it.item.toDomain(), quantity = it.quantity) }
+                    entries.map { CharacterItemEntry(assignmentId = it.assignmentId, item = it.item.toDomain(), quantity = it.quantity) }
                 }
         }
 
@@ -86,25 +74,15 @@ class ItemRepositoryImpl(
         }
     }
 
-    override suspend fun assignItemToCharacter(characterId: Long, itemId: Long, quantity: Int) {
-        itemDao.insertCharacterItemCrossRef(CharacterItemCrossRef(characterId, itemId, quantity))
-        sessionRepository?.getActiveSession()?.let { session ->
-            itemRemoteDataSource?.upsertCharacterItem(session.sessionId, characterId, itemId, quantity)
-        }
+    override suspend fun assignItemToCharacter(characterId: Long, itemId: Long, quantity: Int): Long =
+        itemDao.insertCharacterItemCrossRef(CharacterItemCrossRef(characterId = characterId, itemId = itemId, quantity = quantity))
+
+    override suspend fun unassignItemFromCharacter(assignmentId: Long) {
+        itemDao.deleteCharacterItemCrossRef(assignmentId)
     }
 
-    override suspend fun unassignItemFromCharacter(characterId: Long, itemId: Long) {
-        itemDao.deleteCharacterItemCrossRef(characterId, itemId)
-        sessionRepository?.getActiveSession()?.let { session ->
-            itemRemoteDataSource?.deleteCharacterItem(session.sessionId, characterId, itemId)
-        }
-    }
-
-    override suspend fun updateItemQuantity(characterId: Long, itemId: Long, quantity: Int) {
-        itemDao.updateQuantity(characterId, itemId, quantity)
-        sessionRepository?.getActiveSession()?.let { session ->
-            itemRemoteDataSource?.updateCharacterItemQuantity(session.sessionId, characterId, itemId, quantity)
-        }
+    override suspend fun updateItemQuantity(assignmentId: Long, quantity: Int) {
+        itemDao.updateQuantity(assignmentId, quantity)
     }
 
     private fun ItemEntity.toDomain() = ConsumableItem(
@@ -115,4 +93,3 @@ class ItemRepositoryImpl(
         id = id, name = name, description = description, totalQuantity = totalQuantity
     )
 }
-

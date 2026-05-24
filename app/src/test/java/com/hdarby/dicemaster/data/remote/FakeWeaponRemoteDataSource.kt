@@ -12,33 +12,21 @@ class FakeWeaponRemoteDataSource : WeaponRemoteDataSource {
 
     var upsertCallCount = 0
     var deleteCallCount = 0
-    var assignmentCallCount = 0
     var lastUpsertedSessionId: String? = null
-    var lastAssignment: Triple<String, Long, Long?>? = null  // sessionId, weaponId, characterId
 
     override suspend fun upsertWeapon(sessionId: String, weapon: Weapon) {
         upsertCallCount++
         lastUpsertedSessionId = sessionId
         val current = _weapons.value.toMutableList()
         val existing = current.indexOfFirst { it.weapon.id == weapon.id }
-        val characterId = if (existing >= 0) current[existing].characterId else null
-        if (existing >= 0) current[existing] = RemoteWeapon(weapon, characterId)
-        else current.add(RemoteWeapon(weapon, null))
+        if (existing >= 0) current[existing] = RemoteWeapon(weapon)
+        else current.add(RemoteWeapon(weapon))
         _weapons.value = current
     }
 
     override suspend fun deleteWeapon(sessionId: String, weaponId: Long) {
         deleteCallCount++
         _weapons.value = _weapons.value.filter { it.weapon.id != weaponId }
-    }
-
-    override suspend fun updateWeaponAssignment(sessionId: String, weaponId: Long, characterId: Long?) {
-        assignmentCallCount++
-        lastAssignment = Triple(sessionId, weaponId, characterId)
-        val current = _weapons.value.toMutableList()
-        val idx = current.indexOfFirst { it.weapon.id == weaponId }
-        if (idx >= 0) current[idx] = current[idx].copy(characterId = characterId)
-        _weapons.value = current
     }
 
     override fun observeWeapons(sessionId: String): Flow<List<RemoteWeapon>> = _weapons.asStateFlow()
@@ -48,4 +36,5 @@ class FakeWeaponRemoteDataSource : WeaponRemoteDataSource {
         _weapons.value = remoteWeapons.toList()
     }
 }
+
 

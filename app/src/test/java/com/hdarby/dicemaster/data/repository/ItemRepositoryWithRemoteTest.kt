@@ -1,10 +1,8 @@
 package com.hdarby.dicemaster.data.repository
 
 import com.hdarby.dicemaster.data.local.dao.ItemDao
-import com.hdarby.dicemaster.data.local.entity.CharacterItemCrossRef
 import com.hdarby.dicemaster.data.local.entity.ItemEntity
 import com.hdarby.dicemaster.data.remote.FakeItemRemoteDataSource
-import com.hdarby.dicemaster.data.remote.RemoteCharacterItem
 import com.hdarby.dicemaster.domain.model.ConsumableItem
 import com.hdarby.dicemaster.domain.model.Session
 import com.hdarby.dicemaster.domain.model.UserRole
@@ -108,61 +106,36 @@ class ItemRepositoryWithRemoteTest {
     // ── assignItemToCharacter ─────────────────────────────────────────────────
 
     @Test
-    fun `assignItemToCharacter - session active - upserts cross-ref to remote`() = runTest {
-        coEvery { sessionRepository.getActiveSession() } returns activeSession
+    fun `assignItemToCharacter - inserts cross-ref in local DAO and returns assignmentId`() = runTest {
+        coEvery { itemDao.insertCharacterItemCrossRef(any()) } returns 7L
         every { sessionRepository.observeSession() } returns flowOf(null)
 
-        buildRepo().assignItemToCharacter(characterId = 1L, itemId = 2L, quantity = 3)
+        val assignmentId = buildRepo().assignItemToCharacter(characterId = 1L, itemId = 2L, quantity = 3)
 
-        coVerify { itemDao.insertCharacterItemCrossRef(CharacterItemCrossRef(1L, 2L, 3)) }
-        assertEquals(1, itemRemote.upsertCharacterItemCallCount)
-    }
-
-    @Test
-    fun `assignItemToCharacter - no session - skips remote`() = runTest {
-        coEvery { sessionRepository.getActiveSession() } returns null
-        every { sessionRepository.observeSession() } returns flowOf(null)
-
-        buildRepo().assignItemToCharacter(characterId = 1L, itemId = 2L, quantity = 3)
-
-        assertEquals(0, itemRemote.upsertCharacterItemCallCount)
+        assertEquals(7L, assignmentId)
+        coVerify { itemDao.insertCharacterItemCrossRef(match { it.characterId == 1L && it.itemId == 2L && it.quantity == 3 }) }
     }
 
     // ── unassignItemFromCharacter ─────────────────────────────────────────────
 
     @Test
-    fun `unassignItemFromCharacter - session active - deletes cross-ref from remote`() = runTest {
-        coEvery { sessionRepository.getActiveSession() } returns activeSession
+    fun `unassignItemFromCharacter - deletes cross-ref by assignmentId in local DAO`() = runTest {
         every { sessionRepository.observeSession() } returns flowOf(null)
 
-        buildRepo().unassignItemFromCharacter(characterId = 1L, itemId = 2L)
+        buildRepo().unassignItemFromCharacter(assignmentId = 5L)
 
-        coVerify { itemDao.deleteCharacterItemCrossRef(1L, 2L) }
-        assertEquals(1, itemRemote.deleteCharacterItemCallCount)
+        coVerify { itemDao.deleteCharacterItemCrossRef(5L) }
     }
 
     // ── updateItemQuantity ────────────────────────────────────────────────────
 
     @Test
-    fun `updateItemQuantity - session active - updates remote quantity`() = runTest {
-        coEvery { sessionRepository.getActiveSession() } returns activeSession
+    fun `updateItemQuantity - updates quantity for assignmentId in local DAO`() = runTest {
         every { sessionRepository.observeSession() } returns flowOf(null)
 
-        buildRepo().updateItemQuantity(characterId = 1L, itemId = 2L, quantity = 5)
+        buildRepo().updateItemQuantity(assignmentId = 10L, quantity = 5)
 
-        coVerify { itemDao.updateQuantity(1L, 2L, 5) }
-        assertEquals(1, itemRemote.updateQuantityCallCount)
-        assertEquals(Triple(1L, 2L, 5), itemRemote.lastQuantityUpdate)
-    }
-
-    @Test
-    fun `updateItemQuantity - no session - skips remote`() = runTest {
-        coEvery { sessionRepository.getActiveSession() } returns null
-        every { sessionRepository.observeSession() } returns flowOf(null)
-
-        buildRepo().updateItemQuantity(characterId = 1L, itemId = 2L, quantity = 5)
-
-        assertEquals(0, itemRemote.updateQuantityCallCount)
+        coVerify { itemDao.updateQuantity(10L, 5) }
     }
 
     // ── remote snapshot sync ──────────────────────────────────────────────────
@@ -176,17 +149,6 @@ class ItemRepositoryWithRemoteTest {
         itemRemote.simulateRemoteItemUpdate(testItem)
 
         coVerify { itemDao.insertItem(match { it.name == "Healing Potion" }) }
-    }
-
-    @Test
-    fun `remote character item snapshot - upserts cross-ref to Room`() = runTest {
-        every { sessionRepository.observeSession() } returns flowOf(activeSession)
-
-        buildRepo()
-
-        itemRemote.simulateRemoteCharacterItemUpdate(RemoteCharacterItem(1L, 2L, 4))
-
-        coVerify { itemDao.upsertCharacterItemCrossRef(CharacterItemCrossRef(1L, 2L, 4)) }
     }
 
     @Test
@@ -215,4 +177,7 @@ class ItemRepositoryWithRemoteTest {
         assertEquals("Healing Potion", result[0][0].name)
     }
 }
+
+
+
 

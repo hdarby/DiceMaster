@@ -19,11 +19,6 @@ class FirestoreWeaponDataSource(
         weaponsCollection(sessionId).document(weaponId.toString()).delete().await()
     }
 
-    override suspend fun updateWeaponAssignment(sessionId: String, weaponId: Long, characterId: Long?) {
-        val update = mapOf(FIELD_CHARACTER_ID to characterId)
-        weaponsCollection(sessionId).document(weaponId.toString()).update(update).await()
-    }
-
     override fun observeWeapons(sessionId: String): Flow<List<RemoteWeapon>> = callbackFlow {
         val listener = weaponsCollection(sessionId).addSnapshotListener { snapshot, error ->
             if (error != null) {
@@ -46,7 +41,7 @@ class FirestoreWeaponDataSource(
         FIELD_DAMAGE_DICE to damageDice,
         FIELD_DAMAGE_TYPE to damageType,
         FIELD_MODIFIER to modifier,
-        FIELD_CHARACTER_ID to null
+        FIELD_IS_ATOMIC to isAtomic
     )
 
     private fun com.google.firebase.firestore.DocumentSnapshot.toRemoteWeapon(): RemoteWeapon? {
@@ -56,10 +51,9 @@ class FirestoreWeaponDataSource(
         val damageDice = getString(FIELD_DAMAGE_DICE) ?: return null
         val damageType = getString(FIELD_DAMAGE_TYPE) ?: return null
         val modifier = getLong(FIELD_MODIFIER)?.toInt() ?: 0
-        val characterId = getLong(FIELD_CHARACTER_ID)
+        val isAtomic = getBoolean(FIELD_IS_ATOMIC) ?: true
         return RemoteWeapon(
-            weapon = Weapon(id = id, name = name, type = type, damageDice = damageDice, damageType = damageType, modifier = modifier),
-            characterId = characterId
+            weapon = Weapon(id = id, name = name, type = type, damageDice = damageDice, damageType = damageType, modifier = modifier, isAtomic = isAtomic)
         )
     }
 
@@ -72,7 +66,6 @@ class FirestoreWeaponDataSource(
         private const val FIELD_DAMAGE_DICE = "damageDice"
         private const val FIELD_DAMAGE_TYPE = "damageType"
         private const val FIELD_MODIFIER = "modifier"
-        private const val FIELD_CHARACTER_ID = "characterId"
+        private const val FIELD_IS_ATOMIC = "isAtomic"
     }
 }
-

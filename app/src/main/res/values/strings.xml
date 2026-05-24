@@ -118,4 +118,11 @@
     <string name="nav_label_items">Items</string>
     <string name="nav_label_session_setup">Session</string>
     <string name="nav_label_debug">Debug</string>
+
+    <!-- Weapon atomic flag -->
+    <string name="label_weapon_atomic">Unique</string>
+    <string name="label_weapon_atomic_checkbox">Unique (atomic) weapon</string>
+    <string name="label_weapon_atomic_desc">When checked, only one character can hold this weapon.</string>
+    <string name="content_desc_unassign_weapon">Unassign weapon</string>
+    <string name="label_no_weapons_to_assign">No weapons available. Add weapons in the Weapons screen first.</string>
 </resources>

@@ -6,6 +6,7 @@ import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.usecase.character.AddCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.AssignWeaponToCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
@@ -28,6 +29,7 @@ class CharacterViewModel(
     private val updateCharacterUseCase: UpdateCharacterUseCase,
     private val deleteCharacterUseCase: DeleteCharacterUseCase,
     private val unassignWeaponFromCharacterUseCase: UnassignWeaponFromCharacterUseCase,
+    private val assignWeaponToCharacterUseCase: AssignWeaponToCharacterUseCase,
     private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
@@ -87,10 +89,20 @@ class CharacterViewModel(
         }
     }
 
-    fun unassignWeapon(characterId: Long, weaponId: Long) {
+    fun assignWeapon(characterId: Long, weaponId: Long) {
         viewModelScope.launch {
             try {
-                unassignWeaponFromCharacterUseCase(characterId, weaponId)
+                assignWeaponToCharacterUseCase(characterId, weaponId)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun unassignWeapon(assignmentId: Long) {
+        viewModelScope.launch {
+            try {
+                unassignWeaponFromCharacterUseCase(assignmentId)
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }
