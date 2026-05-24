@@ -16,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -92,7 +93,7 @@ fun MainContainer(sessionViewModel: SessionViewModel = koinViewModel()) {
                         NavigationBarItem(
                             modifier = Modifier.testTag("nav_item_${screen.route}"),
                             icon = { Icon(screen.icon, contentDescription = null) },
-                            label = { Text(screen.label) },
+                            label = { Text(stringResource(screen.labelRes)) },
                             selected = navBackStackEntry?.destination?.hierarchy?.any {
                                 it.route?.substringBefore("?") == screen.route
                             } == true,

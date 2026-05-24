@@ -110,4 +110,12 @@
     <string name="session_select_character_subtitle">Select the character you will be playing in this session.</string>
     <string name="session_no_characters">No characters found. Ask your DM to add characters, or go to the Characters screen to create one first.</string>
     <string name="session_error_title">Session Error</string>
+
+    <!-- Navigation Bar Labels -->
+    <string name="nav_label_roller">Roller</string>
+    <string name="nav_label_characters">Characters</string>
+    <string name="nav_label_weapons">Weapons</string>
+    <string name="nav_label_items">Items</string>
+    <string name="nav_label_session_setup">Session</string>
+    <string name="nav_label_debug">Debug</string>
 </resources>
