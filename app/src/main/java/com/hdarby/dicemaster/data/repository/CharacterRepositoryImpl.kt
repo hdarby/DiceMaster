@@ -7,6 +7,7 @@ import com.hdarby.dicemaster.data.local.entity.CharacterWeaponCrossRef
 import com.hdarby.dicemaster.data.remote.CharacterRemoteDataSource
 import com.hdarby.dicemaster.data.remote.WeaponRemoteDataSource
 import com.hdarby.dicemaster.domain.model.Character
+import com.hdarby.dicemaster.domain.model.CharacterClass
 import com.hdarby.dicemaster.domain.model.CharacterWeaponEntry
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
@@ -103,6 +104,7 @@ class CharacterRepositoryImpl(
 
     private fun CharacterEntity.toDomain() = Character(
         id = id, name = name, race = race,
+        characterClass = characterClass?.let { runCatching { CharacterClass.valueOf(it) }.getOrNull() },
         stats = Stats(
             strength = strength, strengthModifier = strengthModifier,
             dexterity = dexterity, dexterityModifier = dexterityModifier,
@@ -119,6 +121,7 @@ class CharacterRepositoryImpl(
 
     private fun Character.toEntity() = CharacterEntity(
         id = id, name = name, race = race,
+        characterClass = characterClass?.name,
         strength = stats.strength, strengthModifier = stats.strengthModifier,
         dexterity = stats.dexterity, dexterityModifier = stats.dexterityModifier,
         constitution = stats.constitution, constitutionModifier = stats.constitutionModifier,

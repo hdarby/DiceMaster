@@ -2,6 +2,7 @@ package com.hdarby.dicemaster.data.remote
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.hdarby.dicemaster.domain.model.Character
+import com.hdarby.dicemaster.domain.model.CharacterClass
 import com.hdarby.dicemaster.domain.model.Stats
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -17,6 +18,7 @@ class FirestoreCharacterDataSource(
             FIELD_ID to character.id,
             FIELD_NAME to character.name,
             FIELD_RACE to character.race,
+            FIELD_CHARACTER_CLASS to character.characterClass?.name,
             FIELD_STRENGTH to character.stats.strength,
             FIELD_STRENGTH_MOD to character.stats.strengthModifier,
             FIELD_DEXTERITY to character.stats.dexterity,
@@ -28,7 +30,11 @@ class FirestoreCharacterDataSource(
             FIELD_WISDOM to character.stats.wisdom,
             FIELD_WISDOM_MOD to character.stats.wisdomModifier,
             FIELD_CHARISMA to character.stats.charisma,
-            FIELD_CHARISMA_MOD to character.stats.charismaModifier
+            FIELD_CHARISMA_MOD to character.stats.charismaModifier,
+            FIELD_MAX_HIT_POINTS to character.maxHitPoints,
+            FIELD_CURRENT_HIT_POINTS to character.currentHitPoints,
+            FIELD_DEATH_SAVE_FAILURES to character.deathSaveFailures,
+            FIELD_IS_DEAD to character.isDead
         )
         charactersCollection(sessionId).document(character.id.toString()).set(data).await()
     }
@@ -60,6 +66,8 @@ class FirestoreCharacterDataSource(
             id = id,
             name = name,
             race = race,
+            characterClass = getString(FIELD_CHARACTER_CLASS)
+                ?.let { runCatching { CharacterClass.valueOf(it) }.getOrNull() },
             stats = Stats(
                 strength = getLong(FIELD_STRENGTH)?.toInt() ?: 10,
                 strengthModifier = getLong(FIELD_STRENGTH_MOD)?.toInt() ?: 0,
@@ -87,6 +95,7 @@ class FirestoreCharacterDataSource(
         private const val FIELD_ID = "id"
         private const val FIELD_NAME = "name"
         private const val FIELD_RACE = "race"
+        private const val FIELD_CHARACTER_CLASS = "characterClass"
         private const val FIELD_STRENGTH = "strength"
         private const val FIELD_STRENGTH_MOD = "strengthModifier"
         private const val FIELD_DEXTERITY = "dexterity"
@@ -105,5 +114,3 @@ class FirestoreCharacterDataSource(
         private const val FIELD_IS_DEAD = "isDead"
     }
 }
-
-

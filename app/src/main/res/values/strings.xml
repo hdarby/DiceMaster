@@ -138,4 +138,9 @@
     <string name="button_mark_dead">Mark as Dead</string>
     <string name="content_desc_heal">Heal</string>
     <string name="content_desc_damage">Deal damage</string>
+
+    <!-- Character Class -->
+    <string name="label_character_class">Class</string>
+    <string name="label_no_class">No class selected</string>
+    <string name="label_class_hit_die">%1$s · %2$s</string>
 </resources>

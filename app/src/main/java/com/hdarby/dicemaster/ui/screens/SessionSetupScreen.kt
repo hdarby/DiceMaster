@@ -478,8 +478,8 @@ private fun SessionSetupJoinPreview() {
 @Composable
 private fun SessionSetupSelectCharacterPreview() {
     val characters = listOf(
-        Character(1, "Grog", "Goliath", Stats(20, 5, 12, 1, 18, 4, 6, -2, 10, 0, 8, -1)),
-        Character(2, "Vex", "Half-Elf", Stats(12, 1, 18, 4, 14, 2, 14, 2, 14, 2, 16, 3))
+        Character(id = 1, name = "Grog", race = "Goliath", stats = Stats(20, 5, 12, 1, 18, 4, 6, -2, 10, 0, 8, -1)),
+        Character(id = 2, name = "Vex", race = "Half-Elf", stats = Stats(12, 1, 18, 4, 14, 2, 14, 2, 14, 2, 16, 3))
     )
     DiceMasterTheme {
         SessionSetupContent(
@@ -498,6 +498,7 @@ private fun SessionSetupSelectCharacterPreview() {
         )
     }
 }
+
 
 
 

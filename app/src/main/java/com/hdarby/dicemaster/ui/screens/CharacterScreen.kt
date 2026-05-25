@@ -28,6 +28,10 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.HeartBroken
 import androidx.compose.material.icons.filled.RemoveCircleOutline
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -65,6 +69,7 @@ import com.hdarby.dicemaster.R
 import com.hdarby.dicemaster.ui.theme.PrimaryGreen
 import com.hdarby.dicemaster.ui.theme.PrimaryGreenDark
 import com.hdarby.dicemaster.domain.model.Character
+import com.hdarby.dicemaster.domain.model.CharacterClass
 import com.hdarby.dicemaster.domain.model.CharacterItemEntry
 import com.hdarby.dicemaster.domain.model.CharacterWeaponEntry
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
@@ -283,6 +288,13 @@ fun CharacterCard(
                         fontWeight = FontWeight.Bold
                     )
                     Text(text = character.race, style = MaterialTheme.typography.bodyMedium)
+                    character.characterClass?.let { cls ->
+                        Text(
+                            text = stringResource(R.string.label_class_hit_die, cls.displayName, cls.hitDieLabel),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
                 if (isDungeonMaster) {
                     Row {
@@ -587,6 +599,8 @@ fun AddEditCharacterDialog(
     var cha by remember { mutableStateOf(character?.stats?.charisma?.toString() ?: "10") }
     var chaMod by remember { mutableStateOf(character?.stats?.charismaModifier?.toString() ?: "0") }
     var maxHp by remember { mutableStateOf(character?.maxHitPoints?.toString() ?: "10") }
+    var selectedClass by remember { mutableStateOf(character?.characterClass) }
+    var classDropdownExpanded by remember { mutableStateOf(false) }
 
     val isValidInput = { it: String -> it.isEmpty() || it == "-" || it.toIntOrNull() != null }
 
@@ -608,6 +622,48 @@ fun AddEditCharacterDialog(
                         label = { Text(stringResource(R.string.label_max_hp)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
+                }
+                item {
+                    ExposedDropdownMenuBox(
+                        expanded = classDropdownExpanded,
+                        onExpandedChange = { classDropdownExpanded = !classDropdownExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedClass?.let {
+                                stringResource(R.string.label_class_hit_die, it.displayName, it.hitDieLabel)
+                            } ?: stringResource(R.string.label_no_class),
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(R.string.label_character_class)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = classDropdownExpanded) },
+                            modifier = Modifier
+                                .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = classDropdownExpanded,
+                            onDismissRequest = { classDropdownExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.label_no_class)) },
+                                onClick = {
+                                    selectedClass = null
+                                    classDropdownExpanded = false
+                                }
+                            )
+                            CharacterClass.entries.forEach { cls ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(stringResource(R.string.label_class_hit_die, cls.displayName, cls.hitDieLabel))
+                                    },
+                                    onClick = {
+                                        selectedClass = cls
+                                        classDropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -671,6 +727,7 @@ fun AddEditCharacterDialog(
                         id = character?.id ?: 0,
                         name = name,
                         race = race,
+                        characterClass = selectedClass,
                         stats = stats,
                         maxHitPoints = newMaxHp,
                         currentHitPoints = newCurrentHp,
