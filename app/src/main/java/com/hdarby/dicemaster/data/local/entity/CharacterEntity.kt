@@ -20,6 +20,7 @@ data class CharacterEntity(
     val wisdomModifier: Int = 0,
     val charisma: Int,
      val charismaModifier: Int = 0,
+    val armorClass: Int = 10,
     val maxHitPoints: Int = 10,
     val currentHitPoints: Int = 10,
     val deathSaveFailures: Int = 0,

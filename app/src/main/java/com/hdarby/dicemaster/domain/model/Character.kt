@@ -7,6 +7,7 @@ data class Character(
     val characterClass: CharacterClass? = null,
     val level: Int = 1,
     val stats: Stats,
+    val armorClass: Int = 10,
     val maxHitPoints: Int = 10,
     val currentHitPoints: Int = maxHitPoints,
     val deathSaveFailures: Int = 0,

@@ -117,6 +117,7 @@ class CharacterRepositoryImpl(
             wisdom = wisdom, wisdomModifier = wisdomModifier,
             charisma = charisma, charismaModifier = charismaModifier
         ),
+        armorClass = armorClass,
         maxHitPoints = maxHitPoints,
         currentHitPoints = currentHitPoints,
         deathSaveFailures = deathSaveFailures,
@@ -133,6 +134,7 @@ class CharacterRepositoryImpl(
         intelligence = stats.intelligence, intelligenceModifier = stats.intelligenceModifier,
         wisdom = stats.wisdom, wisdomModifier = stats.wisdomModifier,
         charisma = stats.charisma, charismaModifier = stats.charismaModifier,
+        armorClass = armorClass,
         maxHitPoints = maxHitPoints,
         currentHitPoints = currentHitPoints,
         deathSaveFailures = deathSaveFailures,

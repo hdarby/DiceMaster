@@ -149,4 +149,8 @@
     <!-- Level -->
     <string name="label_level">Level %1$d</string>
     <string name="content_desc_level_up">Level up</string>
+
+    <!-- Armor Class -->
+    <string name="label_armor_class">Armor Class</string>
+    <string name="label_ac_value">AC %1$d</string>
 </resources>

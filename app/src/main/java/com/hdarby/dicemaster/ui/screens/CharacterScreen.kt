@@ -284,11 +284,29 @@ fun CharacterCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(
-                        text = character.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = character.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Surface(
+                            shape = MaterialTheme.shapes.small,
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            tonalElevation = 2.dp
+                        ) {
+                            Text(
+                                text = stringResource(R.string.label_ac_value, character.armorClass),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
                     Text(text = character.race, style = MaterialTheme.typography.bodyMedium)
                     character.characterClass?.let { cls ->
                         Text(
@@ -600,6 +618,7 @@ fun AddEditCharacterDialog(
 ) {
     var name by remember { mutableStateOf(character?.name ?: "") }
     var race by remember { mutableStateOf(character?.race ?: "") }
+    var armorClass by remember { mutableStateOf(character?.armorClass?.toString() ?: "10") }
     var str by remember { mutableStateOf(character?.stats?.strength?.toString() ?: "10") }
     var strMod by remember { mutableStateOf(character?.stats?.strengthModifier?.toString() ?: "0") }
     var dex by remember { mutableStateOf(character?.stats?.dexterity?.toString() ?: "10") }
@@ -634,6 +653,14 @@ fun AddEditCharacterDialog(
                         value = maxHp,
                         onValueChange = { if (it.isEmpty() || it.toIntOrNull() != null) maxHp = it },
                         label = { Text(stringResource(R.string.label_max_hp)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                }
+                item {
+                    OutlinedTextField(
+                        value = armorClass,
+                        onValueChange = { if (it.isEmpty() || it.toIntOrNull() != null) armorClass = it },
+                        label = { Text(stringResource(R.string.label_armor_class)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                 }
@@ -747,6 +774,7 @@ fun AddEditCharacterDialog(
                         race = race,
                         characterClass = selectedClass,
                         stats = stats,
+                        armorClass = armorClass.toIntOrNull()?.coerceAtLeast(0) ?: 10,
                         maxHitPoints = newMaxHp,
                         currentHitPoints = newCurrentHp,
                         deathSaveFailures = character?.deathSaveFailures ?: 0,
