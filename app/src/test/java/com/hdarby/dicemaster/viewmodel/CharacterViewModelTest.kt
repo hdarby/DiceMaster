@@ -294,4 +294,23 @@ class CharacterViewModelTest {
             assertEquals(errorMessage, awaitItem().error)
         }
     }
+
+    // ── Armor Class ──────────────────────────────────────────────────────────
+
+    @Test
+    fun `character armorClass is exposed correctly in uiState`() = runTest {
+        val characterWithCustomAc = Character(
+            id = 2, name = "Zariel", race = "Aasimar",
+            stats = Stats(16, 3, 14, 2, 12, 1, 10, 0, 12, 1, 18, 4),
+            armorClass = 19
+        )
+        val cwwWithAc = CharacterWithWeapons(characterWithCustomAc, emptyList())
+        every { getCharactersWithWeaponsUseCase() } returns flowOf(listOf(cwwWithAc))
+        every { sessionRepository.observeSession() } returns flowOf(null)
+        val vm = buildViewModel()
+
+        vm.uiState.test {
+            assertEquals(19, awaitItem().characters[0].character.armorClass)
+        }
+    }
 }

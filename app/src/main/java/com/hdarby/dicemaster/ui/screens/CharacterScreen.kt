@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.HeartBroken
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.DropdownMenuItem
@@ -72,7 +71,6 @@ import com.hdarby.dicemaster.ui.theme.PrimaryGreenDark
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.CharacterClass
 import com.hdarby.dicemaster.domain.model.CharacterItemEntry
-import com.hdarby.dicemaster.domain.model.CharacterWeaponEntry
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.ConsumableItem
 import com.hdarby.dicemaster.domain.model.Stats
@@ -891,7 +889,13 @@ fun AssignWeaponToCharacterDialog(
                             },
                             supportingContent = {
                                 Text(
-                                    text = "${weapon.damageDice.displayName} ${weapon.damageType.displayName} · ${if (weapon.toHitBonus >= 0) "+" else ""}${weapon.toHitBonus} to hit · ${if (weapon.damageModifier >= 0) "+" else ""}${weapon.damageModifier} dmg",
+                                    text = stringResource(
+                                        R.string.format_weapon_damage_details,
+                                        weapon.damageDice.displayName,
+                                        weapon.damageType.displayName,
+                                        weapon.toHitBonus,
+                                        weapon.damageModifier
+                                    ),
                                     color = if (isDisabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                                             else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
