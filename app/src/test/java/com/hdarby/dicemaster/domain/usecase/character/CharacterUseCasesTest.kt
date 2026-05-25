@@ -2,6 +2,7 @@ package com.hdarby.dicemaster.domain.usecase.character
 
 import app.cash.turbine.test
 import com.hdarby.dicemaster.domain.model.Character
+import com.hdarby.dicemaster.domain.model.CharacterClass
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.repository.CharacterRepository
@@ -207,6 +208,64 @@ class CharacterUseCasesTest {
         coVerify {
             repository.updateCharacter(match {
                 it.isDead && it.deathSaveFailures == 3 && it.currentHitPoints == 0
+            })
+        }
+    }
+
+    // ── LevelUpCharacterUseCase ──────────────────────────────────────────────
+
+    @Test
+    fun `LevelUpCharacterUseCase increments level and adds hit die to max and current HP`() = runTest {
+        val useCase = LevelUpCharacterUseCase(repository)
+        val char = character.copy(
+            characterClass = CharacterClass.BARBARIAN,
+            level = 1,
+            maxHitPoints = 12,
+            currentHitPoints = 12
+        )
+        coEvery { repository.updateCharacter(any()) } returns Unit
+
+        useCase(char)
+
+        coVerify {
+            repository.updateCharacter(match {
+                it.level == 2 && it.maxHitPoints == 24 && it.currentHitPoints == 24
+            })
+        }
+    }
+
+    @Test
+    fun `LevelUpCharacterUseCase does not add HP when no class is assigned`() = runTest {
+        val useCase = LevelUpCharacterUseCase(repository)
+        val char = character.copy(characterClass = null, level = 1, maxHitPoints = 10, currentHitPoints = 10)
+        coEvery { repository.updateCharacter(any()) } returns Unit
+
+        useCase(char)
+
+        coVerify {
+            repository.updateCharacter(match {
+                it.level == 2 && it.maxHitPoints == 10 && it.currentHitPoints == 10
+            })
+        }
+    }
+
+    @Test
+    fun `LevelUpCharacterUseCase caps current HP at new max when character is damaged`() = runTest {
+        val useCase = LevelUpCharacterUseCase(repository)
+        val char = character.copy(
+            characterClass = CharacterClass.WIZARD,
+            level = 2,
+            maxHitPoints = 12,
+            currentHitPoints = 5
+        )
+        coEvery { repository.updateCharacter(any()) } returns Unit
+
+        useCase(char)
+
+        // Wizard hit die = 6; new max = 18, new current = 5 + 6 = 11
+        coVerify {
+            repository.updateCharacter(match {
+                it.level == 3 && it.maxHitPoints == 18 && it.currentHitPoints == 11
             })
         }
     }

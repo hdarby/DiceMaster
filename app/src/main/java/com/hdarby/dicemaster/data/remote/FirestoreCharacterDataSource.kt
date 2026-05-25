@@ -19,6 +19,7 @@ class FirestoreCharacterDataSource(
             FIELD_NAME to character.name,
             FIELD_RACE to character.race,
             FIELD_CHARACTER_CLASS to character.characterClass?.name,
+            FIELD_LEVEL to character.level,
             FIELD_STRENGTH to character.stats.strength,
             FIELD_STRENGTH_MOD to character.stats.strengthModifier,
             FIELD_DEXTERITY to character.stats.dexterity,
@@ -68,6 +69,7 @@ class FirestoreCharacterDataSource(
             race = race,
             characterClass = getString(FIELD_CHARACTER_CLASS)
                 ?.let { runCatching { CharacterClass.valueOf(it) }.getOrNull() },
+            level = getLong(FIELD_LEVEL)?.toInt() ?: 1,
             stats = Stats(
                 strength = getLong(FIELD_STRENGTH)?.toInt() ?: 10,
                 strengthModifier = getLong(FIELD_STRENGTH_MOD)?.toInt() ?: 0,
@@ -96,6 +98,7 @@ class FirestoreCharacterDataSource(
         private const val FIELD_NAME = "name"
         private const val FIELD_RACE = "race"
         private const val FIELD_CHARACTER_CLASS = "characterClass"
+        private const val FIELD_LEVEL = "level"
         private const val FIELD_STRENGTH = "strength"
         private const val FIELD_STRENGTH_MOD = "strengthModifier"
         private const val FIELD_DEXTERITY = "dexterity"
@@ -114,3 +117,6 @@ class FirestoreCharacterDataSource(
         private const val FIELD_IS_DEAD = "isDead"
     }
 }
+
+
+

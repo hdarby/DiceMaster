@@ -105,6 +105,7 @@ class CharacterRepositoryImpl(
     private fun CharacterEntity.toDomain() = Character(
         id = id, name = name, race = race,
         characterClass = characterClass?.let { runCatching { CharacterClass.valueOf(it) }.getOrNull() },
+        level = level,
         stats = Stats(
             strength = strength, strengthModifier = strengthModifier,
             dexterity = dexterity, dexterityModifier = dexterityModifier,
@@ -122,6 +123,7 @@ class CharacterRepositoryImpl(
     private fun Character.toEntity() = CharacterEntity(
         id = id, name = name, race = race,
         characterClass = characterClass?.name,
+        level = level,
         strength = stats.strength, strengthModifier = stats.strengthModifier,
         dexterity = stats.dexterity, dexterityModifier = stats.dexterityModifier,
         constitution = stats.constitution, constitutionModifier = stats.constitutionModifier,

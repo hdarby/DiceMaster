@@ -34,6 +34,7 @@ import com.hdarby.dicemaster.domain.usecase.character.DamageCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.character.HealCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.LevelUpCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.MarkCharacterDeadUseCase
 import com.hdarby.dicemaster.domain.usecase.character.SetDeathSaveFailuresUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
@@ -109,6 +110,7 @@ val appModule = module {
     factory { DamageCharacterUseCase(get()) }
     factory { SetDeathSaveFailuresUseCase(get()) }
     factory { MarkCharacterDeadUseCase(get()) }
+    factory { LevelUpCharacterUseCase(get()) }
 
     // Weapon Use Cases
     factory { GetWeaponsUseCase(get()) }
@@ -128,7 +130,7 @@ val appModule = module {
 
     // ViewModels
     viewModel { DiceViewModel(get(), get()) }
-    viewModel { CharacterViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { CharacterViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { WeaponViewModel(get(), get(), get(), get(), get()) }
     viewModel { ItemViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { DebugViewModel() }

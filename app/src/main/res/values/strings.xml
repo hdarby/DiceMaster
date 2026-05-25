@@ -143,4 +143,8 @@
     <string name="label_character_class">Class</string>
     <string name="label_no_class">No class selected</string>
     <string name="label_class_hit_die">%1$s · %2$s</string>
+
+    <!-- Level -->
+    <string name="label_level">Level %1$d</string>
+    <string name="content_desc_level_up">Level up</string>
 </resources>

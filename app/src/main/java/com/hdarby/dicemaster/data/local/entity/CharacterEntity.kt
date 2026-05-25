@@ -24,5 +24,6 @@ data class CharacterEntity(
     val currentHitPoints: Int = 10,
     val deathSaveFailures: Int = 0,
     val isDead: Boolean = false,
-    val characterClass: String? = null
+    val characterClass: String? = null,
+    val level: Int = 1
 )

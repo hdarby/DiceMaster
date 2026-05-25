@@ -11,6 +11,7 @@ import com.hdarby.dicemaster.domain.usecase.character.DamageCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.character.HealCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.LevelUpCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.MarkCharacterDeadUseCase
 import com.hdarby.dicemaster.domain.usecase.character.SetDeathSaveFailuresUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
@@ -38,7 +39,8 @@ class CharacterViewModel(
     private val healCharacterUseCase: HealCharacterUseCase,
     private val damageCharacterUseCase: DamageCharacterUseCase,
     private val setDeathSaveFailuresUseCase: SetDeathSaveFailuresUseCase,
-    private val markCharacterDeadUseCase: MarkCharacterDeadUseCase
+    private val markCharacterDeadUseCase: MarkCharacterDeadUseCase,
+    private val levelUpCharacterUseCase: LevelUpCharacterUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CharacterUiState())
@@ -151,6 +153,16 @@ class CharacterViewModel(
         viewModelScope.launch {
             try {
                 markCharacterDeadUseCase(character)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun levelUp(character: Character) {
+        viewModelScope.launch {
+            try {
+                levelUpCharacterUseCase(character)
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }

@@ -11,6 +11,7 @@ import com.hdarby.dicemaster.domain.usecase.character.DamageCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.character.HealCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.LevelUpCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.MarkCharacterDeadUseCase
 import com.hdarby.dicemaster.domain.usecase.character.SetDeathSaveFailuresUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
@@ -48,6 +49,7 @@ class CharacterViewModelTest {
     private val damageCharacterUseCase: DamageCharacterUseCase = mockk(relaxed = true)
     private val setDeathSaveFailuresUseCase: SetDeathSaveFailuresUseCase = mockk(relaxed = true)
     private val markCharacterDeadUseCase: MarkCharacterDeadUseCase = mockk(relaxed = true)
+    private val levelUpCharacterUseCase: LevelUpCharacterUseCase = mockk(relaxed = true)
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: CharacterViewModel
@@ -63,7 +65,8 @@ class CharacterViewModelTest {
         healCharacterUseCase,
         damageCharacterUseCase,
         setDeathSaveFailuresUseCase,
-        markCharacterDeadUseCase
+        markCharacterDeadUseCase,
+        levelUpCharacterUseCase
     )
 
     private val character = Character(

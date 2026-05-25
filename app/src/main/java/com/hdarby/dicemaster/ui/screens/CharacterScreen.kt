@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.HeartBroken
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -172,9 +173,9 @@ fun CharacterScreen(
                             },
                             onHeal = { viewModel.heal(it) },
                             onDamage = { viewModel.damage(it) },
+                            onLevelUp = { viewModel.levelUp(it) },
                             onDeathSaveChanged = { character, failures ->
                                 if (failures == MAX_DEATH_SAVE_FAILURES) {
-                                    // Stage death save update and await confirmation
                                     viewModel.setDeathSaveFailures(character, failures)
                                     confirmDeathCharacter = character.copy(deathSaveFailures = failures)
                                 } else {
@@ -268,7 +269,8 @@ fun CharacterCard(
     onDecrementItem: (CharacterItemEntry) -> Unit = {},
     onHeal: (Character) -> Unit = {},
     onDamage: (Character) -> Unit = {},
-    onDeathSaveChanged: (Character, Int) -> Unit = { _, _ -> }
+    onDeathSaveChanged: (Character, Int) -> Unit = { _, _ -> },
+    onLevelUp: (Character) -> Unit = {}
 ) {
     val character = characterWithWeapons.character
     val weaponEntries = characterWithWeapons.weapons
@@ -295,9 +297,21 @@ fun CharacterCard(
                             color = MaterialTheme.colorScheme.secondary
                         )
                     }
+                    Text(
+                        text = stringResource(R.string.label_level, character.level),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 if (isDungeonMaster) {
                     Row {
+                        IconButton(onClick = { onLevelUp(character) }) {
+                            Icon(
+                                Icons.Default.KeyboardArrowUp,
+                                contentDescription = stringResource(R.string.content_desc_level_up),
+                                tint = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
                         IconButton(onClick = { onEdit(character) }) {
                             Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.content_desc_edit))
                         }

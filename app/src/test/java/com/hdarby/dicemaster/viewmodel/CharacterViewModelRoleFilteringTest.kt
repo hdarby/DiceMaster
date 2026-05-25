@@ -13,6 +13,7 @@ import com.hdarby.dicemaster.domain.usecase.character.DamageCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.DeleteCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.GetCharactersWithWeaponsUseCase
 import com.hdarby.dicemaster.domain.usecase.character.HealCharacterUseCase
+import com.hdarby.dicemaster.domain.usecase.character.LevelUpCharacterUseCase
 import com.hdarby.dicemaster.domain.usecase.character.MarkCharacterDeadUseCase
 import com.hdarby.dicemaster.domain.usecase.character.SetDeathSaveFailuresUseCase
 import com.hdarby.dicemaster.domain.usecase.character.UnassignWeaponFromCharacterUseCase
@@ -48,6 +49,7 @@ class CharacterViewModelRoleFilteringTest {
     private val damageCharacterUseCase: DamageCharacterUseCase = mockk(relaxed = true)
     private val setDeathSaveFailuresUseCase: SetDeathSaveFailuresUseCase = mockk(relaxed = true)
     private val markCharacterDeadUseCase: MarkCharacterDeadUseCase = mockk(relaxed = true)
+    private val levelUpCharacterUseCase: LevelUpCharacterUseCase = mockk(relaxed = true)
 
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -74,7 +76,8 @@ class CharacterViewModelRoleFilteringTest {
         deleteCharacterUseCase, unassignWeaponFromCharacterUseCase,
         assignWeaponToCharacterUseCase, sessionRepository,
         healCharacterUseCase, damageCharacterUseCase,
-        setDeathSaveFailuresUseCase, markCharacterDeadUseCase
+        setDeathSaveFailuresUseCase, markCharacterDeadUseCase,
+        levelUpCharacterUseCase
     )
 
     // ── No-session (local-only) mode ─────────────────────────────────────────
@@ -211,6 +214,9 @@ class CharacterViewModelRoleFilteringTest {
         }
     }
 }
+
+
+
 
 
 
