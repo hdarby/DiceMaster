@@ -39,10 +39,10 @@ class CharacterScreenTest {
     private val testWeapon = Weapon(
         id = 1,
         name = "Greataxe",
-        type = "Heavy",
-        damageDice = "1d12",
-        damageType = "Slashing",
-        modifier = 2
+        weaponType = com.hdarby.dicemaster.domain.model.WeaponType.MARTIAL_MELEE,
+        damageDice = com.hdarby.dicemaster.domain.model.DamageDice.D12,
+        damageType = com.hdarby.dicemaster.domain.model.DamageType.SLASHING,
+        damageModifier = 2
     )
 
     @Test
@@ -273,7 +273,7 @@ class CharacterScreenTest {
         }
 
         composeTestRule.onNodeWithText(
-            composeTestRule.activity.getString(R.string.format_weapon_chip_label, testWeapon.name, testWeapon.type)
+            composeTestRule.activity.getString(R.string.format_weapon_chip_label, testWeapon.name, testWeapon.weaponType.displayName)
         ).performClick()
 
         assertTrue(weaponClickCalled)

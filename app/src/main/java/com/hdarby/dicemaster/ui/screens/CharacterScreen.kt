@@ -381,7 +381,7 @@ fun CharacterCard(
                     weaponEntries.forEach { entry ->
                         AssistChip(
                             onClick = { onWeaponClick(entry.weapon) },
-                            label = { Text(stringResource(R.string.format_weapon_chip_label, entry.weapon.name, entry.weapon.type)) },
+                            label = { Text(stringResource(R.string.format_weapon_chip_label, entry.weapon.name, entry.weapon.weaponType.displayName)) },
                             trailingIcon = if (isDungeonMaster) {
                                 {
                                     Icon(
@@ -856,14 +856,14 @@ fun AssignWeaponToCharacterDialog(
                         ListItem(
                             headlineContent = {
                                 Text(
-                                    text = stringResource(R.string.format_weapon_chip_label, weapon.name, weapon.type),
+                                    text = stringResource(R.string.format_weapon_chip_label, weapon.name, weapon.weaponType.displayName),
                                     color = if (isDisabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                                             else MaterialTheme.colorScheme.onSurface
                                 )
                             },
                             supportingContent = {
                                 Text(
-                                    text = stringResource(R.string.format_weapon_damage_details, weapon.damageDice, weapon.damageType, weapon.modifier),
+                                    text = "${weapon.damageDice.displayName} ${weapon.damageType.displayName} · ${if (weapon.toHitBonus >= 0) "+" else ""}${weapon.toHitBonus} to hit · ${if (weapon.damageModifier >= 0) "+" else ""}${weapon.damageModifier} dmg",
                                     color = if (isDisabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                                             else MaterialTheme.colorScheme.onSurfaceVariant
                                 )

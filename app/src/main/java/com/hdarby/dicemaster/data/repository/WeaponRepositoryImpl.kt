@@ -3,7 +3,10 @@ package com.hdarby.dicemaster.data.repository
 import com.hdarby.dicemaster.data.local.dao.WeaponDao
 import com.hdarby.dicemaster.data.local.entity.WeaponEntity
 import com.hdarby.dicemaster.data.remote.WeaponRemoteDataSource
+import com.hdarby.dicemaster.domain.model.DamageDice
+import com.hdarby.dicemaster.domain.model.DamageType
 import com.hdarby.dicemaster.domain.model.Weapon
+import com.hdarby.dicemaster.domain.model.WeaponType
 import com.hdarby.dicemaster.domain.repository.SessionRepository
 import com.hdarby.dicemaster.domain.repository.WeaponRepository
 import kotlinx.coroutines.CoroutineScope
@@ -68,20 +71,22 @@ class WeaponRepositoryImpl(
     private fun WeaponEntity.toDomain() = Weapon(
         id = id,
         name = name,
-        type = type,
-        damageDice = damageDice,
-        damageType = damageType,
-        modifier = modifier,
+        weaponType = runCatching { WeaponType.valueOf(type) }.getOrDefault(WeaponType.SIMPLE_MELEE),
+        damageDice = runCatching { DamageDice.valueOf(damageDice) }.getOrDefault(DamageDice.D6),
+        damageType = runCatching { DamageType.valueOf(damageType) }.getOrDefault(DamageType.SLASHING),
+        toHitBonus = toHitBonus,
+        damageModifier = damageModifier,
         isAtomic = isAtomic
     )
 
     private fun Weapon.toEntity() = WeaponEntity(
         id = id,
         name = name,
-        type = type,
-        damageDice = damageDice,
-        damageType = damageType,
-        modifier = modifier,
+        type = weaponType.name,
+        damageDice = damageDice.name,
+        damageType = damageType.name,
+        toHitBonus = toHitBonus,
+        damageModifier = damageModifier,
         isAtomic = isAtomic
     )
 }

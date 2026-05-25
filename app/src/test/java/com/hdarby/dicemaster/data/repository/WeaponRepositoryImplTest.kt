@@ -18,8 +18,18 @@ class WeaponRepositoryImplTest {
     private val weaponDao: WeaponDao = mockk()
     private val repository = WeaponRepositoryImpl(weaponDao)
 
-    private val weaponEntity = WeaponEntity(1, "Greataxe", "Greataxe", "1d12", "Slashing", 2)
-    private val weapon = Weapon(1, "Greataxe", "Greataxe", "1d12", "Slashing", 2)
+    private val weaponEntity = WeaponEntity(
+        id = 1, name = "Greataxe",
+        type = "MARTIAL_MELEE", damageDice = "D12", damageType = "SLASHING",
+        toHitBonus = 0, damageModifier = 2
+    )
+    private val weapon = Weapon(
+        id = 1, name = "Greataxe",
+        weaponType = com.hdarby.dicemaster.domain.model.WeaponType.MARTIAL_MELEE,
+        damageDice = com.hdarby.dicemaster.domain.model.DamageDice.D12,
+        damageType = com.hdarby.dicemaster.domain.model.DamageType.SLASHING,
+        toHitBonus = 0, damageModifier = 2
+    )
 
     @Test
     fun `getAllWeapons returns domain models`() = runTest {

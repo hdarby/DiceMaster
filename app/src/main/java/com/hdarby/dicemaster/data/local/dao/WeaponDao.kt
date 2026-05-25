@@ -18,7 +18,8 @@ interface WeaponDao {
 
     @Query("""
         SELECT cwcr.assignmentId, cwcr.characterId,
-               w.id, w.name, w.type, w.damageDice, w.damageType, w.modifier, w.isAtomic
+               w.id, w.name, w.type, w.damageDice, w.damageType,
+               w.toHitBonus, w.damageModifier, w.isAtomic
         FROM weapons w
         INNER JOIN character_weapon_cross_ref cwcr ON w.id = cwcr.weaponId
     """)

@@ -23,11 +23,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -49,8 +53,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.hdarby.dicemaster.R
+import com.hdarby.dicemaster.domain.model.DamageDice
+import com.hdarby.dicemaster.domain.model.DamageType
 import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.domain.model.Weapon
+import com.hdarby.dicemaster.domain.model.WeaponType
 import com.hdarby.dicemaster.viewmodel.WeaponViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -176,18 +183,15 @@ fun WeaponCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = stringResource(R.string.format_weapon_type_parenthesized, weapon.type),
+                            text = stringResource(R.string.format_weapon_type_parenthesized, weapon.weaponType.displayName),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.secondary
                         )
                     }
+                    val hitSign = if (weapon.toHitBonus >= 0) "+" else ""
+                    val dmgSign = if (weapon.damageModifier >= 0) "+" else ""
                     Text(
-                        text = stringResource(
-                            R.string.format_weapon_damage_details,
-                            weapon.damageDice,
-                            weapon.damageType,
-                            weapon.modifier
-                        ),
+                        text = "${weapon.damageDice.displayName} ${weapon.damageType.displayName} · ${hitSign}${weapon.toHitBonus} to hit · ${dmgSign}${weapon.damageModifier} dmg",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     if (weapon.isAtomic) {
@@ -221,56 +225,159 @@ fun AddEditWeaponDialog(
     onConfirm: (Weapon) -> Unit
 ) {
     var name by remember { mutableStateOf(weapon?.name ?: "") }
-    var type by remember { mutableStateOf(weapon?.type ?: "") }
-    var dice by remember { mutableStateOf(weapon?.damageDice ?: "") }
-    var damageType by remember { mutableStateOf(weapon?.damageType ?: "") }
-    var mod by remember { mutableStateOf(weapon?.modifier?.toString() ?: "0") }
+    var selectedType by remember { mutableStateOf(weapon?.weaponType ?: WeaponType.SIMPLE_MELEE) }
+    var selectedDice by remember { mutableStateOf(weapon?.damageDice ?: DamageDice.D6) }
+    var selectedDamageType by remember { mutableStateOf(weapon?.damageType ?: DamageType.SLASHING) }
+    var toHitBonus by remember { mutableStateOf(weapon?.toHitBonus?.toString() ?: "0") }
+    var damageModifier by remember { mutableStateOf(weapon?.damageModifier?.toString() ?: "0") }
     var isAtomic by remember { mutableStateOf(weapon?.isAtomic ?: true) }
+
+    var typeExpanded by remember { mutableStateOf(false) }
+    var diceExpanded by remember { mutableStateOf(false) }
+    var damageTypeExpanded by remember { mutableStateOf(false) }
+
+    val isSignedInt = { it: String -> it.isEmpty() || it == "-" || it.toIntOrNull() != null }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (weapon == null) stringResource(R.string.title_add_weapon) else stringResource(R.string.title_edit_weapon)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.label_name)) }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = type, onValueChange = { type = it }, label = { Text(stringResource(R.string.label_weapon_type)) }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = dice, onValueChange = { dice = it }, label = { Text(stringResource(R.string.label_damage_dice)) }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = damageType, onValueChange = { damageType = it }, label = { Text(stringResource(R.string.label_damage_type)) }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(
-                    value = mod,
-                    onValueChange = { input ->
-                        if (input.isEmpty() || input == "-" || input.toIntOrNull() != null) {
-                            mod = input
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                item {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text(stringResource(R.string.label_name)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                // ── Weapon Type dropdown ─────────────────────────────────────
+                item {
+                    ExposedDropdownMenuBox(
+                        expanded = typeExpanded,
+                        onExpandedChange = { typeExpanded = !typeExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedType.displayName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(R.string.label_weapon_type)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
+                            modifier = Modifier
+                                .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(expanded = typeExpanded, onDismissRequest = { typeExpanded = false }) {
+                            WeaponType.entries.forEach { wt ->
+                                DropdownMenuItem(
+                                    text = { Text(wt.displayName) },
+                                    onClick = { selectedType = wt; typeExpanded = false }
+                                )
+                            }
                         }
-                    },
-                    label = { Text(stringResource(R.string.label_modifier)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Checkbox(checked = isAtomic, onCheckedChange = { isAtomic = it })
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column {
-                        Text(stringResource(R.string.label_weapon_atomic_checkbox), style = MaterialTheme.typography.bodyMedium)
-                        Text(stringResource(R.string.label_weapon_atomic_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                // ── Damage Dice dropdown ─────────────────────────────────────
+                item {
+                    ExposedDropdownMenuBox(
+                        expanded = diceExpanded,
+                        onExpandedChange = { diceExpanded = !diceExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedDice.displayName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(R.string.label_damage_dice)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = diceExpanded) },
+                            modifier = Modifier
+                                .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(expanded = diceExpanded, onDismissRequest = { diceExpanded = false }) {
+                            DamageDice.entries.forEach { dd ->
+                                DropdownMenuItem(
+                                    text = { Text(dd.displayName) },
+                                    onClick = { selectedDice = dd; diceExpanded = false }
+                                )
+                            }
+                        }
+                    }
+                }
+                // ── Damage Type dropdown ─────────────────────────────────────
+                item {
+                    ExposedDropdownMenuBox(
+                        expanded = damageTypeExpanded,
+                        onExpandedChange = { damageTypeExpanded = !damageTypeExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedDamageType.displayName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(R.string.label_damage_type)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = damageTypeExpanded) },
+                            modifier = Modifier
+                                .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(expanded = damageTypeExpanded, onDismissRequest = { damageTypeExpanded = false }) {
+                            DamageType.entries.forEach { dt ->
+                                DropdownMenuItem(
+                                    text = { Text(dt.displayName) },
+                                    onClick = { selectedDamageType = dt; damageTypeExpanded = false }
+                                )
+                            }
+                        }
+                    }
+                }
+                // ── Numeric fields ───────────────────────────────────────────
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = toHitBonus,
+                            onValueChange = { if (isSignedInt(it)) toHitBonus = it },
+                            label = { Text(stringResource(R.string.label_to_hit_bonus)) },
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+                        OutlinedTextField(
+                            value = damageModifier,
+                            onValueChange = { if (isSignedInt(it)) damageModifier = it },
+                            label = { Text(stringResource(R.string.label_damage_modifier)) },
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+                    }
+                }
+                // ── Atomic checkbox ──────────────────────────────────────────
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(checked = isAtomic, onCheckedChange = { isAtomic = it })
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(stringResource(R.string.label_weapon_atomic_checkbox), style = MaterialTheme.typography.bodyMedium)
+                            Text(stringResource(R.string.label_weapon_atomic_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
             }
         },
         confirmButton = {
             Button(onClick = {
-                onConfirm(Weapon(
-                    id = weapon?.id ?: 0,
-                    name = name,
-                    type = type,
-                    damageDice = dice,
-                    damageType = damageType,
-                    modifier = mod.toIntOrNull() ?: 0,
-                    isAtomic = isAtomic
-                ))
+                onConfirm(
+                    Weapon(
+                        id = weapon?.id ?: 0,
+                        name = name,
+                        weaponType = selectedType,
+                        damageDice = selectedDice,
+                        damageType = selectedDamageType,
+                        toHitBonus = toHitBonus.toIntOrNull() ?: 0,
+                        damageModifier = damageModifier.toIntOrNull() ?: 0,
+                        isAtomic = isAtomic
+                    )
+                )
             }) {
                 Text(stringResource(R.string.button_confirm))
             }
@@ -282,4 +389,3 @@ fun AddEditWeaponDialog(
         }
     )
 }
-

@@ -19,10 +19,10 @@ class WeaponRepositoryErrorHandlingTest {
     private val weapon = Weapon(
         id = 1,
         name = "Longsword",
-        type = "Melee",
-        damageDice = "1d8",
-        damageType = "Slashing",
-        modifier = 2
+        weaponType = com.hdarby.dicemaster.domain.model.WeaponType.MARTIAL_MELEE,
+        damageDice = com.hdarby.dicemaster.domain.model.DamageDice.D8,
+        damageType = com.hdarby.dicemaster.domain.model.DamageType.SLASHING,
+        damageModifier = 2
     )
 
     @Test
@@ -86,7 +86,7 @@ class WeaponRepositoryErrorHandlingTest {
 
     @Test
     fun `addWeapon with high modifier value`() = runTest {
-        val extremeWeapon = weapon.copy(modifier = 999)
+        val extremeWeapon = weapon.copy(damageModifier = 999)
         coEvery { weaponDao.insertWeapon(any()) } returns 1L
 
         val weaponId = repository.addWeapon(extremeWeapon)
@@ -97,7 +97,7 @@ class WeaponRepositoryErrorHandlingTest {
 
     @Test
     fun `updateWeapon handles negative modifier`() = runTest {
-        val negativeModWeapon = weapon.copy(modifier = -5)
+        val negativeModWeapon = weapon.copy(damageModifier = -5)
         coEvery { weaponDao.updateWeapon(any()) } returns Unit
 
         repository.updateWeapon(negativeModWeapon)

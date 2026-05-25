@@ -1,7 +1,10 @@
 package com.hdarby.dicemaster.data.remote
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.hdarby.dicemaster.domain.model.DamageDice
+import com.hdarby.dicemaster.domain.model.DamageType
 import com.hdarby.dicemaster.domain.model.Weapon
+import com.hdarby.dicemaster.domain.model.WeaponType
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -37,23 +40,34 @@ class FirestoreWeaponDataSource(
     private fun Weapon.toMap(): Map<String, Any?> = mapOf(
         FIELD_ID to id,
         FIELD_NAME to name,
-        FIELD_TYPE to type,
-        FIELD_DAMAGE_DICE to damageDice,
-        FIELD_DAMAGE_TYPE to damageType,
-        FIELD_MODIFIER to modifier,
+        FIELD_TYPE to weaponType.name,
+        FIELD_DAMAGE_DICE to damageDice.name,
+        FIELD_DAMAGE_TYPE to damageType.name,
+        FIELD_TO_HIT_BONUS to toHitBonus,
+        FIELD_DAMAGE_MODIFIER to damageModifier,
         FIELD_IS_ATOMIC to isAtomic
     )
 
     private fun com.google.firebase.firestore.DocumentSnapshot.toRemoteWeapon(): RemoteWeapon? {
         val id = getLong(FIELD_ID) ?: return null
         val name = getString(FIELD_NAME) ?: return null
-        val type = getString(FIELD_TYPE) ?: return null
-        val damageDice = getString(FIELD_DAMAGE_DICE) ?: return null
-        val damageType = getString(FIELD_DAMAGE_TYPE) ?: return null
-        val modifier = getLong(FIELD_MODIFIER)?.toInt() ?: 0
-        val isAtomic = getBoolean(FIELD_IS_ATOMIC) ?: true
         return RemoteWeapon(
-            weapon = Weapon(id = id, name = name, type = type, damageDice = damageDice, damageType = damageType, modifier = modifier, isAtomic = isAtomic)
+            weapon = Weapon(
+                id = id,
+                name = name,
+                weaponType = getString(FIELD_TYPE)
+                    ?.let { runCatching { WeaponType.valueOf(it) }.getOrNull() }
+                    ?: WeaponType.SIMPLE_MELEE,
+                damageDice = getString(FIELD_DAMAGE_DICE)
+                    ?.let { runCatching { DamageDice.valueOf(it) }.getOrNull() }
+                    ?: DamageDice.D6,
+                damageType = getString(FIELD_DAMAGE_TYPE)
+                    ?.let { runCatching { DamageType.valueOf(it) }.getOrNull() }
+                    ?: DamageType.SLASHING,
+                toHitBonus = getLong(FIELD_TO_HIT_BONUS)?.toInt() ?: 0,
+                damageModifier = getLong(FIELD_DAMAGE_MODIFIER)?.toInt() ?: 0,
+                isAtomic = getBoolean(FIELD_IS_ATOMIC) ?: true
+            )
         )
     }
 
@@ -65,7 +79,8 @@ class FirestoreWeaponDataSource(
         private const val FIELD_TYPE = "type"
         private const val FIELD_DAMAGE_DICE = "damageDice"
         private const val FIELD_DAMAGE_TYPE = "damageType"
-        private const val FIELD_MODIFIER = "modifier"
+        private const val FIELD_TO_HIT_BONUS = "toHitBonus"
+        private const val FIELD_DAMAGE_MODIFIER = "damageModifier"
         private const val FIELD_IS_ATOMIC = "isAtomic"
     }
 }

@@ -38,7 +38,7 @@ class WeaponViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: WeaponViewModel
 
-    private val weapon = Weapon(1, "Greataxe", "Greataxe", "1d12", "Slashing", 2)
+    private val weapon = Weapon(1, "Greataxe", com.hdarby.dicemaster.domain.model.WeaponType.MARTIAL_MELEE, com.hdarby.dicemaster.domain.model.DamageDice.D12, com.hdarby.dicemaster.domain.model.DamageType.SLASHING, 0, 2)
 
     @Before
     fun setup() {

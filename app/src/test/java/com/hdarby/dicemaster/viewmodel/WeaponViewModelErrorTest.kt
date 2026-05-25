@@ -37,10 +37,10 @@ class WeaponViewModelErrorTest {
     private val weapon = Weapon(
         id = 1,
         name = "Longsword",
-        type = "Melee",
-        damageDice = "1d8",
-        damageType = "Slashing",
-        modifier = 2
+        weaponType = com.hdarby.dicemaster.domain.model.WeaponType.MARTIAL_MELEE,
+        damageDice = com.hdarby.dicemaster.domain.model.DamageDice.D8,
+        damageType = com.hdarby.dicemaster.domain.model.DamageType.SLASHING,
+        damageModifier = 2
     )
 
     @Before
@@ -123,3 +123,4 @@ class WeaponViewModelErrorTest {
         }
     }
 }
+

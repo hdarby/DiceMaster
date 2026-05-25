@@ -30,13 +30,15 @@
     <string name="label_quantity">Quantity</string>
     <string name="label_modifier">Modifier</string>
     <string name="label_name">Name</string>
+    <string name="label_race">Race</string>
     <string name="label_description">Description</string>
     <string name="label_total_quantity">Total Quantity</string>
     <string name="label_stock_quantity">Stock: %1$d</string>
-    <string name="label_race">Race</string>
-    <string name="label_weapon_type">Weapon Type (e.g. Sword)</string>
-    <string name="label_damage_dice">Damage Dice (e.g. 1d8)</string>
+    <string name="label_weapon_type">Weapon Type</string>
+    <string name="label_damage_dice">Damage Dice</string>
     <string name="label_damage_type">Damage Type</string>
+    <string name="label_to_hit_bonus">To Hit Bonus</string>
+    <string name="label_damage_modifier">Damage Modifier</string>
     <string name="label_stat_str">STR</string>
     <string name="label_stat_dex">DEX</string>
     <string name="label_stat_con">CON</string>
@@ -49,7 +51,7 @@
     <!-- Format Strings -->
     <string name="format_weapon_chip_label">%1$s (%2$s)</string>
     <string name="format_weapon_type_parenthesized">(%1$s)</string>
-    <string name="format_weapon_damage_details">%1$s %2$s (Modifier: %3$d)</string>
+    <string name="format_weapon_damage_details">%1$s %2$s · %3$+d to hit · %4$+d dmg</string>
 
     <!-- Results -->
     <string name="title_results">Results</string>

@@ -9,6 +9,9 @@ import com.hdarby.dicemaster.data.remote.WeaponRemoteDataSource
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.CharacterClass
 import com.hdarby.dicemaster.domain.model.CharacterWeaponEntry
+import com.hdarby.dicemaster.domain.model.DamageDice
+import com.hdarby.dicemaster.domain.model.DamageType
+import com.hdarby.dicemaster.domain.model.WeaponType
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.model.Weapon
@@ -137,8 +140,10 @@ class CharacterRepositoryImpl(
     )
 
     private fun com.hdarby.dicemaster.data.local.entity.WeaponEntity.toDomain() = Weapon(
-        id = id, name = name, type = type,
-        damageDice = damageDice, damageType = damageType,
-        modifier = modifier, isAtomic = isAtomic
+        id = id, name = name,
+        weaponType = runCatching { WeaponType.valueOf(type) }.getOrDefault(WeaponType.SIMPLE_MELEE),
+        damageDice = runCatching { DamageDice.valueOf(damageDice) }.getOrDefault(DamageDice.D6),
+        damageType = runCatching { DamageType.valueOf(damageType) }.getOrDefault(DamageType.SLASHING),
+        toHitBonus = toHitBonus, damageModifier = damageModifier, isAtomic = isAtomic
     )
 }

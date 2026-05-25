@@ -85,7 +85,7 @@ class DiceMasterDatabaseEdgeCasesTest {
     fun insertWeapon_withIdZero_autoAssignsPositiveId() = runTest {
         val weapon = WeaponEntity(
             id = 0, name = "AutoIdWeapon", type = "Magic",
-            damageDice = "1d10", damageType = "Force", modifier = 0
+            damageDice = "1d10", damageType = "Force", damageModifier = 0
         )
         weaponDao.insertWeapon(weapon)
 
@@ -117,9 +117,9 @@ class DiceMasterDatabaseEdgeCasesTest {
     @Test
     fun insertMultipleWeapons_allArePersistedAndQueryable() = runTest {
         val weapons = listOf(
-            WeaponEntity(id = 0, name = "Longsword", type = "Melee", damageDice = "1d8", damageType = "Slashing", modifier = 1),
-            WeaponEntity(id = 0, name = "Shortbow", type = "Ranged", damageDice = "1d6", damageType = "Piercing", modifier = 0),
-            WeaponEntity(id = 0, name = "Dagger", type = "Melee", damageDice = "1d4", damageType = "Piercing", modifier = 2)
+            WeaponEntity(id = 0, name = "Longsword", type = "Melee", damageDice = "1d8", damageType = "Slashing", damageModifier = 1),
+            WeaponEntity(id = 0, name = "Shortbow", type = "Ranged", damageDice = "1d6", damageType = "Piercing", damageModifier = 0),
+            WeaponEntity(id = 0, name = "Dagger", type = "Melee", damageDice = "1d4", damageType = "Piercing", damageModifier = 2)
         )
         weapons.forEach { weaponDao.insertWeapon(it) }
 
@@ -147,12 +147,12 @@ class DiceMasterDatabaseEdgeCasesTest {
 
     @Test
     fun updateWeapon_onlyUpdatesTargetRecord() = runTest {
-        val weapon1 = WeaponEntity(id = 1, name = "Original1", type = "Type1", damageDice = "1d6", damageType = "Fire", modifier = 0)
-        val weapon2 = WeaponEntity(id = 2, name = "Original2", type = "Type2", damageDice = "1d8", damageType = "Ice", modifier = 0)
+        val weapon1 = WeaponEntity(id = 1, name = "Original1", type = "Type1", damageDice = "1d6", damageType = "Fire", damageModifier = 0)
+        val weapon2 = WeaponEntity(id = 2, name = "Original2", type = "Type2", damageDice = "1d8", damageType = "Ice", damageModifier = 0)
         weaponDao.insertWeapon(weapon1)
         weaponDao.insertWeapon(weapon2)
 
-        weaponDao.updateWeapon(weapon1.copy(modifier = 5))
+        weaponDao.updateWeapon(weapon1.copy(damageModifier = 5))
 
         val all = weaponDao.getAllWeapons().first()
         assertEquals(5, all.find { it.id == 1L }?.modifier)
@@ -166,7 +166,7 @@ class DiceMasterDatabaseEdgeCasesTest {
     @Test
     fun deleteCharacter_withAssignedWeapons_weaponStillExists() = runTest {
         val character = CharacterEntity(id = 1, name = "TempChar", race = "Any", strength = 10, dexterity = 10, constitution = 10, intelligence = 10, wisdom = 10, charisma = 10)
-        val weapon = WeaponEntity(id = 1, name = "TempWeapon", type = "Any", damageDice = "1d4", damageType = "Any", modifier = 0)
+        val weapon = WeaponEntity(id = 1, name = "TempWeapon", type = "Any", damageDice = "1d4", damageType = "Any", damageModifier = 0)
         characterDao.insertCharacter(character)
         weaponDao.insertWeapon(weapon)
         weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 1))
@@ -183,7 +183,7 @@ class DiceMasterDatabaseEdgeCasesTest {
     @Test
     fun deleteWeapon_characterWithThatWeapon_characterHasNoWeapons() = runTest {
         val character = CharacterEntity(id = 1, name = "Survivor", race = "Human", strength = 10, dexterity = 10, constitution = 10, intelligence = 10, wisdom = 10, charisma = 10)
-        val weapon = WeaponEntity(id = 1, name = "DeletedWeapon", type = "Any", damageDice = "1d4", damageType = "Any", modifier = 0)
+        val weapon = WeaponEntity(id = 1, name = "DeletedWeapon", type = "Any", damageDice = "1d4", damageType = "Any", damageModifier = 0)
         characterDao.insertCharacter(character)
         weaponDao.insertWeapon(weapon)
         weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 1))
@@ -203,7 +203,7 @@ class DiceMasterDatabaseEdgeCasesTest {
     fun sameWeapon_assignedToMultipleCharacters_eachReflectsAssignment() = runTest {
         val char1 = CharacterEntity(id = 1, name = "Char1", race = "R1", strength = 10, dexterity = 10, constitution = 10, intelligence = 10, wisdom = 10, charisma = 10)
         val char2 = CharacterEntity(id = 2, name = "Char2", race = "R2", strength = 10, dexterity = 10, constitution = 10, intelligence = 10, wisdom = 10, charisma = 10)
-        val weapon = WeaponEntity(id = 1, name = "SharedSword", type = "Melee", damageDice = "1d8", damageType = "Slashing", modifier = 0)
+        val weapon = WeaponEntity(id = 1, name = "SharedSword", type = "Melee", damageDice = "1d8", damageType = "Slashing", damageModifier = 0)
         characterDao.insertCharacter(char1)
         characterDao.insertCharacter(char2)
         weaponDao.insertWeapon(weapon)
@@ -220,8 +220,8 @@ class DiceMasterDatabaseEdgeCasesTest {
     @Test
     fun characterWithMultipleWeapons_allWeaponsReturned() = runTest {
         val character = CharacterEntity(id = 1, name = "Archer", race = "Elf", strength = 10, dexterity = 18, constitution = 10, intelligence = 12, wisdom = 14, charisma = 10)
-        val bow = WeaponEntity(id = 1, name = "Longbow", type = "Ranged", damageDice = "1d8", damageType = "Piercing", modifier = 3)
-        val dagger = WeaponEntity(id = 2, name = "Dagger", type = "Melee", damageDice = "1d4", damageType = "Piercing", modifier = 1)
+        val bow = WeaponEntity(id = 1, name = "Longbow", type = "Ranged", damageDice = "1d8", damageType = "Piercing", damageModifier = 3)
+        val dagger = WeaponEntity(id = 2, name = "Dagger", type = "Melee", damageDice = "1d4", damageType = "Piercing", damageModifier = 1)
         characterDao.insertCharacter(character)
         weaponDao.insertWeapon(bow)
         weaponDao.insertWeapon(dagger)
@@ -239,8 +239,8 @@ class DiceMasterDatabaseEdgeCasesTest {
     @Test
     fun unassignOneWeapon_otherWeaponRemainsAssigned() = runTest {
         val character = CharacterEntity(id = 1, name = "Fighter", race = "Human", strength = 16, dexterity = 12, constitution = 14, intelligence = 10, wisdom = 10, charisma = 10)
-        val sword = WeaponEntity(id = 1, name = "Sword", type = "Melee", damageDice = "1d8", damageType = "Slashing", modifier = 1)
-        val shield = WeaponEntity(id = 2, name = "Shield", type = "Off-hand", damageDice = "1d4", damageType = "Bludgeoning", modifier = 0)
+        val sword = WeaponEntity(id = 1, name = "Sword", type = "Melee", damageDice = "1d8", damageType = "Slashing", damageModifier = 1)
+        val shield = WeaponEntity(id = 2, name = "Shield", type = "Off-hand", damageDice = "1d4", damageType = "Bludgeoning", damageModifier = 0)
         characterDao.insertCharacter(character)
         weaponDao.insertWeapon(sword)
         weaponDao.insertWeapon(shield)

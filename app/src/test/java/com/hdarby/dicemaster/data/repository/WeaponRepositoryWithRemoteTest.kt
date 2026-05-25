@@ -27,7 +27,7 @@ class WeaponRepositoryWithRemoteTest {
     private val weaponRemote = FakeWeaponRemoteDataSource()
 
     private val activeSession = Session("SESSION1", UserRole.DungeonMaster)
-    private val testWeapon = Weapon(1L, "Greataxe", "Greataxe", "1d12", "Slashing", 2)
+    private val testWeapon = Weapon(1L, "Greataxe", com.hdarby.dicemaster.domain.model.WeaponType.MARTIAL_MELEE, com.hdarby.dicemaster.domain.model.DamageDice.D12, com.hdarby.dicemaster.domain.model.DamageType.SLASHING, 0, 2)
 
     private fun buildRepo() = WeaponRepositoryImpl(
         weaponDao = weaponDao,
@@ -145,5 +145,6 @@ class WeaponRepositoryWithRemoteTest {
         assertEquals("Greataxe", result[0][0].name)
     }
 }
+
 
 

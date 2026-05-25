@@ -19,7 +19,7 @@ import com.hdarby.dicemaster.data.local.entity.WeaponEntity
         CharacterWeaponCrossRef::class,
         ItemEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class DiceMasterDatabase : RoomDatabase() {
