@@ -131,6 +131,28 @@ class CharacterUseCasesTest {
     }
 
     @Test
+    fun `HealCharacterUseCase resets deathSaveFailures when healing from zero HP`() = runTest {
+        val useCase = HealCharacterUseCase(repository)
+        val char = character.copy(maxHitPoints = 20, currentHitPoints = 0, deathSaveFailures = 2)
+        coEvery { repository.updateCharacter(any()) } returns Unit
+
+        useCase(char)
+
+        coVerify { repository.updateCharacter(match { it.currentHitPoints == 1 && it.deathSaveFailures == 0 }) }
+    }
+
+    @Test
+    fun `HealCharacterUseCase preserves deathSaveFailures when healing above zero HP`() = runTest {
+        val useCase = HealCharacterUseCase(repository)
+        val char = character.copy(maxHitPoints = 20, currentHitPoints = 5, deathSaveFailures = 1)
+        coEvery { repository.updateCharacter(any()) } returns Unit
+
+        useCase(char)
+
+        coVerify { repository.updateCharacter(match { it.currentHitPoints == 6 && it.deathSaveFailures == 1 }) }
+    }
+
+    @Test
     fun `DamageCharacterUseCase decrements currentHitPoints by one`() = runTest {
         val useCase = DamageCharacterUseCase(repository)
         val char = character.copy(maxHitPoints = 20, currentHitPoints = 10)

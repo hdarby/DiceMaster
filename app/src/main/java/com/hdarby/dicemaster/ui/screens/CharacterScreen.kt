@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
@@ -61,6 +62,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.hdarby.dicemaster.R
+import com.hdarby.dicemaster.ui.theme.PrimaryGreen
+import com.hdarby.dicemaster.ui.theme.PrimaryGreenDark
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.CharacterItemEntry
 import com.hdarby.dicemaster.domain.model.CharacterWeaponEntry
@@ -455,7 +458,7 @@ fun HitPointsSection(
                         Icon(
                             Icons.Default.Favorite,
                             contentDescription = stringResource(R.string.content_desc_heal),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = if (isSystemInDarkTheme()) PrimaryGreenDark else PrimaryGreen
                         )
                     }
                 }
@@ -494,7 +497,7 @@ fun HitPointsSection(
                         Icon(
                             Icons.Default.Favorite,
                             contentDescription = stringResource(R.string.content_desc_heal),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = if (isSystemInDarkTheme()) PrimaryGreenDark else PrimaryGreen
                         )
                     }
                 }
