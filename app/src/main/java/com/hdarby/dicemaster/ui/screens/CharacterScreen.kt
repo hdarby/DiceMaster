@@ -648,6 +648,7 @@ fun AddEditCharacterDialog(
                                 text = { Text(stringResource(R.string.label_no_class)) },
                                 onClick = {
                                     selectedClass = null
+                                    if (character == null) maxHp = "10"
                                     classDropdownExpanded = false
                                 }
                             )
@@ -658,6 +659,9 @@ fun AddEditCharacterDialog(
                                     },
                                     onClick = {
                                         selectedClass = cls
+                                        if (character == null) {
+                                            maxHp = cls.hitDie.toString()
+                                        }
                                         classDropdownExpanded = false
                                     }
                                 )
