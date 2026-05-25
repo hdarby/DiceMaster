@@ -658,10 +658,13 @@ fun AddEditCharacterDialog(
                     charisma = cha.toIntOrNull() ?: 10, charismaModifier = chaMod.toIntOrNull() ?: 0
                 )
                 val newMaxHp = maxHp.toIntOrNull()?.coerceAtLeast(1) ?: 10
-                val newCurrentHp = if (character == null) {
-                    newMaxHp
-                } else {
-                    character.currentHitPoints.coerceAtMost(newMaxHp)
+                val newCurrentHp = when {
+                    character == null -> newMaxHp
+                    newMaxHp > character.maxHitPoints -> {
+                        val hpIncrease = newMaxHp - character.maxHitPoints
+                        (character.currentHitPoints + hpIncrease).coerceAtMost(newMaxHp)
+                    }
+                    else -> character.currentHitPoints.coerceAtMost(newMaxHp)
                 }
                 onConfirm(
                     Character(
