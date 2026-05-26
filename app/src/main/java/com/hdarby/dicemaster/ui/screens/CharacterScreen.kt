@@ -71,6 +71,7 @@ import com.hdarby.dicemaster.ui.theme.PrimaryGreenDark
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.CharacterClass
 import com.hdarby.dicemaster.domain.model.CharacterItemEntry
+import com.hdarby.dicemaster.domain.model.CharacterRace
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.ConsumableItem
 import com.hdarby.dicemaster.domain.model.Stats
@@ -615,7 +616,8 @@ fun AddEditCharacterDialog(
     onConfirm: (Character) -> Unit
 ) {
     var name by remember { mutableStateOf(character?.name ?: "") }
-    var race by remember { mutableStateOf(character?.race ?: "") }
+    var race by remember { mutableStateOf(character?.race ?: CharacterRace.HUMAN.displayName) }
+    var raceDropdownExpanded by remember { mutableStateOf(false) }
     var armorClass by remember { mutableStateOf(character?.armorClass?.toString() ?: "10") }
     var str by remember { mutableStateOf(character?.stats?.strength?.toString() ?: "10") }
     var strMod by remember { mutableStateOf(character?.stats?.strengthModifier?.toString() ?: "0") }
@@ -644,7 +646,35 @@ fun AddEditCharacterDialog(
                     OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.label_name)) })
                 }
                 item {
-                    OutlinedTextField(value = race, onValueChange = { race = it }, label = { Text(stringResource(R.string.label_race)) })
+                    ExposedDropdownMenuBox(
+                        expanded = raceDropdownExpanded,
+                        onExpandedChange = { raceDropdownExpanded = !raceDropdownExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = race,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(R.string.label_race)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = raceDropdownExpanded) },
+                            modifier = Modifier
+                                .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = raceDropdownExpanded,
+                            onDismissRequest = { raceDropdownExpanded = false }
+                        ) {
+                            CharacterRace.entries.forEach { r ->
+                                DropdownMenuItem(
+                                    text = { Text(r.displayName) },
+                                    onClick = {
+                                        race = r.displayName
+                                        raceDropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
                 item {
                     OutlinedTextField(
