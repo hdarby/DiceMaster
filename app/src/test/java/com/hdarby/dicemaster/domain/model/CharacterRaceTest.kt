@@ -186,4 +186,100 @@ class CharacterRaceTest {
     fun `HUMAN is the default new-character race`() {
         assertEquals("Human", CharacterRace.HUMAN.displayName)
     }
+
+    // ── PHB / extended-set flag tests ────────────────────────────────────────
+
+    @Test
+    fun `PHB top-level races have isPhb true`() {
+        listOf(
+            CharacterRace.DRAGONBORN, CharacterRace.DWARF, CharacterRace.ELF,
+            CharacterRace.GNOME, CharacterRace.HALF_ELF, CharacterRace.HALF_ORC,
+            CharacterRace.HALFLING, CharacterRace.HUMAN, CharacterRace.TIEFLING
+        ).forEach { race ->
+            assertTrue("Expected ${race.displayName} to be PHB", race.isPhb)
+        }
+    }
+
+    @Test
+    fun `PHB subraces have isPhb true`() {
+        listOf(
+            CharacterRace.DROW, CharacterRace.HIGH_ELF, CharacterRace.WOOD_ELF,
+            CharacterRace.HILL_DWARF, CharacterRace.MOUNTAIN_DWARF,
+            CharacterRace.LIGHTFOOT_HALFLING, CharacterRace.STOUT_HALFLING,
+            CharacterRace.FOREST_GNOME, CharacterRace.ROCK_GNOME
+        ).forEach { race ->
+            assertTrue("Expected ${race.displayName} to be PHB", race.isPhb)
+        }
+    }
+
+    @Test
+    fun `extended races have isPhb false`() {
+        listOf(
+            CharacterRace.AARAKOCRA, CharacterRace.GENASI, CharacterRace.AIR_GENASI,
+            CharacterRace.AASIMAR, CharacterRace.GOBLIN, CharacterRace.WARFORGED,
+            CharacterRace.GITH, CharacterRace.GITHYANKI, CharacterRace.DUERGAR,
+            CharacterRace.DEEP_GNOME, CharacterRace.ELADRIN, CharacterRace.SEA_ELF,
+            CharacterRace.ASTRAL_ELF, CharacterRace.FAIRY, CharacterRace.KENDER
+        ).forEach { race ->
+            assertTrue("Expected ${race.displayName} to be non-PHB", !race.isPhb)
+        }
+    }
+
+    @Test
+    fun `phbTopLevelRaces contains exactly the 9 core PHB races`() {
+        val phb = CharacterRace.phbTopLevelRaces
+        assertEquals(9, phb.size)
+        assertTrue(phb.containsAll(listOf(
+            CharacterRace.DRAGONBORN, CharacterRace.DWARF, CharacterRace.ELF,
+            CharacterRace.GNOME, CharacterRace.HALF_ELF, CharacterRace.HALF_ORC,
+            CharacterRace.HALFLING, CharacterRace.HUMAN, CharacterRace.TIEFLING
+        )))
+    }
+
+    @Test
+    fun `phbTopLevelRaces contains no extended races`() {
+        CharacterRace.phbTopLevelRaces.forEach { race ->
+            assertTrue("Expected ${race.displayName} to be PHB in phbTopLevelRaces", race.isPhb)
+        }
+    }
+
+    @Test
+    fun `phbSubracesOf ELF returns exactly the 3 PHB elf subraces`() {
+        val phbElves = CharacterRace.phbSubracesOf(CharacterRace.ELF)
+        assertEquals(3, phbElves.size)
+        assertTrue(phbElves.containsAll(listOf(
+            CharacterRace.DROW, CharacterRace.HIGH_ELF, CharacterRace.WOOD_ELF
+        )))
+    }
+
+    @Test
+    fun `phbSubracesOf DWARF returns exactly the 2 PHB dwarf subraces`() {
+        val phbDwarves = CharacterRace.phbSubracesOf(CharacterRace.DWARF)
+        assertEquals(2, phbDwarves.size)
+        assertTrue(phbDwarves.containsAll(listOf(
+            CharacterRace.HILL_DWARF, CharacterRace.MOUNTAIN_DWARF
+        )))
+    }
+
+    @Test
+    fun `phbSubracesOf GNOME returns exactly the 2 PHB gnome subraces`() {
+        val phbGnomes = CharacterRace.phbSubracesOf(CharacterRace.GNOME)
+        assertEquals(2, phbGnomes.size)
+        assertTrue(phbGnomes.containsAll(listOf(
+            CharacterRace.FOREST_GNOME, CharacterRace.ROCK_GNOME
+        )))
+    }
+
+    @Test
+    fun `phbSubracesOf HUMAN returns empty list`() {
+        assertTrue(CharacterRace.phbSubracesOf(CharacterRace.HUMAN).isEmpty())
+    }
+
+    @Test
+    fun `phbSubracesOf GENASI returns empty list as GENASI is not PHB`() {
+        // GENASI is not a PHB top-level race; its subraces are also non-PHB
+        val phbGenasiSubs = CharacterRace.phbSubracesOf(CharacterRace.GENASI)
+        assertTrue(phbGenasiSubs.isEmpty())
+    }
 }
+

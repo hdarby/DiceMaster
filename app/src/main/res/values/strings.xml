@@ -32,6 +32,7 @@
     <string name="label_name">Name</string>
     <string name="label_race">Race</string>
     <string name="label_subrace">Subrace</string>
+    <string name="label_extended_race_set">Show extended character set (non-PHB races)</string>
     <string name="label_description">Description</string>
     <string name="label_total_quantity">Total Quantity</string>
     <string name="label_stock_quantity">Stock: %1$d</string>

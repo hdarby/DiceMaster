@@ -1,27 +1,27 @@
 package com.hdarby.dicemaster.domain.model
 
-enum class CharacterRace(val displayName: String, val parent: CharacterRace? = null) {
+enum class CharacterRace(val displayName: String, val parent: CharacterRace? = null, val isPhb: Boolean = false) {
     // ── Core Races (Player's Handbook) ──────────────────────────────────────
-    DRAGONBORN("Dragonborn"),
-    DWARF("Dwarf"),
-    ELF("Elf"),
-    GNOME("Gnome"),
-    HALF_ELF("Half-Elf"),
-    HALF_ORC("Half-Orc"),
-    HALFLING("Halfling"),
-    HUMAN("Human"),
-    TIEFLING("Tiefling"),
+    DRAGONBORN("Dragonborn", isPhb = true),
+    DWARF("Dwarf", isPhb = true),
+    ELF("Elf", isPhb = true),
+    GNOME("Gnome", isPhb = true),
+    HALF_ELF("Half-Elf", isPhb = true),
+    HALF_ORC("Half-Orc", isPhb = true),
+    HALFLING("Halfling", isPhb = true),
+    HUMAN("Human", isPhb = true),
+    TIEFLING("Tiefling", isPhb = true),
 
     // ── PHB Subraces ─────────────────────────────────────────────────────────
-    DROW("Drow", ELF),
-    HIGH_ELF("High Elf", ELF),
-    WOOD_ELF("Wood Elf", ELF),
-    HILL_DWARF("Hill Dwarf", DWARF),
-    MOUNTAIN_DWARF("Mountain Dwarf", DWARF),
-    LIGHTFOOT_HALFLING("Lightfoot Halfling", HALFLING),
-    STOUT_HALFLING("Stout Halfling", HALFLING),
-    FOREST_GNOME("Forest Gnome", GNOME),
-    ROCK_GNOME("Rock Gnome", GNOME),
+    DROW("Drow", ELF, isPhb = true),
+    HIGH_ELF("High Elf", ELF, isPhb = true),
+    WOOD_ELF("Wood Elf", ELF, isPhb = true),
+    HILL_DWARF("Hill Dwarf", DWARF, isPhb = true),
+    MOUNTAIN_DWARF("Mountain Dwarf", DWARF, isPhb = true),
+    LIGHTFOOT_HALFLING("Lightfoot Halfling", HALFLING, isPhb = true),
+    STOUT_HALFLING("Stout Halfling", HALFLING, isPhb = true),
+    FOREST_GNOME("Forest Gnome", GNOME, isPhb = true),
+    ROCK_GNOME("Rock Gnome", GNOME, isPhb = true),
 
     // ── Elemental Evil Player's Companion ────────────────────────────────────
     AARAKOCRA("Aarakocra"),
@@ -100,9 +100,16 @@ enum class CharacterRace(val displayName: String, val parent: CharacterRace? = n
         /** All races that appear at the top level of the race picker (no parent). */
         val topLevelRaces: List<CharacterRace> by lazy { entries.filter { it.parent == null } }
 
+        /** Top-level races from the Player's Handbook only. */
+        val phbTopLevelRaces: List<CharacterRace> by lazy { topLevelRaces.filter { it.isPhb } }
+
         /** All subraces that belong to the given parent race. */
         fun subracesOf(parent: CharacterRace): List<CharacterRace> =
             entries.filter { it.parent == parent }
+
+        /** PHB subraces that belong to the given parent race. */
+        fun phbSubracesOf(parent: CharacterRace): List<CharacterRace> =
+            subracesOf(parent).filter { it.isPhb }
 
         /** Find a race by its display name, or null if not found. */
         fun findByDisplayName(displayName: String): CharacterRace? =
@@ -118,3 +125,4 @@ enum class CharacterRace(val displayName: String, val parent: CharacterRace? = n
         }
     }
 }
+

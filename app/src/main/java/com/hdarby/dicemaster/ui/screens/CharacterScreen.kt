@@ -618,6 +618,9 @@ fun AddEditCharacterDialog(
     var name by remember { mutableStateOf(character?.name ?: "") }
     val existingRace = remember { character?.race?.let { CharacterRace.findByDisplayName(it) } }
     val initialRaceGroup = remember { existingRace?.parent ?: existingRace ?: CharacterRace.HUMAN }
+    // If the existing race is non-PHB, start with extended mode enabled
+    val initialExtendedMode = remember { existingRace?.isPhb == false }
+    var useExtendedRaces by remember { mutableStateOf(initialExtendedMode) }
     var selectedRaceGroup by remember { mutableStateOf(initialRaceGroup) }
     var selectedSubrace by remember {
         mutableStateOf(
@@ -655,6 +658,39 @@ fun AddEditCharacterDialog(
                     OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.label_name)) })
                 }
                 item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(
+                            checked = useExtendedRaces,
+                            onCheckedChange = { checked ->
+                                useExtendedRaces = checked
+                                // If switching back to PHB-only and current selection is non-PHB, reset to Human
+                                if (!checked && !selectedRaceGroup.isPhb) {
+                                    selectedRaceGroup = CharacterRace.HUMAN
+                                    selectedSubrace = CharacterRace.subracesOf(CharacterRace.HUMAN).firstOrNull()
+                                } else if (!checked) {
+                                    // Re-filter subraces to PHB only for the current group
+                                    val phbSubs = CharacterRace.phbSubracesOf(selectedRaceGroup)
+                                    if (selectedSubrace != null && selectedSubrace?.isPhb == false) {
+                                        selectedSubrace = phbSubs.firstOrNull()
+                                    }
+                                }
+                            }
+                        )
+                        Text(
+                            text = stringResource(R.string.label_extended_race_set),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+                item {
+                    val availableRaceGroups = if (useExtendedRaces) {
+                        CharacterRace.topLevelRaces
+                    } else {
+                        CharacterRace.phbTopLevelRaces
+                    }
                     ExposedDropdownMenuBox(
                         expanded = raceGroupDropdownExpanded,
                         onExpandedChange = { raceGroupDropdownExpanded = !raceGroupDropdownExpanded }
@@ -673,7 +709,7 @@ fun AddEditCharacterDialog(
                             expanded = raceGroupDropdownExpanded,
                             onDismissRequest = { raceGroupDropdownExpanded = false }
                         ) {
-                            CharacterRace.topLevelRaces.forEach { r ->
+                            availableRaceGroups.forEach { r ->
                                 DropdownMenuItem(
                                     text = { Text(r.displayName) },
                                     onClick = {
@@ -686,7 +722,11 @@ fun AddEditCharacterDialog(
                         }
                     }
                 }
-                val subraces = CharacterRace.subracesOf(selectedRaceGroup)
+                val subraces = if (useExtendedRaces) {
+                    CharacterRace.subracesOf(selectedRaceGroup)
+                } else {
+                    CharacterRace.phbSubracesOf(selectedRaceGroup)
+                }
                 if (subraces.isNotEmpty()) {
                     item {
                         ExposedDropdownMenuBox(
