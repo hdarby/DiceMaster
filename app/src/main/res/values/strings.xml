@@ -155,4 +155,5 @@
     <!-- Armor Class -->
     <string name="label_armor_class">Armor Class</string>
     <string name="label_ac_value">AC %1$d</string>
+    <string name="label_no_characters_available">No characters available. Add characters in the Characters screen first.</string>
 </resources>

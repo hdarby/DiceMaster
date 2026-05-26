@@ -77,7 +77,7 @@ class DiceMasterDatabaseTest {
 
     @Test
     fun insertAndGetWeapon() = runTest {
-        val weapon = WeaponEntity(id = 1, name = "Greataxe", type = "Heavy", damageDice = "1d12", damageType = "Slashing", modifier = 2)
+        val weapon = WeaponEntity(id = 1, name = "Greataxe", type = "Heavy", damageDice = "1d12", damageType = "Slashing", damageModifier = 2)
         weaponDao.insertWeapon(weapon)
         
         val allWeapons = weaponDao.getAllWeapons().first()
@@ -87,19 +87,19 @@ class DiceMasterDatabaseTest {
 
     @Test
     fun updateWeapon() = runTest {
-        val weapon = WeaponEntity(id = 1, name = "Greataxe", type = "Heavy", damageDice = "1d12", damageType = "Slashing", modifier = 2)
+        val weapon = WeaponEntity(id = 1, name = "Greataxe", type = "Heavy", damageDice = "1d12", damageType = "Slashing", damageModifier = 2)
         weaponDao.insertWeapon(weapon)
         
-        val updatedWeapon = weapon.copy(modifier = 5)
+        val updatedWeapon = weapon.copy(damageModifier = 5)
         weaponDao.updateWeapon(updatedWeapon)
         
         val allWeapons = weaponDao.getAllWeapons().first()
-        assertEquals(5, allWeapons[0].modifier)
+        assertEquals(5, allWeapons[0].damageModifier)
     }
 
     @Test
     fun deleteWeapon() = runTest {
-        val weapon = WeaponEntity(id = 1, name = "Greataxe", type = "Heavy", damageDice = "1d12", damageType = "Slashing", modifier = 2)
+        val weapon = WeaponEntity(id = 1, name = "Greataxe", type = "Heavy", damageDice = "1d12", damageType = "Slashing", damageModifier = 2)
         weaponDao.insertWeapon(weapon)
         
         weaponDao.deleteWeapon(weapon)
@@ -111,22 +111,22 @@ class DiceMasterDatabaseTest {
     @Test
     fun assignAndUnassignWeapon() = runTest {
         val character = CharacterEntity(id = 1, name = "Grog", race = "Goliath", strength = 20, dexterity = 12, constitution = 18, intelligence = 6, wisdom = 10, charisma = 8)
-        val weapon = WeaponEntity(id = 1, name = "Greataxe", type = "Heavy", damageDice = "1d12", damageType = "Slashing", modifier = 2)
-        
+        val weapon = WeaponEntity(id = 1, name = "Greataxe", type = "Heavy", damageDice = "1d12", damageType = "Slashing", damageModifier = 2)
+
         characterDao.insertCharacter(character)
         weaponDao.insertWeapon(weapon)
         
         // Assign
-        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 1))
-        
+        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 1, weaponId = 1))
+
         val charactersWithWeapons = characterDao.getCharactersWithWeapons().first()
         assertEquals(1, charactersWithWeapons.size)
         assertEquals(1, charactersWithWeapons[0].weapons.size)
         assertEquals("Greataxe", charactersWithWeapons[0].weapons[0].name)
         
         // Unassign
-        weaponDao.deleteCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 1))
-        
+        weaponDao.deleteCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 1, weaponId = 1))
+
         val charactersAfterUnassign = characterDao.getCharactersWithWeapons().first()
         assertEquals(1, charactersAfterUnassign.size)
         assertTrue(charactersAfterUnassign[0].weapons.isEmpty())
@@ -136,21 +136,21 @@ class DiceMasterDatabaseTest {
     fun manyToManyIntegrity() = runTest {
         val char1 = CharacterEntity(id = 1, name = "Char 1", race = "Human", strength = 10, dexterity = 10, constitution = 10, intelligence = 10, wisdom = 10, charisma = 10)
         val char2 = CharacterEntity(id = 2, name = "Char 2", race = "Elf", strength = 10, dexterity = 10, constitution = 10, intelligence = 10, wisdom = 10, charisma = 10)
-        val weapon1 = WeaponEntity(id = 1, name = "Weapon 1", type = "Type 1", damageDice = "1d4", damageType = "Type 1", modifier = 0)
-        val weapon2 = WeaponEntity(id = 2, name = "Weapon 2", type = "Type 2", damageDice = "1d6", damageType = "Type 2", modifier = 0)
-        
+        val weapon1 = WeaponEntity(id = 1, name = "Weapon 1", type = "Type 1", damageDice = "1d4", damageType = "Type 1", damageModifier = 0)
+        val weapon2 = WeaponEntity(id = 2, name = "Weapon 2", type = "Type 2", damageDice = "1d6", damageType = "Type 2", damageModifier = 0)
+
         characterDao.insertCharacter(char1)
         characterDao.insertCharacter(char2)
         weaponDao.insertWeapon(weapon1)
         weaponDao.insertWeapon(weapon2)
         
         // char1 has both weapons
-        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 1))
-        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 2))
-        
+        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 1, weaponId = 1))
+        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 1, weaponId = 2))
+
         // weapon1 is held by both characters
-        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(2, 1))
-        
+        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 2, weaponId = 1))
+
         val result = characterDao.getCharactersWithWeapons().first()
         
         val char1Result = result.find { it.character.id == 1L }!!

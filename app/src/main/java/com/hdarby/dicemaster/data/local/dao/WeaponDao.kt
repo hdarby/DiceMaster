@@ -9,6 +9,7 @@ import androidx.room.Update
 import com.hdarby.dicemaster.data.local.entity.CharacterWeaponAssignment
 import com.hdarby.dicemaster.data.local.entity.CharacterWeaponCrossRef
 import com.hdarby.dicemaster.data.local.entity.WeaponEntity
+
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -39,6 +40,13 @@ interface WeaponDao {
 
     @Query("DELETE FROM character_weapon_cross_ref WHERE assignmentId = :assignmentId")
     suspend fun deleteCharacterWeaponCrossRef(assignmentId: Long)
+
+    /** Convenience overload — deletes the cross-ref row matching the given [crossRef]'s characterId and weaponId. */
+    @Query("DELETE FROM character_weapon_cross_ref WHERE characterId = :characterId AND weaponId = :weaponId")
+    suspend fun deleteCharacterWeaponCrossRef(characterId: Long, weaponId: Long)
+
+    suspend fun deleteCharacterWeaponCrossRef(crossRef: CharacterWeaponCrossRef) =
+        deleteCharacterWeaponCrossRef(crossRef.characterId, crossRef.weaponId)
 
     @Query("SELECT COUNT(*) FROM character_weapon_cross_ref WHERE weaponId = :weaponId")
     suspend fun getWeaponAssignmentCount(weaponId: Long): Int

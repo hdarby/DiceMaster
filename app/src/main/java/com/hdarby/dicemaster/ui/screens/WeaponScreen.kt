@@ -1,5 +1,6 @@
 package com.hdarby.dicemaster.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -34,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -53,6 +56,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.hdarby.dicemaster.R
+import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.DamageDice
 import com.hdarby.dicemaster.domain.model.DamageType
 import com.hdarby.dicemaster.domain.model.UserRole
@@ -165,7 +169,8 @@ fun WeaponCard(
     weapon: Weapon,
     isDungeonMaster: Boolean = true,
     onEdit: (Weapon) -> Unit,
-    onDelete: (Weapon) -> Unit
+    onDelete: (Weapon) -> Unit,
+    onAssign: (Weapon) -> Unit = {}
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -204,6 +209,9 @@ fun WeaponCard(
                 }
                 if (isDungeonMaster) {
                     Row {
+                        IconButton(onClick = { onAssign(weapon) }) {
+                            Icon(Icons.Default.PersonAdd, contentDescription = stringResource(R.string.content_desc_assign))
+                        }
                         IconButton(onClick = { onEdit(weapon) }) {
                             Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.content_desc_edit))
                         }
@@ -382,6 +390,44 @@ fun AddEditWeaponDialog(
                 Text(stringResource(R.string.button_confirm))
             }
         },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.button_cancel))
+            }
+        }
+    )
+}
+
+/**
+ * Dialog that lets the user pick which [Character] to assign [weapon] to.
+ * [onConfirm] receives the chosen character's id.
+ */
+@Composable
+fun AssignWeaponDialog(
+    weapon: Weapon,
+    characters: List<Character>,
+    onDismiss: () -> Unit,
+    onConfirm: (Long) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.title_assign_weapon, weapon.name)) },
+        text = {
+            if (characters.isEmpty()) {
+                Text(stringResource(R.string.label_no_characters_available))
+            } else {
+                LazyColumn {
+                    items(characters) { character ->
+                        ListItem(
+                            headlineContent = { Text(character.name) },
+                            supportingContent = { Text(character.race) },
+                            modifier = Modifier.clickable { onConfirm(character.id) }
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.button_cancel))

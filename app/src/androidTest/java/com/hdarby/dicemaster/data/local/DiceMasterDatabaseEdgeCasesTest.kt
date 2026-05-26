@@ -155,8 +155,8 @@ class DiceMasterDatabaseEdgeCasesTest {
         weaponDao.updateWeapon(weapon1.copy(damageModifier = 5))
 
         val all = weaponDao.getAllWeapons().first()
-        assertEquals(5, all.find { it.id == 1L }?.modifier)
-        assertEquals(0, all.find { it.id == 2L }?.modifier)
+        assertEquals(5, all.find { it.id == 1L }?.damageModifier)
+        assertEquals(0, all.find { it.id == 2L }?.damageModifier)
     }
 
     // endregion
@@ -169,7 +169,7 @@ class DiceMasterDatabaseEdgeCasesTest {
         val weapon = WeaponEntity(id = 1, name = "TempWeapon", type = "Any", damageDice = "1d4", damageType = "Any", damageModifier = 0)
         characterDao.insertCharacter(character)
         weaponDao.insertWeapon(weapon)
-        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 1))
+        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 1, weaponId = 1))
 
         characterDao.deleteCharacter(character)
 
@@ -186,7 +186,7 @@ class DiceMasterDatabaseEdgeCasesTest {
         val weapon = WeaponEntity(id = 1, name = "DeletedWeapon", type = "Any", damageDice = "1d4", damageType = "Any", damageModifier = 0)
         characterDao.insertCharacter(character)
         weaponDao.insertWeapon(weapon)
-        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 1))
+        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 1, weaponId = 1))
 
         weaponDao.deleteWeapon(weapon)
 
@@ -207,8 +207,8 @@ class DiceMasterDatabaseEdgeCasesTest {
         characterDao.insertCharacter(char1)
         characterDao.insertCharacter(char2)
         weaponDao.insertWeapon(weapon)
-        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 1))
-        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(2, 1))
+        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 1, weaponId = 1))
+        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 2, weaponId = 1))
 
         val result = characterDao.getCharactersWithWeapons().first()
         val c1Weapons = result.find { it.character.id == 1L }!!.weapons
@@ -225,8 +225,8 @@ class DiceMasterDatabaseEdgeCasesTest {
         characterDao.insertCharacter(character)
         weaponDao.insertWeapon(bow)
         weaponDao.insertWeapon(dagger)
-        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 1))
-        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 2))
+        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 1, weaponId = 1))
+        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 1, weaponId = 2))
 
         val result = characterDao.getCharactersWithWeapons().first()
         assertEquals(1, result.size)
@@ -244,10 +244,10 @@ class DiceMasterDatabaseEdgeCasesTest {
         characterDao.insertCharacter(character)
         weaponDao.insertWeapon(sword)
         weaponDao.insertWeapon(shield)
-        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 1))
-        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 2))
+        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 1, weaponId = 1))
+        weaponDao.insertCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 1, weaponId = 2))
 
-        weaponDao.deleteCharacterWeaponCrossRef(CharacterWeaponCrossRef(1, 2))
+        weaponDao.deleteCharacterWeaponCrossRef(CharacterWeaponCrossRef(characterId = 1, weaponId = 2))
 
         val result = characterDao.getCharactersWithWeapons().first()
         assertEquals(1, result.size)

@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.hdarby.dicemaster.R
 import com.hdarby.dicemaster.domain.model.Character
+import com.hdarby.dicemaster.domain.model.CharacterWeaponEntry
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.model.Weapon
@@ -68,7 +69,7 @@ class CharacterScreenTest {
         composeTestRule.setContent {
             DiceMasterTheme {
                 CharacterCard(
-                    characterWithWeapons = CharacterWithWeapons(testCharacter, listOf(testWeapon)),
+                    characterWithWeapons = CharacterWithWeapons(testCharacter, listOf(CharacterWeaponEntry(assignmentId = 0L, weapon = testWeapon))),
                     onEdit = {},
                     onDelete = {}
                 )
@@ -261,7 +262,7 @@ class CharacterScreenTest {
         composeTestRule.setContent {
             DiceMasterTheme {
                 CharacterCard(
-                    characterWithWeapons = CharacterWithWeapons(testCharacter, listOf(testWeapon)),
+                    characterWithWeapons = CharacterWithWeapons(testCharacter, listOf(CharacterWeaponEntry(assignmentId = 0L, weapon = testWeapon))),
                     onEdit = {},
                     onDelete = {},
                     onWeaponClick = {
