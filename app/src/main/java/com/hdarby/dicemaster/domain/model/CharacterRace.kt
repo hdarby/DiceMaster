@@ -1,6 +1,6 @@
 package com.hdarby.dicemaster.domain.model
 
-enum class CharacterRace(val displayName: String) {
+enum class CharacterRace(val displayName: String, val parent: CharacterRace? = null) {
     // ── Core Races (Player's Handbook) ──────────────────────────────────────
     DRAGONBORN("Dragonborn"),
     DWARF("Dwarf"),
@@ -13,23 +13,24 @@ enum class CharacterRace(val displayName: String) {
     TIEFLING("Tiefling"),
 
     // ── PHB Subraces ─────────────────────────────────────────────────────────
-    DROW("Drow"),
-    HIGH_ELF("High Elf"),
-    WOOD_ELF("Wood Elf"),
-    HILL_DWARF("Hill Dwarf"),
-    MOUNTAIN_DWARF("Mountain Dwarf"),
-    LIGHTFOOT_HALFLING("Lightfoot Halfling"),
-    STOUT_HALFLING("Stout Halfling"),
-    FOREST_GNOME("Forest Gnome"),
-    ROCK_GNOME("Rock Gnome"),
+    DROW("Drow", ELF),
+    HIGH_ELF("High Elf", ELF),
+    WOOD_ELF("Wood Elf", ELF),
+    HILL_DWARF("Hill Dwarf", DWARF),
+    MOUNTAIN_DWARF("Mountain Dwarf", DWARF),
+    LIGHTFOOT_HALFLING("Lightfoot Halfling", HALFLING),
+    STOUT_HALFLING("Stout Halfling", HALFLING),
+    FOREST_GNOME("Forest Gnome", GNOME),
+    ROCK_GNOME("Rock Gnome", GNOME),
 
     // ── Elemental Evil Player's Companion ────────────────────────────────────
     AARAKOCRA("Aarakocra"),
-    AIR_GENASI("Air Genasi"),
-    DEEP_GNOME("Deep Gnome"),
-    EARTH_GENASI("Earth Genasi"),
-    FIRE_GENASI("Fire Genasi"),
-    WATER_GENASI("Water Genasi"),
+    GENASI("Genasi"),
+    AIR_GENASI("Air Genasi", GENASI),
+    DEEP_GNOME("Deep Gnome", GNOME),
+    EARTH_GENASI("Earth Genasi", GENASI),
+    FIRE_GENASI("Fire Genasi", GENASI),
+    WATER_GENASI("Water Genasi", GENASI),
 
     // ── Volo's Guide to Monsters ─────────────────────────────────────────────
     AASIMAR("Aasimar"),
@@ -47,12 +48,13 @@ enum class CharacterRace(val displayName: String) {
     YUAN_TI_PUREBLOOD("Yuan-ti Pureblood"),
 
     // ── Mordenkainen's Tome of Foes ──────────────────────────────────────────
-    DUERGAR("Duergar"),
-    ELADRIN("Eladrin"),
-    GITHYANKI("Githyanki"),
-    GITHZERAI("Githzerai"),
-    SEA_ELF("Sea Elf"),
-    SHADAR_KAI("Shadar-kai"),
+    DUERGAR("Duergar", DWARF),
+    ELADRIN("Eladrin", ELF),
+    GITH("Gith"),
+    GITHYANKI("Githyanki", GITH),
+    GITHZERAI("Githzerai", GITH),
+    SEA_ELF("Sea Elf", ELF),
+    SHADAR_KAI("Shadar-kai", ELF),
 
     // ── Eberron: Rising from the Last War ────────────────────────────────────
     CHANGELING("Changeling"),
@@ -84,7 +86,7 @@ enum class CharacterRace(val displayName: String) {
     OWLIN("Owlin"),
 
     // ── Spelljammer: Adventures in Space ─────────────────────────────────────
-    ASTRAL_ELF("Astral Elf"),
+    ASTRAL_ELF("Astral Elf", ELF),
     AUTOGNOME("Autognome"),
     GIFF("Giff"),
     HADOZEE("Hadozee"),
@@ -93,5 +95,26 @@ enum class CharacterRace(val displayName: String) {
 
     // ── Dragonlance: Shadow of the Dragon Queen ───────────────────────────────
     KENDER("Kender");
-}
 
+    companion object {
+        /** All races that appear at the top level of the race picker (no parent). */
+        val topLevelRaces: List<CharacterRace> by lazy { entries.filter { it.parent == null } }
+
+        /** All subraces that belong to the given parent race. */
+        fun subracesOf(parent: CharacterRace): List<CharacterRace> =
+            entries.filter { it.parent == parent }
+
+        /** Find a race by its display name, or null if not found. */
+        fun findByDisplayName(displayName: String): CharacterRace? =
+            entries.find { it.displayName == displayName }
+
+        /**
+         * Given a stored race display-name string, return the top-level group race.
+         * E.g. "High Elf" → ELF, "Human" → HUMAN, unknown → null.
+         */
+        fun topLevelRaceFor(raceDisplayName: String?): CharacterRace? {
+            val race = findByDisplayName(raceDisplayName ?: return null) ?: return null
+            return race.parent ?: race
+        }
+    }
+}

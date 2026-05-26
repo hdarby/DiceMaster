@@ -2,14 +2,15 @@ package com.hdarby.dicemaster.domain.model
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CharacterRaceTest {
 
     @Test
-    fun `enum has exactly 67 entries`() {
-        assertEquals(67, CharacterRace.entries.size)
+    fun `enum has exactly 69 entries`() {
+        assertEquals(69, CharacterRace.entries.size)
     }
 
     @Test
@@ -58,32 +59,131 @@ class CharacterRaceTest {
         assertEquals("Rock Gnome", CharacterRace.ROCK_GNOME.displayName)
     }
 
+    // ── Hierarchy / parent-child tests ───────────────────────────────────────
+
     @Test
-    fun `supplemental races are present with correct display names`() {
-        assertEquals("Goliath", CharacterRace.GOLIATH.displayName)
-        assertEquals("Aasimar", CharacterRace.AASIMAR.displayName)
-        assertEquals("Warforged", CharacterRace.WARFORGED.displayName)
-        assertEquals("Githyanki", CharacterRace.GITHYANKI.displayName)
-        assertEquals("Githzerai", CharacterRace.GITHZERAI.displayName)
-        assertEquals("Yuan-ti Pureblood", CharacterRace.YUAN_TI_PUREBLOOD.displayName)
-        assertEquals("Shadar-kai", CharacterRace.SHADAR_KAI.displayName)
-        assertEquals("Plasmoid", CharacterRace.PLASMOID.displayName)
-        assertEquals("Astral Elf", CharacterRace.ASTRAL_ELF.displayName)
-        assertEquals("Kender", CharacterRace.KENDER.displayName)
+    fun `standalone races have no parent`() {
+        listOf(
+            CharacterRace.HUMAN, CharacterRace.DRAGONBORN, CharacterRace.HALF_ELF,
+            CharacterRace.HALF_ORC, CharacterRace.TIEFLING, CharacterRace.GOLIATH,
+            CharacterRace.WARFORGED, CharacterRace.GENASI, CharacterRace.GITH
+        ).forEach { race ->
+            assertNull("Expected ${race.displayName} to have no parent", race.parent)
+        }
     }
 
     @Test
-    fun `entries can be found by displayName`() {
-        val found = CharacterRace.entries.find { it.displayName == "Goliath" }
-        assertNotNull(found)
-        assertEquals(CharacterRace.GOLIATH, found)
+    fun `elf subraces have ELF as parent`() {
+        listOf(
+            CharacterRace.HIGH_ELF, CharacterRace.WOOD_ELF, CharacterRace.DROW,
+            CharacterRace.SEA_ELF, CharacterRace.ELADRIN, CharacterRace.SHADAR_KAI,
+            CharacterRace.ASTRAL_ELF
+        ).forEach { subrace ->
+            assertEquals(
+                "Expected ${subrace.displayName} parent to be Elf",
+                CharacterRace.ELF, subrace.parent
+            )
+        }
+    }
+
+    @Test
+    fun `dwarf subraces have DWARF as parent`() {
+        listOf(CharacterRace.HILL_DWARF, CharacterRace.MOUNTAIN_DWARF, CharacterRace.DUERGAR)
+            .forEach { subrace ->
+                assertEquals(CharacterRace.DWARF, subrace.parent)
+            }
+    }
+
+    @Test
+    fun `gnome subraces have GNOME as parent`() {
+        listOf(CharacterRace.FOREST_GNOME, CharacterRace.ROCK_GNOME, CharacterRace.DEEP_GNOME)
+            .forEach { subrace ->
+                assertEquals(CharacterRace.GNOME, subrace.parent)
+            }
+    }
+
+    @Test
+    fun `halfling subraces have HALFLING as parent`() {
+        listOf(CharacterRace.LIGHTFOOT_HALFLING, CharacterRace.STOUT_HALFLING)
+            .forEach { subrace ->
+                assertEquals(CharacterRace.HALFLING, subrace.parent)
+            }
+    }
+
+    @Test
+    fun `genasi subraces have GENASI as parent`() {
+        listOf(
+            CharacterRace.AIR_GENASI, CharacterRace.EARTH_GENASI,
+            CharacterRace.FIRE_GENASI, CharacterRace.WATER_GENASI
+        ).forEach { subrace ->
+            assertEquals(CharacterRace.GENASI, subrace.parent)
+        }
+    }
+
+    @Test
+    fun `gith subraces have GITH as parent`() {
+        listOf(CharacterRace.GITHYANKI, CharacterRace.GITHZERAI).forEach { subrace ->
+            assertEquals(CharacterRace.GITH, subrace.parent)
+        }
+    }
+
+    @Test
+    fun `topLevelRaces contains no subraces`() {
+        CharacterRace.topLevelRaces.forEach { race ->
+            assertNull(
+                "Expected ${race.displayName} in topLevelRaces to have no parent",
+                race.parent
+            )
+        }
+    }
+
+    @Test
+    fun `subracesOf ELF returns all 7 elf varieties`() {
+        val elfSubraces = CharacterRace.subracesOf(CharacterRace.ELF)
+        assertEquals(7, elfSubraces.size)
+        assertTrue(elfSubraces.contains(CharacterRace.HIGH_ELF))
+        assertTrue(elfSubraces.contains(CharacterRace.WOOD_ELF))
+        assertTrue(elfSubraces.contains(CharacterRace.DROW))
+        assertTrue(elfSubraces.contains(CharacterRace.SEA_ELF))
+        assertTrue(elfSubraces.contains(CharacterRace.ELADRIN))
+        assertTrue(elfSubraces.contains(CharacterRace.SHADAR_KAI))
+        assertTrue(elfSubraces.contains(CharacterRace.ASTRAL_ELF))
+    }
+
+    @Test
+    fun `subracesOf HUMAN returns empty list`() {
+        assertTrue(CharacterRace.subracesOf(CharacterRace.HUMAN).isEmpty())
+    }
+
+    @Test
+    fun `findByDisplayName returns correct entry`() {
+        assertEquals(CharacterRace.GOLIATH, CharacterRace.findByDisplayName("Goliath"))
+        assertEquals(CharacterRace.HIGH_ELF, CharacterRace.findByDisplayName("High Elf"))
+        assertNull(CharacterRace.findByDisplayName("Unknown Race"))
+    }
+
+    @Test
+    fun `topLevelRaceFor resolves subrace to its parent`() {
+        assertEquals(CharacterRace.ELF, CharacterRace.topLevelRaceFor("High Elf"))
+        assertEquals(CharacterRace.DWARF, CharacterRace.topLevelRaceFor("Hill Dwarf"))
+        assertEquals(CharacterRace.GENASI, CharacterRace.topLevelRaceFor("Fire Genasi"))
+        assertEquals(CharacterRace.GITH, CharacterRace.topLevelRaceFor("Githyanki"))
+    }
+
+    @Test
+    fun `topLevelRaceFor returns self for standalone race`() {
+        assertEquals(CharacterRace.HUMAN, CharacterRace.topLevelRaceFor("Human"))
+        assertEquals(CharacterRace.GOLIATH, CharacterRace.topLevelRaceFor("Goliath"))
+    }
+
+    @Test
+    fun `topLevelRaceFor returns null for unknown or null input`() {
+        assertNull(CharacterRace.topLevelRaceFor(null))
+        assertNull(CharacterRace.topLevelRaceFor("Hobbit"))
     }
 
     @Test
     fun `HUMAN is the default new-character race`() {
-        // The dialog defaults to CharacterRace.HUMAN.displayName for new characters
         assertEquals("Human", CharacterRace.HUMAN.displayName)
     }
 }
-
-

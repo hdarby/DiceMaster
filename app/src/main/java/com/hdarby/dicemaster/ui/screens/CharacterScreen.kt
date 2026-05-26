@@ -616,8 +616,17 @@ fun AddEditCharacterDialog(
     onConfirm: (Character) -> Unit
 ) {
     var name by remember { mutableStateOf(character?.name ?: "") }
-    var race by remember { mutableStateOf(character?.race ?: CharacterRace.HUMAN.displayName) }
-    var raceDropdownExpanded by remember { mutableStateOf(false) }
+    val existingRace = remember { character?.race?.let { CharacterRace.findByDisplayName(it) } }
+    val initialRaceGroup = remember { existingRace?.parent ?: existingRace ?: CharacterRace.HUMAN }
+    var selectedRaceGroup by remember { mutableStateOf(initialRaceGroup) }
+    var selectedSubrace by remember {
+        mutableStateOf(
+            existingRace?.takeIf { it.parent != null }
+                ?: CharacterRace.subracesOf(initialRaceGroup).firstOrNull()
+        )
+    }
+    var raceGroupDropdownExpanded by remember { mutableStateOf(false) }
+    var subraceDropdownExpanded by remember { mutableStateOf(false) }
     var armorClass by remember { mutableStateOf(character?.armorClass?.toString() ?: "10") }
     var str by remember { mutableStateOf(character?.stats?.strength?.toString() ?: "10") }
     var strMod by remember { mutableStateOf(character?.stats?.strengthModifier?.toString() ?: "0") }
@@ -647,31 +656,66 @@ fun AddEditCharacterDialog(
                 }
                 item {
                     ExposedDropdownMenuBox(
-                        expanded = raceDropdownExpanded,
-                        onExpandedChange = { raceDropdownExpanded = !raceDropdownExpanded }
+                        expanded = raceGroupDropdownExpanded,
+                        onExpandedChange = { raceGroupDropdownExpanded = !raceGroupDropdownExpanded }
                     ) {
                         OutlinedTextField(
-                            value = race,
+                            value = selectedRaceGroup.displayName,
                             onValueChange = {},
                             readOnly = true,
                             label = { Text(stringResource(R.string.label_race)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = raceDropdownExpanded) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = raceGroupDropdownExpanded) },
                             modifier = Modifier
                                 .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
                                 .fillMaxWidth()
                         )
                         ExposedDropdownMenu(
-                            expanded = raceDropdownExpanded,
-                            onDismissRequest = { raceDropdownExpanded = false }
+                            expanded = raceGroupDropdownExpanded,
+                            onDismissRequest = { raceGroupDropdownExpanded = false }
                         ) {
-                            CharacterRace.entries.forEach { r ->
+                            CharacterRace.topLevelRaces.forEach { r ->
                                 DropdownMenuItem(
                                     text = { Text(r.displayName) },
                                     onClick = {
-                                        race = r.displayName
-                                        raceDropdownExpanded = false
+                                        selectedRaceGroup = r
+                                        selectedSubrace = CharacterRace.subracesOf(r).firstOrNull()
+                                        raceGroupDropdownExpanded = false
                                     }
                                 )
+                            }
+                        }
+                    }
+                }
+                val subraces = CharacterRace.subracesOf(selectedRaceGroup)
+                if (subraces.isNotEmpty()) {
+                    item {
+                        ExposedDropdownMenuBox(
+                            expanded = subraceDropdownExpanded,
+                            onExpandedChange = { subraceDropdownExpanded = !subraceDropdownExpanded }
+                        ) {
+                            OutlinedTextField(
+                                value = (selectedSubrace ?: subraces.first()).displayName,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text(stringResource(R.string.label_subrace)) },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = subraceDropdownExpanded) },
+                                modifier = Modifier
+                                    .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
+                                    .fillMaxWidth()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = subraceDropdownExpanded,
+                                onDismissRequest = { subraceDropdownExpanded = false }
+                            ) {
+                                subraces.forEach { r ->
+                                    DropdownMenuItem(
+                                        text = { Text(r.displayName) },
+                                        onClick = {
+                                            selectedSubrace = r
+                                            subraceDropdownExpanded = false
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -799,7 +843,10 @@ fun AddEditCharacterDialog(
                     Character(
                         id = character?.id ?: 0,
                         name = name,
-                        race = race,
+                        race = CharacterRace.subracesOf(selectedRaceGroup).let { sub ->
+                            if (sub.isEmpty()) selectedRaceGroup.displayName
+                            else (selectedSubrace ?: sub.first()).displayName
+                        },
                         characterClass = selectedClass,
                         stats = stats,
                         armorClass = armorClass.toIntOrNull()?.coerceAtLeast(0) ?: 10,
