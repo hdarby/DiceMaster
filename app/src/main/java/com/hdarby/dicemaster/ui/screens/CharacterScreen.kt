@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.HeartBroken
 import androidx.compose.material.icons.filled.RemoveCircleOutline
@@ -76,6 +78,8 @@ import com.hdarby.dicemaster.domain.model.CharacterItemEntry
 import com.hdarby.dicemaster.domain.model.CharacterRace
 import com.hdarby.dicemaster.domain.model.CharacterWithWeapons
 import com.hdarby.dicemaster.domain.model.ConsumableItem
+import com.hdarby.dicemaster.domain.model.Proficiency
+import com.hdarby.dicemaster.domain.model.ProficiencyCategory
 import com.hdarby.dicemaster.domain.model.Stats
 import com.hdarby.dicemaster.domain.model.UserRole
 import com.hdarby.dicemaster.domain.model.Weapon
@@ -464,6 +468,64 @@ fun CharacterCard(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // ── Proficiencies section ─────────────────────────────────────────
+            var showProficiencies by remember { mutableStateOf(false) }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showProficiencies = !showProficiencies },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.label_proficiencies_section),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Icon(
+                    imageVector = if (showProficiencies) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (showProficiencies)
+                        stringResource(R.string.content_desc_collapse_proficiencies)
+                    else
+                        stringResource(R.string.content_desc_expand_proficiencies),
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+            }
+            if (showProficiencies) {
+                if (character.proficiencies.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.label_proficiencies_none),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Column(
+                        modifier = Modifier.padding(top = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        ProficiencyCategory.entries.forEach { category ->
+                            val categoryProficiencies = character.proficiencies
+                                .filter { it.category == category }
+                            if (categoryProficiencies.isNotEmpty()) {
+                                Text(
+                                    text = category.displayName,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = categoryProficiencies.joinToString { it.displayName },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -659,6 +721,8 @@ fun AddEditCharacterDialog(
     var maxHp by remember { mutableStateOf(character?.maxHitPoints?.toString() ?: "10") }
     var selectedClass by remember { mutableStateOf(character?.characterClass) }
     var classDropdownExpanded by remember { mutableStateOf(false) }
+    var selectedProficiencies by remember { mutableStateOf(character?.proficiencies ?: emptySet<Proficiency>()) }
+    var showProficienciesSection by remember { mutableStateOf(false) }
     var showClassRequiredError by remember { mutableStateOf(false) }
 
     val isValidInput = { it: String -> it.isEmpty() || it == "-" || it.toIntOrNull() != null }
@@ -885,6 +949,75 @@ fun AddEditCharacterDialog(
                         OutlinedTextField(value = chaMod, onValueChange = { if (isValidInput(it)) chaMod = it }, label = { Text(stringResource(R.string.label_stat_mod)) }, modifier = Modifier.weight(1f), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                     }
                 }
+
+                // ── Proficiencies collapsible section ────────────────────────
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showProficienciesSection = !showProficienciesSection }
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.label_proficiencies_section),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Icon(
+                            imageVector = if (showProficienciesSection) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = if (showProficienciesSection)
+                                stringResource(R.string.content_desc_collapse_proficiencies)
+                            else
+                                stringResource(R.string.content_desc_expand_proficiencies)
+                        )
+                    }
+                }
+                if (showProficienciesSection) {
+                    ProficiencyCategory.entries.forEach { category ->
+                        item {
+                            Text(
+                                text = category.displayName,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
+                            )
+                        }
+                        Proficiency.byCategory(category).forEach { proficiency ->
+                            item {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            selectedProficiencies = if (proficiency in selectedProficiencies) {
+                                                selectedProficiencies - proficiency
+                                            } else {
+                                                selectedProficiencies + proficiency
+                                            }
+                                        }
+                                ) {
+                                    Checkbox(
+                                        checked = proficiency in selectedProficiencies,
+                                        onCheckedChange = { checked ->
+                                            selectedProficiencies = if (checked) {
+                                                selectedProficiencies + proficiency
+                                            } else {
+                                                selectedProficiencies - proficiency
+                                            }
+                                        }
+                                    )
+                                    Text(
+                                        text = proficiency.displayName,
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
@@ -924,7 +1057,8 @@ fun AddEditCharacterDialog(
                         maxHitPoints = newMaxHp,
                         currentHitPoints = newCurrentHp,
                         deathSaveFailures = character?.deathSaveFailures ?: 0,
-                        isDead = character?.isDead ?: false
+                        isDead = character?.isDead ?: false,
+                        proficiencies = selectedProficiencies
                     )
                 )
             }) {

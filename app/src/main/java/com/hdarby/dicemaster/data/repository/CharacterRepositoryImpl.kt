@@ -9,6 +9,9 @@ import com.hdarby.dicemaster.data.remote.WeaponRemoteDataSource
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.CharacterClass
 import com.hdarby.dicemaster.domain.model.CharacterWeaponEntry
+import com.hdarby.dicemaster.domain.model.Proficiency
+import com.hdarby.dicemaster.domain.model.toCommaSeparated
+import com.hdarby.dicemaster.domain.model.toProficiencySet
 import com.hdarby.dicemaster.domain.model.DamageDice
 import com.hdarby.dicemaster.domain.model.DamageType
 import com.hdarby.dicemaster.domain.model.WeaponType
@@ -121,7 +124,8 @@ class CharacterRepositoryImpl(
         maxHitPoints = maxHitPoints,
         currentHitPoints = currentHitPoints,
         deathSaveFailures = deathSaveFailures,
-        isDead = isDead
+        isDead = isDead,
+        proficiencies = proficiencies.toProficiencySet()
     )
 
     private fun Character.toEntity() = CharacterEntity(
@@ -138,7 +142,8 @@ class CharacterRepositoryImpl(
         maxHitPoints = maxHitPoints,
         currentHitPoints = currentHitPoints,
         deathSaveFailures = deathSaveFailures,
-        isDead = isDead
+        isDead = isDead,
+        proficiencies = proficiencies.toCommaSeparated()
     )
 
     private fun com.hdarby.dicemaster.data.local.entity.WeaponEntity.toDomain() = Weapon(

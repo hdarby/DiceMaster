@@ -7,6 +7,7 @@ import com.hdarby.dicemaster.data.local.entity.CharacterEntity
 import com.hdarby.dicemaster.data.local.entity.CharacterWeaponAssignment
 import com.hdarby.dicemaster.data.local.entity.WeaponEntity
 import com.hdarby.dicemaster.domain.model.Character
+import com.hdarby.dicemaster.domain.model.Proficiency
 import com.hdarby.dicemaster.domain.model.Stats
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -15,6 +16,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CharacterRepositoryImplTest {
@@ -143,5 +145,81 @@ class CharacterRepositoryImplTest {
         repository.unassignWeaponFromCharacter(assignmentId = 5L)
 
         coVerify { weaponDao.deleteCharacterWeaponCrossRef(5L) }
+    }
+
+    // ── Proficiency mapping ───────────────────────────────────────────────────
+
+    @Test
+    fun `getAllCharacters maps proficiencies from comma-separated string to set`() = runTest {
+        val entityWithProficiencies = characterEntity.copy(
+            proficiencies = "ACROBATICS,STEALTH,LIGHT_ARMOR"
+        )
+        every { characterDao.getAllCharacters() } returns flowOf(listOf(entityWithProficiencies))
+
+        repository.getAllCharacters().test {
+            val result = awaitItem()
+            val expected = setOf(Proficiency.ACROBATICS, Proficiency.STEALTH, Proficiency.LIGHT_ARMOR)
+            assertEquals(expected, result[0].proficiencies)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `getAllCharacters with empty proficiencies string maps to empty set`() = runTest {
+        val entityNoProficiencies = characterEntity.copy(proficiencies = "")
+        every { characterDao.getAllCharacters() } returns flowOf(listOf(entityNoProficiencies))
+
+        repository.getAllCharacters().test {
+            val result = awaitItem()
+            assertTrue(result[0].proficiencies.isEmpty())
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `getAllCharacters silently ignores unknown proficiency values`() = runTest {
+        val entityBadData = characterEntity.copy(proficiencies = "ACROBATICS,TOTALLY_MADE_UP,STEALTH")
+        every { characterDao.getAllCharacters() } returns flowOf(listOf(entityBadData))
+
+        repository.getAllCharacters().test {
+            val result = awaitItem()
+            assertEquals(setOf(Proficiency.ACROBATICS, Proficiency.STEALTH), result[0].proficiencies)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `addCharacter serialises proficiencies to comma-separated string in entity`() = runTest {
+        val characterWithProficiencies = character.copy(
+            proficiencies = setOf(Proficiency.ARCANA, Proficiency.HISTORY)
+        )
+        coEvery { characterDao.insertCharacter(any()) } returns 1L
+
+        repository.addCharacter(characterWithProficiencies)
+
+        coVerify {
+            characterDao.insertCharacter(match { entity ->
+                val parts = entity.proficiencies.split(",").toSet()
+                parts == setOf("ARCANA", "HISTORY")
+            })
+        }
+    }
+
+    @Test
+    fun `updateCharacter preserves full proficiency set through round-trip`() = runTest {
+        val allProficiencies = Proficiency.entries.toSet()
+        val characterAllProficiencies = character.copy(proficiencies = allProficiencies)
+        coEvery { characterDao.updateCharacter(any()) } returns Unit
+
+        repository.updateCharacter(characterAllProficiencies)
+
+        coVerify {
+            characterDao.updateCharacter(match { entity ->
+                val deserialised = entity.proficiencies.split(",")
+                    .map { Proficiency.valueOf(it.trim()) }
+                    .toSet()
+                deserialised == allProficiencies
+            })
+        }
     }
 }

@@ -4,6 +4,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.hdarby.dicemaster.domain.model.Character
 import com.hdarby.dicemaster.domain.model.CharacterClass
 import com.hdarby.dicemaster.domain.model.Stats
+import com.hdarby.dicemaster.domain.model.toCommaSeparated
+import com.hdarby.dicemaster.domain.model.toProficiencySet
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -35,7 +37,8 @@ class FirestoreCharacterDataSource(
             FIELD_MAX_HIT_POINTS to character.maxHitPoints,
             FIELD_CURRENT_HIT_POINTS to character.currentHitPoints,
             FIELD_DEATH_SAVE_FAILURES to character.deathSaveFailures,
-            FIELD_IS_DEAD to character.isDead
+            FIELD_IS_DEAD to character.isDead,
+            FIELD_PROFICIENCIES to character.proficiencies.toCommaSeparated()
         )
         charactersCollection(sessionId).document(character.id.toString()).set(data).await()
     }
@@ -87,7 +90,8 @@ class FirestoreCharacterDataSource(
             maxHitPoints = getLong(FIELD_MAX_HIT_POINTS)?.toInt() ?: 10,
             currentHitPoints = getLong(FIELD_CURRENT_HIT_POINTS)?.toInt() ?: 10,
             deathSaveFailures = getLong(FIELD_DEATH_SAVE_FAILURES)?.toInt() ?: 0,
-            isDead = getBoolean(FIELD_IS_DEAD) ?: false
+            isDead = getBoolean(FIELD_IS_DEAD) ?: false,
+            proficiencies = (getString(FIELD_PROFICIENCIES) ?: "").toProficiencySet()
         )
     }
 
@@ -115,8 +119,6 @@ class FirestoreCharacterDataSource(
         private const val FIELD_CURRENT_HIT_POINTS = "currentHitPoints"
         private const val FIELD_DEATH_SAVE_FAILURES = "deathSaveFailures"
         private const val FIELD_IS_DEAD = "isDead"
+        private const val FIELD_PROFICIENCIES = "proficiencies"
     }
 }
-
-
-

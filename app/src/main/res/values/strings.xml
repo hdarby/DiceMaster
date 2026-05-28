@@ -158,4 +158,10 @@
     <!-- Armor Class -->
     <string name="label_armor_class">Armor Class</string>
     <string name="label_no_characters_available">No characters available. Add characters in the Characters screen first.</string>
+
+    <!-- Proficiencies -->
+    <string name="label_proficiencies_section">Proficiencies</string>
+    <string name="label_proficiencies_none">None selected</string>
+    <string name="content_desc_expand_proficiencies">Expand proficiencies</string>
+    <string name="content_desc_collapse_proficiencies">Collapse proficiencies</string>
 </resources>

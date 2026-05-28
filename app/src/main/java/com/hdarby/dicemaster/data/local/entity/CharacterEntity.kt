@@ -26,5 +26,6 @@ data class CharacterEntity(
     val deathSaveFailures: Int = 0,
     val isDead: Boolean = false,
     val characterClass: String? = null,
-    val level: Int = 1
+    val level: Int = 1,
+    val proficiencies: String = ""
 )

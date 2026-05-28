@@ -10,6 +10,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.QuerySnapshot
 import com.hdarby.dicemaster.domain.model.Character
+import com.hdarby.dicemaster.domain.model.Proficiency
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -148,6 +149,38 @@ class FirestoreCharacterDataSourceTest {
         }
     }
 
+    @Test
+    fun `observeCharacters maps proficiencies comma-separated string to set`() = runTest {
+        val docWithProficiencies = buildCharacterDocSnapshot().apply {
+            every { getString("proficiencies") } returns "ACROBATICS,STEALTH"
+        }
+        val querySnapshot = mockk<QuerySnapshot>()
+        every { querySnapshot.documents } returns listOf(docWithProficiencies)
+        triggerSnapshotListener(querySnapshot, error = null)
+
+        dataSource.observeCharacters(SESSION_ID).test {
+            val result = awaitItem()
+            assertEquals(setOf(Proficiency.ACROBATICS, Proficiency.STEALTH), result[0].proficiencies)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `upsertCharacter writes proficiencies as comma-separated enum names`() = runTest {
+        val dataSlot = io.mockk.slot<Any>()
+        every { characterDocument.set(capture(dataSlot)) } returns voidTask()
+        val characterWithProficiencies = character.copy(
+            proficiencies = setOf(Proficiency.ARCANA, Proficiency.COMMON)
+        )
+
+        dataSource.upsertCharacter(SESSION_ID, characterWithProficiencies)
+
+        @Suppress("UNCHECKED_CAST")
+        val written = dataSlot.captured as Map<String, Any?>
+        val proficiencyParts = (written["proficiencies"] as String).split(",").toSet()
+        assertEquals(setOf("ARCANA", "COMMON"), proficiencyParts)
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     /** Configures the mock so that [addSnapshotListener] immediately fires with the given args. */
@@ -184,6 +217,7 @@ class FirestoreCharacterDataSourceTest {
         every { getLong("currentHitPoints") } returns 80L
         every { getLong("deathSaveFailures") } returns 0L
         every { getBoolean("isDead") } returns false
+        every { getString("proficiencies") } returns ""
     }
 
     private fun buildTestCharacter() = Character(
@@ -202,6 +236,9 @@ class FirestoreCharacterDataSourceTest {
         currentHitPoints = 80
     )
 }
+
+
+
 
 
 

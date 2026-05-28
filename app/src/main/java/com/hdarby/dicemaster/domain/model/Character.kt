@@ -11,7 +11,8 @@ data class Character(
     val maxHitPoints: Int = 10,
     val currentHitPoints: Int = maxHitPoints,
     val deathSaveFailures: Int = 0,
-    val isDead: Boolean = false
+    val isDead: Boolean = false,
+    val proficiencies: Set<Proficiency> = emptySet()
 )
 
 data class Stats(
