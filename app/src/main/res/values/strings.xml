@@ -146,7 +146,10 @@
     <!-- Character Class -->
     <string name="label_character_class">Class</string>
     <string name="label_no_class">No class selected</string>
-    <string name="label_class_hit_die">%1$s · %2$s</string>
+    <string name="label_class_hit_die">%1$s  %2$s</string>
+    <string name="error_class_required_title">Class Required</string>
+    <string name="error_class_required_message">Please select a character class before creating this character.</string>
+    <string name="button_ok">OK</string>
 
     <!-- Level -->
     <string name="label_level">Level %1$d</string>
@@ -154,6 +157,5 @@
 
     <!-- Armor Class -->
     <string name="label_armor_class">Armor Class</string>
-    <string name="label_ac_value">AC %1$d</string>
     <string name="label_no_characters_available">No characters available. Add characters in the Characters screen first.</string>
 </resources>

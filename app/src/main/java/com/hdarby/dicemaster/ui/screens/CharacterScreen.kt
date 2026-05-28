@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.HeartBroken
 import androidx.compose.material.icons.filled.RemoveCircleOutline
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -297,19 +299,30 @@ fun CharacterCard(
                             color = MaterialTheme.colorScheme.secondaryContainer,
                             tonalElevation = 2.dp
                         ) {
-                            Text(
-                                text = stringResource(R.string.label_ac_value, character.armorClass),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp),
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Shield,
+                                    contentDescription = stringResource(R.string.label_armor_class),
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = character.armorClass.toString(),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
                         }
                     }
                     Text(text = character.race, style = MaterialTheme.typography.bodyMedium)
-                    character.characterClass?.let { cls ->
+                    if (character.characterClass != null) {
                         Text(
-                            text = stringResource(R.string.label_class_hit_die, cls.displayName, cls.hitDieLabel),
+                            text = stringResource(R.string.label_class_hit_die, character.characterClass.displayName, character.characterClass.hitDieLabel),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.secondary
                         )
@@ -646,8 +659,22 @@ fun AddEditCharacterDialog(
     var maxHp by remember { mutableStateOf(character?.maxHitPoints?.toString() ?: "10") }
     var selectedClass by remember { mutableStateOf(character?.characterClass) }
     var classDropdownExpanded by remember { mutableStateOf(false) }
+    var showClassRequiredError by remember { mutableStateOf(false) }
 
     val isValidInput = { it: String -> it.isEmpty() || it == "-" || it.toIntOrNull() != null }
+
+    if (showClassRequiredError) {
+        AlertDialog(
+            onDismissRequest = { showClassRequiredError = false },
+            title = { Text(stringResource(R.string.error_class_required_title)) },
+            text = { Text(stringResource(R.string.error_class_required_message)) },
+            confirmButton = {
+                Button(onClick = { showClassRequiredError = false }) {
+                    Text(stringResource(R.string.button_ok))
+                }
+            }
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -862,6 +889,10 @@ fun AddEditCharacterDialog(
         },
         confirmButton = {
             Button(onClick = {
+                if (character == null && selectedClass == null) {
+                    showClassRequiredError = true
+                    return@Button
+                }
                 val stats = Stats(
                     strength = str.toIntOrNull() ?: 10, strengthModifier = strMod.toIntOrNull() ?: 0,
                     dexterity = dex.toIntOrNull() ?: 10, dexterityModifier = dexMod.toIntOrNull() ?: 0,
